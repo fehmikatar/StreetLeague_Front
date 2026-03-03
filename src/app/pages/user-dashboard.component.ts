@@ -1,0 +1,191 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { LucideAngularModule, Trophy, MapPin, Calendar, Activity, Users, TrendingUp, Clock, Star, ArrowRight, Bell, Target } from 'lucide-angular';
+
+@Component({
+    selector: 'app-user-dashboard',
+    standalone: true,
+    imports: [CommonModule, RouterModule, LucideAngularModule],
+    template: `
+    <div class="min-h-screen bg-background p-4 md:p-6">
+      <div class="max-w-7xl mx-auto">
+        <!-- Welcome Header -->
+        <div class="mb-8">
+          <h1 class="mb-2">Bienvenue, <span class="text-primary">{{ userName }}</span> 👋</h1>
+          <p class="text-muted-foreground">Voici un aperçu de votre activité sportive</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+          <a routerLink="/app/booking" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="CalendarIcon" class="w-6 h-6 text-primary"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Réserver</div><div class="text-sm text-muted-foreground">Un terrain</div></div>
+            </div>
+          </a>
+          <a routerLink="/app/matches" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="TrophyIcon" class="w-6 h-6 text-accent"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Matchs</div><div class="text-sm text-muted-foreground">Voir tout</div></div>
+            </div>
+          </a>
+          <a routerLink="/app/team" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="UsersIcon" class="w-6 h-6 text-primary"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Équipe</div><div class="text-sm text-muted-foreground">Gérer</div></div>
+            </div>
+          </a>
+          <a routerLink="/app/performance" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="ActivityIcon" class="w-6 h-6 text-accent"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Stats</div><div class="text-sm text-muted-foreground">Voir mes performances</div></div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+          <div *ngFor="let stat of stats" class="bg-card rounded-2xl p-6 border border-border">
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <lucide-icon [img]="stat.icon" class="w-6 h-6 text-primary"></lucide-icon>
+              </div>
+              <span class="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-lg">{{ stat.trend }}</span>
+            </div>
+            <div class="text-3xl font-bold mb-1">{{ stat.value }}</div>
+            <div class="text-sm text-muted-foreground">{{ stat.label }}</div>
+          </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid lg:grid-cols-3 gap-6">
+          <!-- Upcoming Matches -->
+          <div class="lg:col-span-2">
+            <div class="bg-card rounded-2xl p-6 border border-border">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="flex items-center gap-2">
+                  <lucide-icon [img]="CalendarIcon" class="w-5 h-5 text-primary"></lucide-icon>
+                  Prochains matchs
+                </h3>
+                <a routerLink="/app/matches" class="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
+                  Voir tout <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
+                </a>
+              </div>
+              <div class="space-y-4">
+                <a *ngFor="let match of upcomingMatches" [routerLink]="['/app/matches', match.id]" class="block bg-muted/50 rounded-xl p-4 hover:bg-muted transition-all group">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-full">{{ match.type }}</span>
+                        <h4 class="font-semibold group-hover:text-primary transition-colors">{{ match.title }}</h4>
+                      </div>
+                      <div class="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div class="flex items-center gap-1"><lucide-icon [img]="MapPinIcon" class="w-4 h-4"></lucide-icon><span>{{ match.location }}</span></div>
+                        <div class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon><span>{{ match.time }}</span></div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-semibold">{{ formatDate(match.date) }}</div>
+                    </div>
+                  </div>
+                </a>
+                <a routerLink="/app/booking" class="block bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl p-6 text-center border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all">
+                  <lucide-icon [img]="TargetIcon" class="w-8 h-8 text-primary mx-auto mb-2"></lucide-icon>
+                  <div class="font-semibold mb-1">Organiser un nouveau match</div>
+                  <div class="text-sm text-muted-foreground">Réservez un terrain et invitez votre équipe</div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity & Performance -->
+          <div class="space-y-6">
+            <div class="bg-card rounded-2xl p-6 border border-border">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="flex items-center gap-2"><lucide-icon [img]="BellIcon" class="w-5 h-5 text-accent"></lucide-icon>Activité récente</h3>
+                <a routerLink="/app/notifications" class="text-sm text-primary font-semibold hover:underline">Tout voir</a>
+              </div>
+              <div class="space-y-4">
+                <div *ngFor="let activity of recentActivities" class="flex items-start gap-3">
+                  <div class="w-10 h-10 bg-muted rounded-xl flex items-center justify-center flex-shrink-0">
+                    <lucide-icon [img]="activity.icon" class="w-5 h-5 text-muted-foreground"></lucide-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-semibold text-sm mb-1">{{ activity.action }}</div>
+                    <div class="text-sm text-muted-foreground mb-1 truncate">{{ activity.description }}</div>
+                    <div class="text-xs text-muted-foreground">{{ activity.time }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-2xl p-6 border border-border">
+              <div class="flex items-center gap-2 mb-4">
+                <lucide-icon [img]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
+                <h3>Progression ce mois-ci</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Matchs gagnés</span><span class="font-semibold">75%</span></div>
+                <div class="w-full h-2 bg-muted rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full" style="width:75%"></div></div>
+                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Objectif mensuel</span><span class="font-semibold">8/10</span></div>
+                <div class="w-full h-2 bg-muted rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:80%"></div></div>
+              </div>
+              <a routerLink="/app/performance" class="mt-6 flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary/10 text-primary rounded-xl font-semibold hover:bg-primary/20 transition-all">
+                Voir mes stats complètes <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+})
+export class UserDashboardComponent implements OnInit {
+    readonly CalendarIcon = Calendar;
+    readonly TrophyIcon = Trophy;
+    readonly UsersIcon = Users;
+    readonly ActivityIcon = Activity;
+    readonly MapPinIcon = MapPin;
+    readonly ClockIcon = Clock;
+    readonly ArrowRightIcon = ArrowRight;
+    readonly BellIcon = Bell;
+    readonly TargetIcon = Target;
+    readonly TrendingUpIcon = TrendingUp;
+
+    userName = '';
+
+    stats = [
+        { label: 'Matchs joués', value: '24', icon: Trophy, trend: '+12%' },
+        { label: 'Heures de jeu', value: '48h', icon: Clock, trend: '+8%' },
+        { label: 'Terrains visités', value: '12', icon: MapPin, trend: '+3' },
+        { label: 'Note moyenne', value: '4.8', icon: Star, trend: '+0.2' },
+    ];
+
+    upcomingMatches = [
+        { id: 1, title: 'Match de Football', location: 'Terrain Parc Central', date: '2026-02-10', time: '18:00', type: 'Football' },
+        { id: 2, title: 'Match de Basketball', location: 'Court Premium', date: '2026-02-12', time: '20:00', type: 'Basketball' },
+    ];
+
+    recentActivities = [
+        { id: 1, action: 'Réservation confirmée', description: 'Terrain de foot Parc Central', time: 'Il y a 2 heures', icon: MapPin },
+        { id: 2, action: 'Match terminé', description: 'Victoire 3-2 contre Les Aigles', time: 'Il y a 1 jour', icon: Trophy },
+        { id: 3, action: 'Nouveau membre', description: 'Sophie Martin a rejoint votre équipe', time: 'Il y a 2 jours', icon: Users },
+    ];
+
+    ngOnInit() {
+        this.userName = localStorage.getItem('user_name') || 'Utilisateur';
+    }
+
+    formatDate(dateStr: string): string {
+        return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    }
+}

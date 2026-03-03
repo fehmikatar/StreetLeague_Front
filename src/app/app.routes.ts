@@ -1,0 +1,107 @@
+import { Routes } from '@angular/router';
+import { PublicLayoutComponent } from './layout/public-layout/public-layout.component';
+import { AppLayoutComponent } from './layout/app-layout/app-layout.component';
+import { authGuard } from './core/guards/auth.guard';
+
+// Public pages
+import { PublicHomePageComponent } from './pages/public/public-home-page.component';
+import { AboutPageComponent } from './pages/public/about-page.component';
+import { ContactPageComponent } from './pages/public/contact-page.component';
+import { BrowsePageComponent } from './pages/public/browse-page.component';
+
+// Auth pages
+import { LoginPageComponent } from './pages/auth/login-page.component';
+import { SignupPageComponent } from './pages/auth/signup-page.component';
+import { PasswordResetPageComponent } from './pages/auth/password-reset-page.component';
+
+// App pages
+import { UserDashboardComponent } from './pages/user-dashboard.component';
+import { HomeComponent } from './pages/home.component';
+import { TeamComponent } from './pages/team.component';
+import { MatchesComponent } from './pages/matches.component';
+import { MatchDetailComponent } from './pages/match-detail.component';
+import { BookingComponent } from './pages/booking.component';
+import { BookingFormComponent } from './pages/booking-form.component';
+import { CommunityComponent } from './pages/community.component';
+import { PerformanceComponent } from './pages/performance.component';
+import { SponsorsComponent } from './pages/sponsors.component';
+import { AdminComponent } from './pages/admin.component';
+import { UserProfileComponent } from './pages/user-profile.component';
+import { NotificationsComponent } from './pages/notifications.component';
+
+// Fields pages
+import { FieldsListComponent } from './pages/fields/fields-list.component';
+import { AddFieldComponent } from './pages/fields/add-field.component';
+import { FieldDetailComponent } from './pages/fields/field-detail.component';
+
+// Healthcare pages
+import { HealthDashboardComponent } from './pages/healthcare/health-dashboard.component';
+import { HealthProfileComponent } from './pages/healthcare/health-profile.component';
+import { MedicalRecordsComponent } from './pages/healthcare/medical-records.component';
+import { AppointmentsComponent } from './pages/healthcare/appointments.component';
+import { DietPlansComponent } from './pages/healthcare/diet-plans.component';
+import { HealthTrendsComponent } from './pages/healthcare/health-trends.component';
+import { HealthAlertsComponent } from './pages/healthcare/health-alerts.component';
+import { ComplianceTrackingComponent } from './pages/healthcare/compliance-tracking.component';
+
+// 404
+import { NotFoundComponent } from './pages/not-found.component';
+
+export const routes: Routes = [
+    // Public Routes (no authentication required)
+    {
+        path: '',
+        component: PublicLayoutComponent,
+        children: [
+            { path: '', component: PublicHomePageComponent },
+            { path: 'about', component: AboutPageComponent },
+            { path: 'contact', component: ContactPageComponent },
+            { path: 'browse', component: BrowsePageComponent },
+        ],
+    },
+
+    // Auth Routes (standalone, no layout)
+    { path: 'auth/login', component: LoginPageComponent },
+    { path: 'auth/signup', component: SignupPageComponent },
+    { path: 'auth/password-reset', component: PasswordResetPageComponent },
+
+    // Authenticated Routes (requires login)
+    {
+        path: 'app',
+        component: AppLayoutComponent,
+        canActivate: [authGuard],
+        children: [
+            { path: '', component: UserDashboardComponent },
+            { path: 'home', component: HomeComponent },
+            { path: 'team', component: TeamComponent },
+            { path: 'matches', component: MatchesComponent },
+            { path: 'matches/:id', component: MatchDetailComponent },
+            { path: 'booking', component: BookingComponent },
+            { path: 'booking-form', component: BookingFormComponent },
+            { path: 'community', component: CommunityComponent },
+            { path: 'performance', component: PerformanceComponent },
+            { path: 'sponsors', component: SponsorsComponent },
+            { path: 'admin', component: AdminComponent },
+            { path: 'user-profile', component: UserProfileComponent },
+            { path: 'notifications', component: NotificationsComponent },
+
+            // Fields Module
+            { path: 'fields', component: FieldsListComponent },
+            { path: 'fields/add', component: AddFieldComponent },
+            { path: 'fields/:id', component: FieldDetailComponent },
+
+            // Healthcare Module
+            { path: 'healthcare', component: HealthDashboardComponent },
+            { path: 'healthcare/profile', component: HealthProfileComponent },
+            { path: 'healthcare/records', component: MedicalRecordsComponent },
+            { path: 'healthcare/appointments', component: AppointmentsComponent },
+            { path: 'healthcare/diet', component: DietPlansComponent },
+            { path: 'healthcare/trends', component: HealthTrendsComponent },
+            { path: 'healthcare/alerts', component: HealthAlertsComponent },
+            { path: 'healthcare/compliance', component: ComplianceTrackingComponent },
+        ],
+    },
+
+    // 404 Not Found
+    { path: '**', component: NotFoundComponent }
+];

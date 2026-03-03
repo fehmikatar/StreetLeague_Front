@@ -1,0 +1,88 @@
+:root {
+    --font-size: 16px;
+
+    /* StreetLeague Custom Colors */
+    --primary-green: #1DB954;
+    --secondary-navy: #0F172A;
+    --accent-orange: #F97316;
+    --bg-light: #F8FAFC;
+    --text-dark: #1E293B;
+    --error-red: #DC2626;
+
+    --background: #F8FAFC;
+    /* Changed to light background */
+    --foreground: #1E293B;
+    /* Changed to dark text */
+    --card: #FFFFFF;
+    --card-foreground: #1E293B;
+    --popover: #FFFFFF;
+    --popover-foreground: #1E293B;
+    --primary: #1DB954;
+    --primary-foreground: #FFFFFF;
+    --secondary: #0F172A;
+    --secondary-foreground: #F8FAFC;
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
+    --accent: #F97316;
+    --accent-foreground: #FFFFFF;
+    --destructive: #DC2626;
+    --destructive-foreground: #FFFFFF;
+    --border: #E2E8F0;
+    --input: #F8FAFC;
+    --input-background: #FFFFFF;
+    --switch-background: #CBD5E1;
+    --font-weight-medium: 600;
+    --font-weight-normal: 400;
+    --ring: #1DB954;
+    --chart-1: #1DB954;
+    --chart-2: #06D6A0;
+    --chart-3: #F26419;
+    --chart-4: #F97316;
+    --chart-5: #DC2626;
+    --radius: 1rem;
+    --sidebar: #0D1B2A;
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #1DB954;
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #1E293B;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: rgba(248, 250, 252, 0.1);
+    --sidebar-ring: #1DB954;
+}
+
+.dark {
+    --background: #0D1B2A;
+    --foreground: #F8FAFC;
+    --card: #1E293B;
+    --card-foreground: #F8FAFC;
+    --popover: #1E293B;
+    --popover-foreground: #F8FAFC;
+    --primary: #1DB954;
+    --primary-foreground: #0F172A;
+    --secondary: #0F172A;
+    --secondary-foreground: #F8FAFC;
+    --muted: #334155;
+    --muted-foreground: #94A3B8;
+    --accent: #F26419;
+    --accent-foreground: #F8FAFC;
+    --destructive: #DC2626;
+    --destructive-foreground: #F8FAFC;
+    --border: rgba(248, 250, 252, 0.1);
+    --input: rgba(248, 250, 252, 0.05);
+    --ring: #1DB954;
+    --font-weight-medium: 600;
+    --font-weight-normal: 400;
+    --chart-1: #1DB954;
+    --chart-2: #06D6A0;
+    --chart-3: #F26419;
+    --chart-4: #F97316;
+    --chart-5: #DC2626;
+    --sidebar: #0D1B2A;
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #1DB954;
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #1E293B;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: rgba(248, 250, 252, 0.1);
+    --sidebar-ring: #1DB954;
+}
