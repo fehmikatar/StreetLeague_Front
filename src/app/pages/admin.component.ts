@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, CheckCircle, XCircle } from 'lucide-angular';
+import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, CheckCircle, XCircle, Package } from 'lucide-angular';
 
 @Component({
     selector: 'app-admin',
@@ -104,10 +104,12 @@ import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, Check
             <div class="bg-card rounded-2xl p-6 border border-border">
               <h3 class="mb-4">Actions rapides</h3>
               <div class="space-y-3">
-                <button (click)="router.navigate(['/app/fields/add'])" class="w-full py-3 text-sm bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">Ajouter un terrain</button>
-                <button (click)="router.navigate(['/app/matches'])" class="w-full py-3 text-sm bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all">Créer un tournoi</button>
-                <button (click)="showToast('Gestion des utilisateurs — bientôt disponible')" class="w-full py-3 text-sm bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-all">Gérer les utilisateurs</button>
-                <button (click)="exportReport()" class="w-full py-3 text-sm border border-border rounded-xl hover:bg-muted transition-all">Exporter les rapports</button>
+                <button (click)="router.navigate(['/app/admin/products'])" class="w-full py-3 text-sm bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all font-semibold shadow-sm text-center">Gestion de la Boutique (Inventaire)</button>
+                <button (click)="router.navigate(['/app/admin/badges/dashboard'])" class="w-full py-3 text-sm bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-all font-semibold">🎖️ Gestion des Badges</button>
+                <button (click)="router.navigate(['/app/admin/performances/dashboard'])" class="w-full py-3 text-sm bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all font-semibold">📊 Performance Tracking</button>
+                <button (click)="router.navigate(['/app/fields/add'])" class="w-full py-3 text-sm bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-semibold">Ajouter un terrain</button>
+                <button (click)="router.navigate(['/app/matches'])" class="w-full py-3 text-sm bg-muted text-foreground font-semibold rounded-xl hover:bg-muted/70 transition-all">Créer un tournoi</button>
+                <button (click)="exportReport()" class="w-full py-3 text-sm border border-border rounded-xl hover:bg-muted transition-all font-semibold">Exporter les rapports</button>
               </div>
             </div>
             <div class="bg-card rounded-2xl p-6 border border-border">

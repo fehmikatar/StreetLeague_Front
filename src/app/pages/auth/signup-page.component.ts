@@ -2,7 +2,8 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { LucideAngularModule, Eye, EyeOff, Mail, Lock, User, AlertCircle, Building2 } from 'lucide-angular';
+import { LucideAngularModule, Eye, EyeOff, Mail, Lock, User, AlertCircle, Building2, X, UserPlus, Loader2 } from 'lucide-angular';
+import { AuthService } from '../../services/auth.service';
 
 type UserType = 'player' | 'owner';
 
@@ -11,161 +12,179 @@ type UserType = 'player' | 'owner';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
   template: `
-    <div class="min-h-screen bg-background flex items-center justify-center p-4 py-12">
-      <div class="w-full max-w-2xl">
-        <div class="mb-4">
-          <a routerLink="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-            Retour
-          </a>
+    <div class="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <!-- Logo/Brand -->
+      <a routerLink="/" class="flex items-center gap-2 mb-8 group">
+        <div class="shadow-lg shadow-primary/20 bg-white p-2 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-all">
+          <img src="/logo.png" alt="StreetLeague" class="h-8 w-auto" />
         </div>
-        <div class="text-center mb-8">
-          <img src="/logo.png" alt="StreetLeague" class="h-50 w-auto mx-auto mb-3" />
-          <p class="text-muted-foreground">Créez votre compte</p>
-        </div>
-        <div class="bg-card rounded-2xl shadow-lg p-8 border border-border">
-          <form (ngSubmit)="handleSubmit()" class="space-y-6">
-            <div *ngIf="error" class="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-2 text-destructive">
-              <lucide-icon [img]="AlertCircleIcon" class="w-5 h-5 flex-shrink-0"></lucide-icon>
-              <p class="text-sm">{{ error }}</p>
-            </div>
-            <!-- User Type -->
-            <div class="space-y-3">
-              <label class="block text-sm font-semibold text-card-foreground">Je suis un(e)</label>
-              <div class="grid grid-cols-2 gap-4">
-                <button type="button" (click)="userType = 'player'" [disabled]="loading"
-                  class="p-4 rounded-lg border-2 transition-all"
-                  [class.border-primary]="userType === 'player'"
-                  [class.bg-primary\/5]="userType === 'player'"
-                  [class.border-border]="userType !== 'player'">
-                  <lucide-icon [img]="UserIcon" class="w-8 h-8 mx-auto mb-2" [class.text-primary]="userType==='player'" [class.text-muted-foreground]="userType!=='player'"></lucide-icon>
-                  <p class="font-semibold" [class.text-primary]="userType==='player'" [class.text-card-foreground]="userType!=='player'">Joueur</p>
-                  <p class="text-xs text-muted-foreground mt-1">Je veux jouer et participer</p>
-                </button>
-                <button type="button" (click)="userType = 'owner'" [disabled]="loading"
-                  class="p-4 rounded-lg border-2 transition-all"
-                  [class.border-primary]="userType === 'owner'"
-                  [class.bg-primary\/5]="userType === 'owner'"
-                  [class.border-border]="userType !== 'owner'">
-                  <lucide-icon [img]="Building2Icon" class="w-8 h-8 mx-auto mb-2" [class.text-primary]="userType==='owner'" [class.text-muted-foreground]="userType!=='owner'"></lucide-icon>
-                  <p class="font-semibold" [class.text-primary]="userType==='owner'" [class.text-card-foreground]="userType!=='owner'">Propriétaire</p>
-                  <p class="text-xs text-muted-foreground mt-1">Je possède un terrain</p>
-                </button>
-              </div>
-            </div>
-            <div class="grid md:grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label for="name" class="block text-sm font-semibold text-card-foreground">Nom complet</label>
-                <div class="relative">
-                  <lucide-icon [img]="UserIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></lucide-icon>
-                  <input id="name" type="text" [(ngModel)]="name" name="name" placeholder="Jean Dupont"
-                    class="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    [disabled]="loading" />
-                </div>
-              </div>
-              <div class="space-y-2">
-                <label for="email" class="block text-sm font-semibold text-card-foreground">Email</label>
-                <div class="relative">
-                  <lucide-icon [img]="MailIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></lucide-icon>
-                  <input id="email" type="email" [(ngModel)]="email" name="email" placeholder="votre.email@exemple.com"
-                    class="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    [disabled]="loading" />
-                </div>
-              </div>
-            </div>
-            <div class="grid md:grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label for="password" class="block text-sm font-semibold text-card-foreground">Mot de passe</label>
-                <div class="relative">
-                  <lucide-icon [img]="LockIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></lucide-icon>
-                  <input id="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" placeholder="••••••••"
-                    class="w-full pl-10 pr-12 py-3 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    [disabled]="loading" />
-                  <button type="button" (click)="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-card-foreground transition-colors">
-                    <lucide-icon [img]="showPassword ? EyeOffIcon : EyeIcon" class="w-5 h-5"></lucide-icon>
-                  </button>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <label for="confirmPassword" class="block text-sm font-semibold text-card-foreground">Confirmer le mot de passe</label>
-                <div class="relative">
-                  <lucide-icon [img]="LockIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></lucide-icon>
-                  <input id="confirmPassword" [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="••••••••"
-                    class="w-full pl-10 pr-12 py-3 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    [disabled]="loading" />
-                  <button type="button" (click)="showConfirmPassword = !showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-card-foreground transition-colors">
-                    <lucide-icon [img]="showConfirmPassword ? EyeOffIcon : EyeIcon" class="w-5 h-5"></lucide-icon>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button type="submit" [disabled]="loading"
-              class="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
-              {{ loading ? 'Création du compte...' : 'Créer mon compte' }}
-            </button>
-          </form>
-          <div class="relative my-6">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border"></div></div>
-            <div class="relative flex justify-center text-sm"><span class="px-4 bg-card text-muted-foreground">ou</span></div>
+        <span class="font-bold text-2xl tracking-tight text-foreground">StreetLeague</span>
+      </a>
+
+      <!-- Signup Card -->
+      <div class="w-full max-w-md bg-card border border-border rounded-2xl shadow-xl overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary"></div>
+        
+        <div class="p-8">
+          <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold mb-2">Rejoindre la ligue ✨</h1>
+            <p class="text-muted-foreground text-sm">Créez votre compte en quelques secondes</p>
           </div>
-          <div class="text-center">
-            <p class="text-sm text-muted-foreground">
-              Vous avez déjà un compte ?
-              <a routerLink="/auth/login" class="text-primary font-semibold hover:text-primary/80 transition-colors">Connectez-vous</a>
+
+          <!-- Alert Note -->
+          <div class="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6 flex items-start gap-3">
+            <lucide-icon [img]="UserPlusIcon" class="w-5 h-5 text-primary shrink-0 mt-0.5"></lucide-icon>
+            <p class="text-sm text-primary/90">
+              Vous avez déjà un compte ? <a routerLink="/auth/login" class="font-bold underline hover:text-primary transition-colors">Connectez-vous</a>
             </p>
           </div>
+
+          <form (ngSubmit)="onSubmit()" #signupForm="ngForm" class="space-y-4">
+            
+            <!-- Type Selector -->
+            <div class="grid grid-cols-2 gap-3 mb-2">
+              <button 
+                type="button"
+                (click)="accountType = 'player'"
+                class="py-2.5 rounded-xl border font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                [ngClass]="accountType === 'player' ? 'bg-primary/10 border-primary text-primary shadow-sm' : 'bg-background border-border text-muted-foreground hover:bg-muted'">
+                Joueur
+              </button>
+              <button 
+                type="button"
+                (click)="accountType = 'manager'"
+                class="py-2.5 rounded-xl border font-semibold text-sm transition-all text-center flex items-center justify-center gap-2"
+                [ngClass]="accountType === 'manager' ? 'bg-accent/10 border-accent text-accent shadow-sm' : 'bg-background border-border text-muted-foreground hover:bg-muted'">
+                Gérant de terrain
+              </button>
+            </div>
+
+            <!-- Nom -->
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-foreground ml-1">Nom complet</label>
+              <div class="relative group">
+                <lucide-icon [img]="UserIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors"></lucide-icon>
+                <input 
+                  type="text" 
+                  name="name"
+                  [(ngModel)]="name"
+                  required
+                  class="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-foreground"
+                  placeholder="Zinédine Zidane"
+                />
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-foreground ml-1">Adresse email</label>
+              <div class="relative group">
+                <lucide-icon [img]="MailIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors"></lucide-icon>
+                <input 
+                  type="email" 
+                  name="email"
+                  [(ngModel)]="email"
+                  required
+                  class="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-foreground"
+                  placeholder="vous@exemple.com"
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="space-y-1.5">
+              <label class="text-sm font-medium text-foreground ml-1">Mot de passe</label>
+              <div class="relative group">
+                <lucide-icon [img]="LockIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors"></lucide-icon>
+                <input 
+                  type="password" 
+                  name="password"
+                  [(ngModel)]="password"
+                  required
+                  class="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-foreground"
+                  placeholder="••••••••"
+                />
+              </div>
+              <p class="text-xs text-muted-foreground ml-1 mt-1">8 caractères minimum conseillés</p>
+            </div>
+
+            <div *ngIf="error" class="text-red-500 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              {{ error }}
+            </div>
+
+            <!-- Submit -->
+            <button 
+              type="submit" 
+              [disabled]="!signupForm.form.valid || loading"
+              class="w-full py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 focus:ring-4 focus:ring-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 shadow-lg shadow-primary/20 mt-2"
+            >
+              <lucide-icon *ngIf="loading" [img]="Loader2Icon" class="w-4 h-4 animate-spin"></lucide-icon>
+              {{ loading ? 'Création en cours...' : 'Créer mon compte' }}
+            </button>
+            <p class="text-center text-xs text-muted-foreground mt-4">
+              En vous inscrivant, vous acceptez nos <a href="#" class="underline hover:text-foreground">Conditions d'utilisation</a>
+            </p>
+          </form>
+
         </div>
-        <p class="text-center mt-6 text-sm text-muted-foreground">
-          En créant un compte, vous acceptez nos
-          <a href="#" class="text-primary hover:underline">Conditions d'utilisation</a> et notre
-          <a href="#" class="text-primary hover:underline">Politique de confidentialité</a>
-        </p>
       </div>
     </div>
   `,
 })
 export class SignupPageComponent {
-  userType: UserType = 'player';
+  accountType: 'player' | 'manager' = 'player';
   name = '';
   email = '';
   password = '';
-  confirmPassword = '';
-  showPassword = false;
-  showConfirmPassword = false;
-  error = '';
   loading = false;
+  error = '';
 
-  readonly EyeIcon = Eye;
-  readonly EyeOffIcon = EyeOff;
+  readonly UserPlusIcon = UserPlus;
   readonly MailIcon = Mail;
   readonly LockIcon = Lock;
   readonly UserIcon = User;
-  readonly AlertCircleIcon = AlertCircle;
-  readonly Building2Icon = Building2;
+  readonly Loader2Icon = Loader2;
 
-  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) { }
 
-  handleSubmit() {
-    this.error = '';
-    if (!this.name || !this.email || !this.password || !this.confirmPassword) {
-      this.error = 'Veuillez remplir tous les champs';
-      return;
-    }
-    if (this.password !== this.confirmPassword) {
-      this.error = 'Les mots de passe ne correspondent pas';
-      return;
-    }
-    if (this.password.length < 8) {
-      this.error = 'Le mot de passe doit contenir au moins 8 caractères';
-      return;
-    }
+  onSubmit() {
     this.loading = true;
-    setTimeout(() => {
-      localStorage.setItem('auth_token', 'mock_token_' + Date.now());
-      localStorage.setItem('user_email', this.email);
-      localStorage.setItem('user_name', this.name);
-      localStorage.setItem('user_type', this.userType);
-      this.router.navigate(['/app']);
-    }, 1000);
+    this.error = '';
+
+    const nameParts = this.name.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : firstName;
+    const backendRole = this.accountType === 'player' ? 'ROLE_PLAYER' : 'ROLE_FIELD_OWNER';
+
+    const payload = { firstName, lastName, email: this.email, password: this.password, role: backendRole };
+    console.log('Sending register payload:', payload);
+
+    this.authService.register(payload).subscribe({
+      next: (res: any) => {
+        // Automatically log them in after a successful register
+        this.authService.login({ email: this.email, password: this.password }).subscribe({
+          next: () => {
+            this.loading = false;
+            // Both player and field owner go to /app/home after registration
+            this.router.navigate(['/app/home']);
+          },
+          error: () => {
+            this.loading = false;
+            // Registered OK but auto-login failed, send to login page
+            this.router.navigate(['/auth/login']);
+          }
+        });
+      },
+      error: (err: any) => {
+        this.loading = false;
+        const msg = this.authService.getErrorMessage(err);
+        console.error('Registration error details:', err.status, msg, err.error);
+        this.error = msg || "Erreur lors de la création du compte. Vérifiez que l'email n'est pas déjà utilisé.";
+      }
+    });
   }
 }

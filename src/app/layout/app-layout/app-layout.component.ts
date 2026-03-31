@@ -4,7 +4,7 @@ import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import {
     LucideAngularModule, Home, Users, Trophy, MapPin,
     MessageSquare, Activity, Gift, Settings, Map,
-    LogOut, Menu, X, Bell, User, Heart
+    LogOut, Menu, X, Bell, User, Heart, ShoppingCart, Swords
 } from 'lucide-angular';
 
 @Component({
@@ -35,44 +35,62 @@ export class AppLayoutComponent implements OnInit {
     readonly BellIcon = Bell;
     readonly UserIcon = User;
     readonly HeartIcon = Heart;
+    readonly ShoppingCartIcon = ShoppingCart;
+    readonly SwordsIcon = Swords;
 
     navItems = [
-        { path: '/app', icon: this.HomeIcon, label: 'Dashboard' },
-        { path: '/app/home', icon: this.HomeIcon, label: 'Home' },
-        { path: '/app/team', icon: this.UsersIcon, label: 'Team' },
-        { path: '/app/matches', icon: this.TrophyIcon, label: 'Matches' },
-        { path: '/app/booking', icon: this.MapPinIcon, label: 'Booking' },
-        { path: '/app/fields', icon: this.MapIcon, label: 'Terrains' },
-        { path: '/app/community', icon: this.MessageSquareIcon, label: 'Community' },
+        { path: '/app', icon: this.HomeIcon, label: 'Dashboard Admin', roles: ['ROLE_ADMIN'] },
+        { path: '/app/admin', icon: this.SettingsIcon, label: 'Admin', roles: ['ROLE_ADMIN'] },
+        { path: '/app/home', icon: this.HomeIcon, label: 'Accueil' },
+        { path: '/app/fields/add', icon: this.MapPinIcon, label: 'Ajouter un Terrain', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
+        { path: '/app/team', icon: this.UsersIcon, label: 'Équipes' },
+        { path: '/app/competitions', icon: this.TrophyIcon, label: 'Compétitions' },
+        { path: '/app/matches', icon: this.SwordsIcon, label: 'Matchs' },
+        { path: '/app/booking', icon: this.MapPinIcon, label: 'Réservation' },
+        { path: '/app/fields', icon: this.MapIcon, label: 'Terrains', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
+        { path: '/app/community', icon: this.MessageSquareIcon, label: 'Communauté' },
         { path: '/app/performance', icon: this.ActivityIcon, label: 'Performance' },
         { path: '/app/healthcare', icon: this.HeartIcon, label: 'Santé' },
-        { path: '/app/sponsors', icon: this.GiftIcon, label: 'Sponsors' },
+        { path: '/app/sponsors', icon: this.GiftIcon, label: 'Sponsors (Boutique)' },
+        { path: '/app/favorites', icon: this.HeartIcon, label: 'Mes Favoris' },
         { path: '/app/user-profile', icon: this.UserIcon, label: 'Mon Profil' },
         { path: '/app/notifications', icon: this.BellIcon, label: 'Notifications' },
-        { path: '/app/admin', icon: this.SettingsIcon, label: 'Admin' },
     ];
+
+    get filteredNavItems() {
+        let currentRole = this.userType;
+        if (currentRole === 'player') currentRole = 'ROLE_PLAYER';
+        if (currentRole === 'manager' || currentRole === 'owner') currentRole = 'ROLE_FIELD_OWNER';
+        if (currentRole === 'admin') currentRole = 'ROLE_ADMIN';
+
+        return this.navItems.filter(item => {
+            if (!item.roles) return true; // Accessible to everyone
+            return item.roles.includes(currentRole);
+        });
+    }
 
     constructor(private router: Router) { }
 
+    get roleLabel(): string {
+        const r = this.userType;
+        if (r === 'ROLE_ADMIN') return 'Administrateur';
+        if (r === 'ROLE_FIELD_OWNER') return 'Gérant de terrain';
+        return 'Joueur';
+    }
+
     ngOnInit() {
-        // Check authentication
         const token = localStorage.getItem('auth_token');
         if (!token) {
             this.router.navigate(['/auth/login']);
             return;
         }
-
-        // Load user data
         this.userName = localStorage.getItem('user_name') || 'Utilisateur';
         this.userEmail = localStorage.getItem('user_email') || '';
-        this.userType = localStorage.getItem('user_type') || 'player';
+        this.userType = localStorage.getItem('user_type') || 'ROLE_PLAYER';
     }
 
     handleLogout() {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_name');
-        localStorage.removeItem('user_email');
-        localStorage.removeItem('user_type');
+        ['auth_token', 'user_name', 'user_email', 'user_type', 'user_id'].forEach(k => localStorage.removeItem(k));
         this.router.navigate(['/auth/login']);
     }
 
@@ -89,6 +107,6 @@ export class AppLayoutComponent implements OnInit {
     }
 
     get isOwner(): boolean {
-        return this.userType === 'owner';
+        return this.userType === 'owner' || this.userType === 'manager' || this.userType === 'ROLE_FIELD_OWNER';
     }
 }

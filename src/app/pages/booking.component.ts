@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, MapPin, Clock, Calendar, DollarSign, Search, Star, Filter, CheckCircle } from 'lucide-angular';
+import { BookingService, Field } from '../services/booking.service';
 
 @Component({
-    selector: 'app-booking',
-    standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
-    template: `
+  selector: 'app-booking',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
+  template: `
     <div class="min-h-screen bg-background p-4 md:p-6">
       <div class="max-w-7xl mx-auto">
         <div class="mb-8">
@@ -60,7 +61,7 @@ import { LucideAngularModule, MapPin, Clock, Calendar, DollarSign, Search, Star,
               <div class="flex gap-4 text-sm text-muted-foreground mb-4">
                 <span class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon>{{ field.hours }}</span>
               </div>
-              <a routerLink="/app/booking-form" class="w-full block text-center py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
+              <a [routerLink]="['/app/booking-form', field.id]" class="w-full block text-center py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
                 Réserver maintenant
               </a>
             </div>
@@ -70,32 +71,32 @@ import { LucideAngularModule, MapPin, Clock, Calendar, DollarSign, Search, Star,
     </div>
   `,
 })
-export class BookingComponent {
-    readonly MapPinIcon = MapPin;
-    readonly ClockIcon = Clock;
-    readonly SearchIcon = Search;
-    readonly StarIcon = Star;
-    readonly CheckCircleIcon = CheckCircle;
+export class BookingComponent implements OnInit {
+  readonly MapPinIcon = MapPin;
+  readonly ClockIcon = Clock;
+  readonly SearchIcon = Search;
+  readonly StarIcon = Star;
+  readonly CheckCircleIcon = CheckCircle;
 
-    search = '';
-    selectedType = 'all';
-    selectedDate = '';
-    sportTypes = ['Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
+  search = '';
+  selectedType = 'all';
+  selectedDate = '';
+  sportTypes = ['Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
 
-    fields = [
-        { id: '1', name: 'Terrain de foot Parc Central', location: 'Paris 15ème', type: 'Football', price: 50, rating: 4.8, reviews: 124, hours: '7h - 23h', available: true },
-        { id: '2', name: 'Court de Basketball Premium', location: 'Lyon 3ème', type: 'Basketball', price: 40, rating: 4.9, reviews: 89, hours: '8h - 22h', available: true },
-        { id: '3', name: 'Tennis Club Elite', location: 'Marseille 8ème', type: 'Tennis', price: 35, rating: 4.7, reviews: 156, hours: '7h - 21h', available: true },
-        { id: '4', name: 'Terrain Multisport City', location: 'Paris 12ème', type: 'Multisport', price: 45, rating: 4.6, reviews: 92, hours: '6h - 23h', available: false },
-        { id: '5', name: 'Stade Football Urban', location: 'Toulouse 1er', type: 'Football', price: 60, rating: 4.9, reviews: 201, hours: '8h - 22h', available: true },
-        { id: '6', name: 'Court Volley Beach', location: 'Nice 6ème', type: 'Volleyball', price: 30, rating: 4.5, reviews: 67, hours: '9h - 20h', available: true },
-    ];
+  fields: Field[] = [];
 
-    get filteredFields() {
-        return this.fields.filter(f => {
-            const matchesSearch = !this.search || f.name.toLowerCase().includes(this.search.toLowerCase()) || f.location.toLowerCase().includes(this.search.toLowerCase());
-            const matchesType = this.selectedType === 'all' || f.type === this.selectedType;
-            return matchesSearch && matchesType;
-        });
-    }
+  constructor(private bookingService: BookingService) { }
+
+  ngOnInit() {
+    this.bookingService.fields$.subscribe(f => this.fields = f);
+  }
+
+  get filteredFields() {
+    return this.fields.filter(f => {
+      const matchesSearch = !this.search || f.name.toLowerCase().includes(this.search.toLowerCase()) || f.location.toLowerCase().includes(this.search.toLowerCase());
+      const matchesType = this.selectedType === 'all' || f.type === this.selectedType;
+      return matchesSearch && matchesType;
+    });
+  }
 }
+

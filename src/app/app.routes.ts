@@ -20,14 +20,23 @@ import { HomeComponent } from './pages/home.component';
 import { TeamComponent } from './pages/team.component';
 import { MatchesComponent } from './pages/matches.component';
 import { MatchDetailComponent } from './pages/match-detail.component';
+import { MatchFormComponent } from './pages/match-form.component';
 import { BookingComponent } from './pages/booking.component';
 import { BookingFormComponent } from './pages/booking-form.component';
 import { CommunityComponent } from './pages/community.component';
 import { PerformanceComponent } from './pages/performance.component';
 import { SponsorsComponent } from './pages/sponsors.component';
+import { ProductDetailComponent } from './pages/product-detail.component';
 import { AdminComponent } from './pages/admin.component';
+import { AdminProductsComponent } from './pages/admin-products.component';
 import { UserProfileComponent } from './pages/user-profile.component';
 import { NotificationsComponent } from './pages/notifications.component';
+import { FavoritesComponent } from './pages/favorites.component';
+
+// Competition pages
+import { CompetitionListComponent } from './pages/competitions/competition-list.component';
+import { CompetitionDetailComponent } from './pages/competitions/competition-detail.component';
+import { CompetitionFormComponent } from './pages/competitions/competition-form.component';
 
 // Fields pages
 import { FieldsListComponent } from './pages/fields/fields-list.component';
@@ -43,6 +52,18 @@ import { DietPlansComponent } from './pages/healthcare/diet-plans.component';
 import { HealthTrendsComponent } from './pages/healthcare/health-trends.component';
 import { HealthAlertsComponent } from './pages/healthcare/health-alerts.component';
 import { ComplianceTrackingComponent } from './pages/healthcare/compliance-tracking.component';
+
+// Badge pages
+import { BadgeDashboardComponent } from './pages/badges/badge-dashboard.component';
+import { BadgeCatalogComponent } from './pages/badges/badge-catalog.component';
+import { BadgeDetailComponent } from './pages/badges/badge-detail.component';
+import { BadgeFormComponent } from './pages/badges/badge-form.component';
+
+// Performance pages
+import { PerformanceDashboardComponent } from './pages/performances/performance-dashboard.component';
+import { PerformanceListComponent } from './pages/performances/performance-list.component';
+import { PerformanceDetailComponent } from './pages/performances/performance-detail.component';
+import { PerformanceFormComponent } from './pages/performances/performance-form.component';
 
 // 404
 import { NotFoundComponent } from './pages/not-found.component';
@@ -75,15 +96,40 @@ export const routes: Routes = [
             { path: 'home', component: HomeComponent },
             { path: 'team', component: TeamComponent },
             { path: 'matches', component: MatchesComponent },
+            { path: 'matches/new', component: MatchFormComponent },
             { path: 'matches/:id', component: MatchDetailComponent },
             { path: 'booking', component: BookingComponent },
-            { path: 'booking-form', component: BookingFormComponent },
+            { path: 'booking-form/:id', component: BookingFormComponent },
             { path: 'community', component: CommunityComponent },
             { path: 'performance', component: PerformanceComponent },
             { path: 'sponsors', component: SponsorsComponent },
+            { path: 'sponsors/:id', component: ProductDetailComponent },
             { path: 'admin', component: AdminComponent },
+            { path: 'admin/products', component: AdminProductsComponent },
+            
+            // Admin - Badge Management (specific routes before parameter-based routes)
+            { path: 'admin/badges/dashboard', component: BadgeDashboardComponent },
+            { path: 'admin/badges/create', component: BadgeFormComponent },
+            { path: 'admin/badges/:id/edit', component: BadgeFormComponent },
+            { path: 'admin/badges/:id', component: BadgeDetailComponent },
+            { path: 'admin/badges', component: BadgeCatalogComponent },
+
+            // Admin - Performance Management (specific routes before parameter-based routes)
+            { path: 'admin/performances/dashboard', component: PerformanceDashboardComponent },
+            { path: 'admin/performances/create', component: PerformanceFormComponent },
+            { path: 'admin/performances/:id/edit', component: PerformanceFormComponent },
+            { path: 'admin/performances/:id', component: PerformanceDetailComponent },
+            { path: 'admin/performances', component: PerformanceListComponent },
+            
             { path: 'user-profile', component: UserProfileComponent },
             { path: 'notifications', component: NotificationsComponent },
+            { path: 'favorites', component: FavoritesComponent },
+
+            // Competitions Module
+            { path: 'competitions', component: CompetitionListComponent },
+            { path: 'competitions/new', component: CompetitionFormComponent },
+            { path: 'competitions/:id', component: CompetitionDetailComponent },
+            { path: 'competitions/:id/edit', component: CompetitionFormComponent },
 
             // Fields Module
             { path: 'fields', component: FieldsListComponent },

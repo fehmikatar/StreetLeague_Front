@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Activity, TrendingUp, Target, Award, BarChart2 } from 'lucide-angular';
+import { LucideAngularModule, Activity, TrendingUp, Target, Award, Loader2, Plus } from 'lucide-angular';
+import { PerformanceService } from '../services/performance.service';
 
 @Component({
     selector: 'app-performance',
@@ -9,73 +10,73 @@ import { LucideAngularModule, Activity, TrendingUp, Target, Award, BarChart2 } f
     template: `
     <div class="min-h-screen bg-background p-4 md:p-6">
       <div class="max-w-7xl mx-auto">
-        <div class="mb-8">
-          <h1 class="mb-2">Performance & Stats</h1>
-          <p class="text-muted-foreground">Suivez votre évolution et atteignez vos objectifs</p>
-        </div>
-
-        <!-- Overview Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div class="bg-card rounded-2xl p-6 border border-border text-center">
-            <div class="text-3xl font-bold text-primary mb-1">156</div>
-            <div class="text-sm text-muted-foreground">Total matchs</div>
-          </div>
-          <div class="bg-card rounded-2xl p-6 border border-border text-center">
-            <div class="text-3xl font-bold text-accent mb-1">89</div>
-            <div class="text-sm text-muted-foreground">Victoires</div>
-          </div>
-          <div class="bg-card rounded-2xl p-6 border border-border text-center">
-            <div class="text-3xl font-bold mb-1" style="color:#06D6A0">57%</div>
-            <div class="text-sm text-muted-foreground">Win Rate</div>
-          </div>
-          <div class="bg-card rounded-2xl p-6 border border-border text-center">
-            <div class="text-3xl font-bold mb-1">4.8★</div>
-            <div class="text-sm text-muted-foreground">Note moyenne</div>
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h1 class="mb-2">Performance & Stats</h1>
+            <p class="text-muted-foreground">Suivez votre évolution et atteignez vos objectifs</p>
           </div>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-8">
-          <!-- Main Stats -->
-          <div class="lg:col-span-2 space-y-6">
-            <!-- Progression -->
+        <!-- Loading -->
+        <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
+          <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
+          Chargement des performances...
+        </div>
+
+        <div *ngIf="!loading">
+          <!-- Overview from backend data -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-card rounded-2xl p-6 border border-border text-center">
+              <div class="text-3xl font-bold text-primary mb-1">{{ totalMatches }}</div>
+              <div class="text-sm text-muted-foreground">Total matchs</div>
+            </div>
+            <div class="bg-card rounded-2xl p-6 border border-border text-center">
+              <div class="text-3xl font-bold text-accent mb-1">{{ totalWins }}</div>
+              <div class="text-sm text-muted-foreground">Victoires</div>
+            </div>
+            <div class="bg-card rounded-2xl p-6 border border-border text-center">
+              <div class="text-3xl font-bold mb-1" style="color:#06D6A0">{{ winRate }}%</div>
+              <div class="text-sm text-muted-foreground">Win Rate</div>
+            </div>
+            <div class="bg-card rounded-2xl p-6 border border-border text-center">
+              <div class="text-3xl font-bold mb-1">{{ performances.length }}</div>
+              <div class="text-sm text-muted-foreground">Sessions</div>
+            </div>
+          </div>
+
+          <!-- Performance Records -->
+          <div *ngIf="performances.length > 0" class="bg-card rounded-2xl p-6 border border-border mb-6">
+            <h3 class="mb-6 flex items-center gap-2">
+              <lucide-icon [img]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
+              Historique des performances
+            </h3>
+            <div class="space-y-4">
+              <div *ngFor="let perf of performances" class="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all">
+                <div>
+                  <div class="font-semibold">{{ perf.sportType || perf.sport || 'Sport' }}</div>
+                  <div class="text-sm text-muted-foreground">{{ formatDate(perf.date || perf.createdAt) }}</div>
+                </div>
+                <div class="flex gap-4 text-sm">
+                  <span class="text-primary font-semibold">{{ perf.score || perf.result }}</span>
+                  <span [ngClass]="(perf.won || perf.result === 'WIN') ? 'text-green-500' : 'text-destructive'" class="font-semibold">
+                    {{ (perf.won || perf.result === 'WIN') ? 'Victoire ✓' : 'Défaite' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="performances.length === 0" class="text-center py-20 text-muted-foreground bg-card rounded-2xl border border-border">
+            <lucide-icon [img]="ActivityIcon" class="w-12 h-12 mx-auto mb-4 opacity-30"></lucide-icon>
+            <p class="font-semibold mb-2">Aucune performance enregistrée</p>
+            <p class="text-sm">Vos statistiques de matchs apparaîtront ici</p>
+          </div>
+
+          <!-- Static metrics (always shown) -->
+          <div class="grid lg:grid-cols-2 gap-6">
             <div class="bg-card rounded-2xl p-6 border border-border">
               <h3 class="mb-6 flex items-center gap-2">
-                <lucide-icon [img]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
-                Progression mensuelle
-              </h3>
-              <div class="space-y-4">
-                <div *ngFor="let metric of metrics">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-sm font-semibold">{{ metric.label }}</span>
-                    <span class="text-sm font-bold">{{ metric.value }}</span>
-                  </div>
-                  <div class="h-3 bg-muted rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all" [style.width]="metric.percent + '%'" [style.background]="metric.color"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sport breakdown -->
-            <div class="bg-card rounded-2xl p-6 border border-border">
-              <h3 class="mb-6">Performance par sport</h3>
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div *ngFor="let sport of sportStats" class="bg-muted/30 rounded-xl p-4 text-center">
-                  <div class="text-3xl mb-2">{{ sport.emoji }}</div>
-                  <div class="font-semibold mb-1">{{ sport.name }}</div>
-                  <div class="text-2xl font-bold text-primary">{{ sport.matches }}</div>
-                  <div class="text-xs text-muted-foreground">matchs</div>
-                  <div class="text-sm font-semibold text-accent mt-2">{{ sport.winRate }}% win</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sidebar -->
-          <div class="space-y-6">
-            <!-- Objectives -->
-            <div class="bg-card rounded-2xl p-6 border border-border">
-              <h3 class="mb-4 flex items-center gap-2">
                 <lucide-icon [img]="TargetIcon" class="w-5 h-5 text-accent"></lucide-icon>
                 Objectifs du mois
               </h3>
@@ -86,13 +87,12 @@ import { LucideAngularModule, Activity, TrendingUp, Target, Award, BarChart2 } f
                     <span class="text-sm font-bold">{{ obj.current }}/{{ obj.target }}</span>
                   </div>
                   <div class="h-2 bg-muted rounded-full overflow-hidden">
-                    <div class="h-full bg-primary rounded-full" [style.width]="(obj.current/obj.target*100) + '%'"></div>
+                    <div class="h-full bg-primary rounded-full transition-all" [style.width]="(obj.current/obj.target*100) + '%'"></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Achievements -->
             <div class="bg-card rounded-2xl p-6 border border-border">
               <h3 class="mb-4 flex items-center gap-2">
                 <lucide-icon [img]="AwardIcon" class="w-5 h-5 text-primary"></lucide-icon>
@@ -114,34 +114,55 @@ import { LucideAngularModule, Activity, TrendingUp, Target, Award, BarChart2 } f
     </div>
   `,
 })
-export class PerformanceComponent {
+export class PerformanceComponent implements OnInit {
     readonly TrendingUpIcon = TrendingUp;
     readonly TargetIcon = Target;
     readonly AwardIcon = Award;
+    readonly ActivityIcon = Activity;
+    readonly Loader2Icon = Loader2;
 
-    metrics = [
-        { label: 'Matchs gagnés', value: '75%', percent: 75, color: 'var(--color-primary)' },
-        { label: 'Objectif mensuel', value: '8/10', percent: 80, color: 'var(--color-accent)' },
-        { label: 'Buts marqués', value: '12/15', percent: 80, color: '#06D6A0' },
-        { label: 'Précision passe', value: '89%', percent: 89, color: 'var(--color-primary)' },
-        { label: 'Endurance', value: '92%', percent: 92, color: 'var(--color-accent)' },
-    ];
-
-    sportStats = [
-        { name: 'Football', emoji: '⚽', matches: 98, winRate: 72 },
-        { name: 'Basketball', emoji: '🏀', matches: 34, winRate: 68 },
-        { name: 'Tennis', emoji: '🎾', matches: 24, winRate: 58 },
-    ];
+    loading = true;
+    performances: any[] = [];
 
     objectives = [
-        { label: 'Matchs joués', current: 8, target: 10 },
-        { label: 'Victoires', current: 6, target: 8 },
-        { label: 'Heures d\'entraînement', current: 12, target: 16 },
+        { label: 'Matchs joués', current: 0, target: 10 },
+        { label: 'Victoires', current: 0, target: 8 },
+        { label: 'Heures d\'entraînement', current: 0, target: 16 },
     ];
 
     achievements = [
-        { icon: '🏆', title: 'Champion du mois', date: 'Fév 2026' },
-        { icon: '⭐', title: 'MVP du match', date: '5 Fév 2026' },
-        { icon: '🔥', title: 'Série de 5 victoires', date: '1 Fév 2026' },
+        { icon: '🏆', title: 'Bienvenue sur StreetLeague', date: 'Aujourd\'hui' },
+        { icon: '⭐', title: 'Premier match réservé', date: 'À venir' },
+        { icon: '🔥', title: 'Série de victoires', date: 'À venir' },
     ];
+
+    constructor(private perfService: PerformanceService) {}
+
+    ngOnInit() {
+        this.perfService.getAll().subscribe({
+            next: (data: any[]) => {
+                this.performances = data;
+                this.updateObjectives();
+                this.loading = false;
+            },
+            error: () => { this.loading = false; }
+        });
+    }
+
+    get totalMatches() { return this.performances.length; }
+    get totalWins() { return this.performances.filter(p => p.won || p.result === 'WIN').length; }
+    get winRate() {
+        if (this.totalMatches === 0) return 0;
+        return Math.round((this.totalWins / this.totalMatches) * 100);
+    }
+
+    updateObjectives() {
+        this.objectives[0].current = Math.min(this.totalMatches, 10);
+        this.objectives[1].current = Math.min(this.totalWins, 8);
+    }
+
+    formatDate(d: string): string {
+        if (!d) return '';
+        return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
 }

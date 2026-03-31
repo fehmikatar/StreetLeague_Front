@@ -3,12 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, MapPin, Calendar, Clock, Save, ArrowLeft } from 'lucide-angular';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
-    selector: 'app-add-field',
-    standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
-    template: `
+  selector: 'app-add-field',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
+  template: `
     <div class="min-h-screen bg-background p-4 md:p-6">
       <div class="max-w-3xl mx-auto">
         <div class="flex items-center gap-4 mb-8">
@@ -67,21 +70,63 @@ import { LucideAngularModule, MapPin, Calendar, Clock, Save, ArrowLeft } from 'l
   `,
 })
 export class AddFieldComponent {
-    readonly ArrowLeftIcon = ArrowLeft;
-    readonly MapPinIcon = MapPin;
-    readonly SaveIcon = Save;
+  readonly ArrowLeftIcon = ArrowLeft;
+  readonly MapPinIcon = MapPin;
+  readonly SaveIcon = Save;
 
-    name = '';
-    type = 'Football';
-    address = '';
-    price = '';
-    capacity = '';
-    description = '';
-    saved = false;
-    sportTypes = ['Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
+  name = '';
+  type = 'Football';
+  address = '';
+  price = '';
+  capacity = '';
+  description = '';
+  saved = false;
+  sportTypes = ['Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
 
-    submit() {
-        this.saved = true;
-        setTimeout(() => { this.saved = false; }, 3000);
+  constructor(private http: HttpClient, private router: Router) { }
+
+  submit() {
+    if (!this.name || !this.address || !this.price || !this.capacity) return;
+
+    const email = localStorage.getItem('user_email');
+    if (!email) {
+      console.error('No email in local storage');
+      return;
     }
+
+    // Fetch user ID first
+    this.http.get<any>(`${environment.apiUrl}/users/email/${email}`).subscribe({
+      next: (user) => {
+        const payload = {
+          fieldOwnerId: user.id,
+          name: this.name,
+          description: this.description || 'Nouveau terrain',
+          address: this.address,
+          location: this.address, // Basic mapping
+          sportType: this.type,
+          capacity: parseInt(this.capacity, 10),
+          hourlyRate: parseFloat(this.price),
+          isAvailable: true
+        };
+
+        this.http.post(`${environment.apiUrl}/sport-spaces`, payload).subscribe({
+          next: (res) => {
+            this.saved = true;
+            setTimeout(() => {
+              this.saved = false;
+              this.router.navigate(['/app/fields']);
+            }, 2000);
+          },
+          error: (err) => {
+            console.error('Error creating field', err);
+            alert('Erreur lors de la création du terrain.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching user', err);
+        alert('Erreur lors de la vérification du profil Gérant.');
+      }
+    });
+  }
 }

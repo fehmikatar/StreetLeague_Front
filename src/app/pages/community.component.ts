@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, Plus, X } from 'lucide-angular';
+import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Plus, X, Loader2 } from 'lucide-angular';
+import { CommunityService } from '../services/community.service';
 
 @Component({
     selector: 'app-community',
@@ -12,7 +13,7 @@ import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, P
       <div class="max-w-7xl mx-auto">
         <div class="flex items-center justify-between mb-8">
           <div>
-            <h1 class="mb-2">Community</h1>
+            <h1 class="mb-2">Communauté</h1>
             <p class="text-muted-foreground">Connectez-vous avec d'autres joueurs</p>
           </div>
           <button (click)="openNewPost()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
@@ -23,7 +24,7 @@ import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, P
 
         <!-- New Post Modal -->
         <div *ngIf="showNewPostModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg">
+          <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-semibold text-foreground">Nouveau Post</h3>
               <button (click)="showNewPostModal = false" class="p-2 hover:bg-muted rounded-lg transition-colors">
@@ -32,16 +33,11 @@ import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, P
             </div>
             <textarea [(ngModel)]="newPostContent" rows="4" placeholder="Partagez quelque chose avec la communauté..."
               class="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none mb-4"></textarea>
-            <div class="flex gap-2 flex-wrap mb-4">
-              <button *ngFor="let tag of availableTags" (click)="selectedTag = tag"
-                class="px-3 py-1 rounded-full text-sm transition-colors"
-                [ngClass]="selectedTag === tag ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary/10'">
-                {{ tag }}
-              </button>
-            </div>
             <div class="flex gap-3 justify-end">
               <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
-              <button (click)="submitPost()" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors">Publier</button>
+              <button (click)="submitPost()" [disabled]="posting" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
+                {{ posting ? 'Publication...' : 'Publier' }}
+              </button>
             </div>
           </div>
         </div>
@@ -49,41 +45,86 @@ import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, P
         <div class="grid lg:grid-cols-3 gap-8">
           <!-- Feed -->
           <div class="lg:col-span-2 space-y-6">
+            <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
+              <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
+              Chargement des posts...
+            </div>
+
+            <div *ngIf="!loading && posts.length === 0" class="text-center py-20 text-muted-foreground">
+              <div class="text-5xl mb-4">💬</div>
+              <p>Aucun post pour le moment. Soyez le premier !</p>
+            </div>
+
             <div *ngFor="let post of posts" class="bg-card rounded-2xl p-6 border border-border">
               <div class="flex items-start gap-4 mb-4">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold">
-                  {{ post.author.substring(0, 2).toUpperCase() }}
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold shrink-0">
+                  {{ getInitials(post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author)) }}
                 </div>
                 <div class="flex-1">
-                  <div class="font-semibold">{{ post.author }}</div>
-                  <div class="text-sm text-muted-foreground">{{ post.time }}</div>
+                  <div class="font-semibold">{{ post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author || 'Utilisateur') }}</div>
+                  <div class="text-sm text-muted-foreground">{{ formatDate(post.createdAt || post.time) }}</div>
                 </div>
-                <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-semibold">{{ post.tag }}</span>
               </div>
-              <p class="text-foreground mb-4">{{ post.content }}</p>
+              <p class="text-foreground mb-4 whitespace-pre-line">{{ post.content }}</p>
+              
+              <!-- Action buttons -->
               <div class="flex items-center gap-6 pt-4 border-t border-border">
                 <button (click)="toggleLike(post)" class="flex items-center gap-2 text-sm transition-colors"
                   [ngClass]="post.liked ? 'text-primary' : 'text-muted-foreground hover:text-primary'">
                   <lucide-icon [name]="HeartIcon" [size]="16"></lucide-icon>
-                  {{ post.likes }}
+                  {{ post.likesCount ?? post.likes ?? 0 }}
                 </button>
                 <button (click)="toggleComments(post)" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
                   <lucide-icon [name]="MessageCircleIcon" [size]="16"></lucide-icon>
-                  {{ post.comments }}
-                </button>
-                <button (click)="sharePost(post)" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                  <lucide-icon [name]="Share2Icon" [size]="16"></lucide-icon>
-                  Partager
+                  {{ post.commentsCount ?? post.comments ?? 0 }}
                 </button>
               </div>
-              <!-- Comment box (toggle) -->
+
+              <!-- Facebook Style Comment section -->
               <div *ngIf="post.showComment" class="mt-4 pt-4 border-t border-border">
-                <div class="flex gap-2">
-                  <input [(ngModel)]="post.commentInput" placeholder="Écrire un commentaire..."
-                    class="flex-1 px-3 py-2 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                  <button (click)="addComment(post)" class="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors">Envoyer</button>
+                
+                <div *ngIf="post.loadingComments" class="flex justify-center py-4">
+                  <lucide-icon [name]="Loader2Icon" [size]="20" class="animate-spin text-muted-foreground"></lucide-icon>
+                </div>
+                
+                <!-- Liste des commentaires -->
+                <div *ngIf="!post.loadingComments" class="space-y-3 mb-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div *ngFor="let comment of post.commentList" class="flex items-start gap-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold shrink-0 text-xs mt-1">
+                      {{ getInitials(comment.authorFirstName ? (comment.authorFirstName + ' ' + comment.authorLastName) : 'Utilisateur') }}
+                    </div>
+                    <div class="flex-1">
+                      <div class="bg-muted px-4 py-2.5 rounded-2xl inline-block max-w-full">
+                        <div class="font-semibold text-xs">{{ comment.authorFirstName }} {{ comment.authorLastName }}</div>
+                        <p class="text-sm text-foreground break-words">{{ comment.content }}</p>
+                      </div>
+                      <div class="text-xs text-muted-foreground ml-2 mt-1">{{ formatDate(comment.createdAt) }}</div>
+                    </div>
+                  </div>
+                  <div *ngIf="post.commentList && post.commentList.length === 0" class="text-sm text-center text-muted-foreground py-2">
+                    Soyez le premier à commenter !
+                  </div>
+                </div>
+
+                <!-- Input area -->
+                <div class="flex gap-2 items-start mt-2">
+                  <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold shrink-0 text-xs">
+                    {{ currentUserInitials }}
+                  </div>
+                  <div class="flex-1 flex gap-2">
+                    <input [(ngModel)]="post.commentInput" placeholder="Écrire un commentaire..."
+                      (keyup.enter)="addComment(post)"
+                      class="flex-1 px-4 py-2 bg-muted border border-border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                    <button (click)="addComment(post)" 
+                      class="w-9 h-9 flex items-center justify-center bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors shrink-0 disabled:opacity-50"
+                      [disabled]="post.addingComment">
+                      <lucide-icon *ngIf="!post.addingComment" [name]="MessageCircleIcon" [size]="16"></lucide-icon>
+                      <lucide-icon *ngIf="post.addingComment" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
+                    </button>
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
 
@@ -92,7 +133,7 @@ import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, P
             <div class="bg-card rounded-2xl p-6 border border-border">
               <h3 class="mb-4">Trending Topics</h3>
               <div class="space-y-3">
-                <div *ngFor="let topic of trending" class="flex items-center gap-3 cursor-pointer hover:bg-muted p-2 rounded-lg transition-colors" (click)="filterByTag(topic.tag)">
+                <div *ngFor="let topic of trending" class="flex items-center gap-3 cursor-pointer hover:bg-muted p-2 rounded-lg transition-colors">
                   <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                     <lucide-icon [name]="TrendingUpIcon" [size]="16" class="text-primary"></lucide-icon>
                   </div>
@@ -103,129 +144,178 @@ import { LucideAngularModule, MessageCircle, Heart, Share2, TrendingUp, Users, P
                 </div>
               </div>
             </div>
-            <div class="bg-card rounded-2xl p-6 border border-border">
-              <h3 class="mb-4">Joueurs actifs</h3>
-              <div class="space-y-3">
-                <div *ngFor="let player of activePlayers" class="flex items-center gap-3">
-                  <div class="relative">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold text-sm">
-                      {{ player.name.substring(0, 2).toUpperCase() }}
-                    </div>
-                    <div *ngIf="player.online" class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-card"></div>
-                  </div>
-                  <div class="flex-1">
-                    <div class="font-semibold text-sm">{{ player.name }}</div>
-                    <div class="text-xs text-muted-foreground">{{ player.sport }}</div>
-                  </div>
-                  <button (click)="followPlayer(player)"
-                    class="text-xs px-3 py-1 rounded-full transition-colors"
-                    [ngClass]="player.followed ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary'">
-                    {{ player.followed ? 'Suivi ✓' : 'Suivre' }}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- Toast -->
       <div *ngIf="toast" class="fixed bottom-6 right-6 bg-card border border-border rounded-xl px-4 py-3 shadow-xl text-sm font-medium text-foreground z-50">
         {{ toast }}
       </div>
     </div>
+
+    <style>
+      .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+    </style>
   `,
 })
-export class CommunityComponent {
+export class CommunityComponent implements OnInit {
     readonly MessageCircleIcon = MessageCircle;
     readonly HeartIcon = Heart;
     readonly Share2Icon = Share2;
     readonly TrendingUpIcon = TrendingUp;
-    readonly UsersIcon = Users;
     readonly PlusIcon = Plus;
     readonly XIcon = X;
+    readonly Loader2Icon = Loader2;
 
     toast: string | null = null;
     showNewPostModal = false;
     newPostContent = '';
-    selectedTag = 'Football';
-    availableTags = ['Football', 'Basketball', 'Tennis', 'Recrutement', 'Général'];
-
-    posts: any[] = [
-        { id: 1, author: 'Alex Rivera', time: 'Il y a 2 heures', content: 'Victoire épique ce soir ! 3-2 contre les Eagles FC. Prêt pour le prochain match 🔥', tag: 'Football', likes: 24, comments: 8, liked: false, showComment: false, commentInput: '' },
-        { id: 2, author: 'Morgan Lee', time: 'Il y a 4 heures', content: 'Qui est chaud pour un match de basket ce weekend ? Court Premium dispo samedi à 15h 🏀', tag: 'Basketball', likes: 15, comments: 12, liked: false, showComment: false, commentInput: '' },
-        { id: 3, author: 'Jordan Chen', time: 'Hier', content: 'Je cherche des joueurs pour compléter l\'équipe. Niveau intermédiaire, ambiance sympa ! Contact en MP.', tag: 'Recrutement', likes: 8, comments: 5, liked: false, showComment: false, commentInput: '' },
-        { id: 4, author: 'Taylor Brooks', time: 'Il y a 2 jours', content: 'PB personnel aujourd\'hui au tennis : 6-2, 6-1. L\'entraînement paye ! 🎾', tag: 'Tennis', likes: 32, comments: 14, liked: true, showComment: false, commentInput: '' },
-    ];
+    loading = true;
+    posting = false;
+    posts: any[] = [];
+    currentUserInitials = 'ME';
 
     trending = [
         { tag: '#football', posts: 234 },
         { tag: '#basketball', posts: 128 },
         { tag: '#recrutement', posts: 89 },
         { tag: '#tournoi2026', posts: 76 },
-        { tag: '#performance', posts: 64 },
     ];
 
-    activePlayers: any[] = [
-        { name: 'Alex Rivera', sport: 'Football', online: true, followed: false },
-        { name: 'Morgan Lee', sport: 'Basketball', online: true, followed: false },
-        { name: 'Casey Kim', sport: 'Tennis', online: false, followed: false },
-        { name: 'Sam Taylor', sport: 'Football', online: true, followed: false },
-    ];
+    constructor(private communityService: CommunityService) {}
+
+    ngOnInit() {
+        this.currentUserInitials = this.getInitials(localStorage.getItem('user_name') || 'Moi');
+        this.loadPosts();
+    }
+
+    loadPosts() {
+        this.communityService.getGlobalPosts().subscribe({
+            next: (data: any) => {
+                this.posts = (data?.content ?? data ?? []).map((p: any) => ({
+                    ...p,
+                    // Parse from backend properties
+                    liked: p.likedByCurrentUser === true || p.isLikedByCurrentUser === true,
+                    showComment: false,
+                    commentInput: '',
+                    commentList: [],
+                    loadingComments: false,
+                    addingComment: false
+                }));
+                this.loading = false;
+            },
+            error: () => { this.loading = false; }
+        });
+    }
 
     toggleLike(post: any) {
+        // Optimistic update
         post.liked = !post.liked;
-        post.likes += post.liked ? 1 : -1;
+        post.likesCount = (post.likesCount ?? 0) + (post.liked ? 1 : -1);
+
+        this.communityService.toggleLike(post.id).subscribe({
+            next: () => {
+                // Done
+            },
+            error: () => {
+                // Revert UI on error
+                post.liked = !post.liked;
+                post.likesCount = (post.likesCount ?? 0) + (post.liked ? 1 : -1);
+                this.showToast('Erreur lors de l\'ajout du like');
+            }
+        });
     }
 
     toggleComments(post: any) {
         post.showComment = !post.showComment;
+        
+        if (post.showComment && (!post.commentList || post.commentList.length === 0)) {
+            post.loadingComments = true;
+            this.communityService.getComments(post.id).subscribe({
+                next: (comments) => {
+                    post.commentList = comments || [];
+                    post.loadingComments = false;
+                },
+                error: () => {
+                    post.loadingComments = false;
+                    this.showToast('Impossible de charger les commentaires');
+                }
+            });
+        }
     }
 
     addComment(post: any) {
-        if (!post.commentInput.trim()) return;
-        post.comments++;
-        post.commentInput = '';
-        post.showComment = false;
-        this.showToast('Commentaire publié ! 💬');
-    }
-
-    sharePost(post: any) {
-        this.showToast(`Post de ${post.author} partagé ! 🔗`);
-    }
-
-    followPlayer(player: any) {
-        player.followed = !player.followed;
-        this.showToast(player.followed ? `Vous suivez ${player.name} ✓` : `Vous ne suivez plus ${player.name}`);
-    }
-
-    filterByTag(tag: string) {
-        this.showToast(`Filtre par ${tag} — bientôt disponible`);
+        if (!post.commentInput?.trim() || post.addingComment) return;
+        
+        const content = post.commentInput;
+        post.addingComment = true;
+        
+        this.communityService.addComment(post.id, { content }).subscribe({
+            next: (newComment) => {
+                post.commentsCount = (post.commentsCount ?? 0) + 1;
+                post.commentInput = '';
+                if (!post.commentList) post.commentList = [];
+                post.commentList.push(newComment);
+                post.addingComment = false;
+            },
+            error: () => {
+                post.addingComment = false;
+                this.showToast('Erreur lors de l\'envoi du commentaire');
+            }
+        });
     }
 
     openNewPost() {
         this.newPostContent = '';
-        this.selectedTag = 'Football';
         this.showNewPostModal = true;
     }
 
     submitPost() {
         if (!this.newPostContent.trim()) return;
-        this.posts.unshift({
-            id: this.posts.length + 1,
-            author: 'Moi',
-            time: 'À l\'instant',
+        this.posting = true;
+        this.communityService.createPost({ 
             content: this.newPostContent,
-            tag: this.selectedTag,
-            likes: 0,
-            comments: 0,
-            liked: false,
-            showComment: false,
-            commentInput: ''
+            postType: 'GENERAL'
+        }).subscribe({
+            next: (post: any) => {
+                this.posts.unshift({ 
+                    ...post, 
+                    liked: false, 
+                    showComment: false, 
+                    commentInput: '',
+                    commentList: [],
+                    loadingComments: false,
+                    addingComment: false
+                });
+                this.showNewPostModal = false;
+                this.newPostContent = '';
+                this.posting = false;
+                this.showToast('Post publié ! 🎉');
+            },
+            error: () => {
+                this.posting = false;
+                this.showToast('Erreur lors de la publication');
+            }
         });
-        this.showNewPostModal = false;
-        this.newPostContent = '';
-        this.showToast('Post publié avec succès ! 🎉');
+    }
+
+    getInitials(name: string): string {
+        if (!name || name.trim() === '') return '?';
+        const parts = name.trim().split(' ').filter(n => n.length > 0);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    formatDate(d: string): string {
+        if (!d) return '';
+        const date = new Date(d);
+        const diffMs = Date.now() - date.getTime();
+        const diffH = Math.floor(diffMs / 3600000);
+        if (diffH < 1) return 'À l\'instant';
+        if (diffH < 24) return `Il y a ${diffH}h`;
+        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
     showToast(msg: string) {

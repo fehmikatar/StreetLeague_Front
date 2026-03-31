@@ -1,15 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { LucideAngularModule, Users, Crown, Shield, Zap, MessageCircle, Calendar, Trophy, Plus } from 'lucide-angular';
+import { FormsModule } from '@angular/forms';
+import { LucideAngularModule, Users, Crown, Shield, Zap, MessageCircle, Calendar, Trophy, Plus, Loader2, X } from 'lucide-angular';
+import { TeamService } from '../services/team.service';
 
 @Component({
   selector: 'app-team',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
   template: `
     <div class="min-h-screen bg-background">
-      <!-- Team Header -->
+      <!-- Header -->
       <div class="relative h-48 overflow-hidden border-b border-border">
         <div class="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-20"></div>
         <div class="absolute inset-0 flex items-center">
@@ -19,11 +21,11 @@ import { LucideAngularModule, Users, Crown, Shield, Zap, MessageCircle, Calendar
                 <lucide-icon [name]="ShieldIcon" [size]="48" class="text-white"></lucide-icon>
               </div>
               <div>
-                <h1 class="mb-2">Thunder Strikers</h1>
+                <h1 class="mb-2">Mes Équipes</h1>
                 <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span class="flex items-center gap-1"><lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon> 6 Members</span>
-                  <span class="flex items-center gap-1"><lucide-icon [name]="TrophyIcon" [size]="16"></lucide-icon> Rank #3</span>
-                  <span class="flex items-center gap-1"><lucide-icon [name]="ZapIcon" [size]="16"></lucide-icon> 2,450 Points</span>
+                  <span class="flex items-center gap-1">
+                    <lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon> {{ teams.length }} Équipe(s)
+                  </span>
                 </div>
               </div>
             </div>
@@ -32,96 +34,127 @@ import { LucideAngularModule, Users, Crown, Shield, Zap, MessageCircle, Calendar
       </div>
 
       <div class="container mx-auto px-4 py-8 max-w-7xl">
-        <!-- Team Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div class="bg-card rounded-2xl p-6 border border-border text-center"><div class="text-3xl font-bold text-primary mb-1">48</div><div class="text-sm text-muted-foreground">Matches Won</div></div>
-          <div class="bg-card rounded-2xl p-6 border border-border text-center"><div class="text-3xl font-bold text-accent mb-1">156</div><div class="text-sm text-muted-foreground">Total Goals</div></div>
-          <div class="bg-card rounded-2xl p-6 border border-border text-center"><div class="text-3xl font-bold text-green-500 mb-1">72%</div><div class="text-sm text-muted-foreground">Win Rate</div></div>
-          <div class="bg-card rounded-2xl p-6 border border-border text-center"><div class="text-3xl font-bold mb-1">4.8</div><div class="text-sm text-muted-foreground">Team Rating</div></div>
+        <div class="flex justify-end mb-6">
+          <button (click)="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
+            <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>
+            Créer une équipe
+          </button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Team Members -->
-          <div class="lg:col-span-2">
-            <div class="bg-card rounded-2xl p-6 border border-border">
-              <div class="flex items-center justify-between mb-6">
-                <h3>Team Members</h3>
-                <button (click)="recruitPlayer()" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">+ Recruit Player</button>
+        <!-- Create Team Modal -->
+        <div *ngIf="showCreateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg shadow-2xl">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-xl font-bold text-foreground">Créer une équipe</h3>
+              <button (click)="showCreateModal = false" class="p-2 hover:bg-muted rounded-lg transition-colors">
+                <lucide-icon [name]="XIcon" [size]="20" class="text-muted-foreground"></lucide-icon>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Nom de l'équipe *</label>
+                <input [(ngModel)]="newTeam.name" placeholder="Ex: Les Aigles"
+                  class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div *ngFor="let member of teamMembers" class="bg-muted/30 rounded-2xl p-5 hover:bg-muted/50 transition-all border border-transparent hover:border-primary/30">
-                  <div class="flex items-start gap-4 mb-4">
-                    <div class="relative">
-                      <div class="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl">
-                        {{ member.avatar }}
-                      </div>
-                      <div class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-card"
-                        [ngClass]="member.status === 'online' ? 'bg-green-500' : 'bg-muted'"></div>
-                    </div>
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-1">
-                        <h4 class="text-base">{{ member.name }}</h4>
-                        <lucide-icon *ngIf="member.role==='Captain'" [name]="CrownIcon" [size]="16" class="text-accent"></lucide-icon>
-                      </div>
-                      <p class="text-sm text-muted-foreground mb-1">{{ member.position }}</p>
-                      <span class="text-xs px-2 py-1 bg-primary/10 text-primary rounded-lg">{{ member.role }}</span>
-                    </div>
-                  </div>
-                  <div class="grid grid-cols-3 gap-2">
-                    <div class="text-center p-2 bg-background/50 rounded-lg"><div class="font-bold text-primary">{{ member.stats.matches }}</div><div class="text-xs text-muted-foreground">Matches</div></div>
-                    <div class="text-center p-2 bg-background/50 rounded-lg"><div class="font-bold text-accent">{{ member.stats.goals }}</div><div class="text-xs text-muted-foreground">Goals</div></div>
-                    <div class="text-center p-2 bg-background/50 rounded-lg"><div class="font-bold text-green-500">{{ member.stats.assists }}</div><div class="text-xs text-muted-foreground">Assists</div></div>
-                  </div>
-                  <div class="flex gap-2 mt-4">
-                    <button (click)="sendMessage(member.name)" class="flex-1 py-2 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">
-                      <lucide-icon [name]="MessageCircleIcon" [size]="16" class="inline mr-1"></lucide-icon>Message
-                    </button>
-                    <button (click)="viewProfile(member)" class="flex-1 py-2 text-sm bg-muted text-foreground rounded-lg hover:bg-muted/70 transition-all">View Profile</button>
-                  </div>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1">Sport *</label>
+                  <select *ngIf="categories.length > 0" [(ngModel)]="newTeam.sport" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option *ngFor="let cat of categories" [value]="cat.nom || cat.name">{{ cat.nom || cat.name }}</option>
+                  </select>
+                  <input *ngIf="categories.length === 0" [(ngModel)]="newTeam.sport" placeholder="Ex: Football"
+                    class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1">Niveau</label>
+                  <select [(ngModel)]="newTeam.level" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="Amateur">Amateur</option>
+                    <option value="Intermédiaire">Intermédiaire</option>
+                    <option value="Avancé">Avancé</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium mb-1">Ville</label>
+                <input [(ngModel)]="newTeam.city" placeholder="Ex: Paris"
+                  class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
+              </div>
+            </div>
+
+            <div class="flex gap-3 justify-end mt-6">
+              <button (click)="showCreateModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="submitTeam()" [disabled]="creating || !newTeam.name || !newTeam.sport" 
+                class="px-5 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2">
+                <lucide-icon *ngIf="creating" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
+                {{ creating ? 'Création...' : 'Créer' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
+          <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
+          Chargement des équipes...
+        </div>
+
+        <!-- Empty -->
+        <div *ngIf="!loading && teams.length === 0" class="text-center py-20 text-muted-foreground">
+          <div class="text-6xl mb-4">⚽</div>
+          <p class="font-semibold mb-2 text-lg">Aucune équipe trouvée</p>
+          <p class="text-sm mb-6">Rejoignez ou créez une équipe pour commencer !</p>
+          <button (click)="openCreateModal()" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
+            Créer une équipe
+          </button>
+        </div>
+
+        <!-- Teams Grid -->
+        <div *ngIf="!loading" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let team of teams" class="bg-card rounded-2xl border border-border hover:border-primary/50 transition-all hover:shadow-xl overflow-hidden">
+            <div class="h-20 bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center">
+              <div class="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                <lucide-icon [name]="ShieldIcon" [size]="32" class="text-white"></lucide-icon>
+              </div>
+            </div>
+            <div class="p-6">
+              <h3 class="mb-1">{{ team.name }}</h3>
+              <p class="text-sm text-muted-foreground mb-3">{{ team.sport || team.sportType }} • {{ team.city || team.location || '' }}</p>
+              <div class="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+                <lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon>
+                {{ team.memberCount || team.members?.length || 0 }} membres
+              </div>
+              <div class="flex gap-2">
+                <button (click)="viewTeam(team)" class="flex-1 py-2 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">Voir l'équipe</button>
+                <button (click)="router.navigate(['/app/booking'])" class="flex-1 py-2 text-sm bg-muted rounded-lg hover:bg-muted/70 transition-all">Réserver</button>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Sidebar -->
-          <div class="space-y-6">
-            <div class="bg-card rounded-2xl p-6 border border-border">
-              <h3 class="mb-6">Upcoming Events</h3>
-              <div class="space-y-4">
-                <div *ngFor="let event of upcomingEvents" class="p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all">
-                  <div class="flex items-start gap-3">
-                    <div class="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <lucide-icon [name]="CalendarIcon" [size]="20" class="text-primary"></lucide-icon>
-                    </div>
-                    <div>
-                      <h4 class="text-sm font-semibold mb-1">{{ event.title }}</h4>
-                      <p class="text-xs text-muted-foreground mb-1">{{ event.date }} • {{ event.time }}</p>
-                      <p class="text-xs text-accent">{{ event.location }}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="bg-card rounded-2xl p-6 border border-border">
-              <h3 class="mb-4">Quick Actions</h3>
-              <div class="space-y-3">
-                <button (click)="router.navigate(['/app/booking'])" class="w-full py-3 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">Schedule Practice</button>
-                <button (click)="router.navigate(['/app/matches'])" class="w-full py-3 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/30">Start Challenge</button>
-                <button (click)="showToast('Team Settings - coming soon!')" class="w-full py-3 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-all">Team Settings</button>
-              </div>
-            </div>
+        <!-- Quick Actions -->
+        <div class="mt-8 bg-card rounded-2xl p-6 border border-border">
+          <h3 class="mb-4">Actions Rapides</h3>
+          <div class="flex flex-wrap gap-3">
+            <button (click)="router.navigate(['/app/booking'])" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
+              📅 Planifier un entraînement
+            </button>
+            <button (click)="router.navigate(['/app/matches'])" class="px-4 py-2 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all">
+              🏆 Voir les matchs
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Toast notification -->
-      <div *ngIf="toast" class="fixed bottom-6 right-6 bg-card border border-border rounded-xl px-4 py-3 shadow-xl text-sm font-medium text-foreground z-50 animate-bounce">
+      <div *ngIf="toast" class="fixed bottom-6 right-6 bg-card border border-border rounded-xl px-4 py-3 shadow-xl text-sm font-medium text-foreground z-50">
         {{ toast }}
       </div>
     </div>
   `,
 })
-export class TeamComponent {
+export class TeamComponent implements OnInit {
   readonly ShieldIcon = Shield;
   readonly UsersIcon = Users;
   readonly TrophyIcon = Trophy;
@@ -130,36 +163,95 @@ export class TeamComponent {
   readonly MessageCircleIcon = MessageCircle;
   readonly CalendarIcon = Calendar;
   readonly PlusIcon = Plus;
+  readonly Loader2Icon = Loader2;
+  readonly XIcon = X;
 
   toast: string | null = null;
+  loading = true;
+  teams: any[] = [];
 
-  constructor(public router: Router) { }
+  showCreateModal = false;
+  creating = false;
+  categories: any[] = [];
+  loadingCategories = false;
+  newTeam = {
+    name: '',
+    sport: '',
+    level: 'Amateur',
+    city: ''
+  };
 
-  teamMembers = [
-    { id: 1, name: 'Alex Rivera', role: 'Captain', position: 'Forward', avatar: 'AR', stats: { matches: 45, goals: 32, assists: 18 }, status: 'online' },
-    { id: 2, name: 'Morgan Lee', role: 'Vice Captain', position: 'Midfielder', avatar: 'ML', stats: { matches: 43, goals: 15, assists: 28 }, status: 'online' },
-    { id: 3, name: 'Jordan Chen', role: 'Member', position: 'Defender', avatar: 'JC', stats: { matches: 40, goals: 5, assists: 12 }, status: 'offline' },
-    { id: 4, name: 'Taylor Brooks', role: 'Member', position: 'Midfielder', avatar: 'TB', stats: { matches: 38, goals: 20, assists: 15 }, status: 'online' },
-    { id: 5, name: 'Casey Kim', role: 'Member', position: 'Goalkeeper', avatar: 'CK', stats: { matches: 42, goals: 0, assists: 8 }, status: 'offline' },
-    { id: 6, name: 'Sam Taylor', role: 'Member', position: 'Forward', avatar: 'ST', stats: { matches: 35, goals: 28, assists: 10 }, status: 'online' },
-  ];
+  constructor(public router: Router, private teamService: TeamService) {}
 
-  upcomingEvents = [
-    { id: 1, title: 'Team Practice', date: 'Feb 3, 2026', time: '6:00 PM', location: 'Central Arena' },
-    { id: 2, title: 'Strategy Meeting', date: 'Feb 5, 2026', time: '7:30 PM', location: 'Online' },
-    { id: 3, title: 'Championship Match', date: 'Feb 8, 2026', time: '5:00 PM', location: 'City Stadium' },
-  ];
-
-  sendMessage(name: string) {
-    this.showToast(`Message envoyé à ${name} ! 💬`);
+  ngOnInit() {
+    this.loadTeams();
   }
 
-  viewProfile(member: any) {
-    this.showToast(`Profil de ${member.name} — bientôt disponible`);
+  loadTeams() {
+    this.loading = true;
+    this.teamService.getAll().subscribe({
+      next: (data: any[]) => { this.teams = data; this.loading = false; },
+      error: () => { this.loading = false; }
+    });
   }
 
-  recruitPlayer() {
-    this.showToast('Invitation envoyée ! Le joueur recevra un email. ✅');
+  viewTeam(team: any) {
+    this.showToast(`Équipe: ${team.name}`);
+  }
+
+  openCreateModal() {
+    this.newTeam = { name: '', sport: '', level: 'Amateur', city: '' };
+    this.showCreateModal = true;
+    if (this.categories.length === 0) {
+      this.loadCategories();
+    }
+  }
+
+  loadCategories() {
+    this.loadingCategories = true;
+    this.teamService.getCategories().subscribe({
+      next: (data) => {
+        this.categories = data;
+        if (this.categories.length > 0) {
+          this.newTeam.sport = this.categories[0].nom || this.categories[0].name;
+        }
+        this.loadingCategories = false;
+      },
+      error: () => {
+        this.loadingCategories = false;
+      }
+    });
+  }
+
+  submitTeam() {
+    if (!this.newTeam.name || !this.newTeam.sport) return;
+    
+    this.creating = true;
+    const userIdStr = localStorage.getItem('user_id');
+    const userId = userIdStr ? Number(userIdStr) : 1;
+
+    this.teamService.create(this.newTeam, userId).subscribe({
+      next: (res) => {
+        this.teams.unshift(res); // Add the new team to the beginning of the list
+        this.creating = false;
+        this.showCreateModal = false;
+        this.showToast('✅ Équipe créée avec succès !');
+      },
+      error: (err) => {
+        console.error('SERVER ERROR DETAIL:', err);
+        this.creating = false;
+        let msg = '❌ Erreur serveur complète : \n';
+        if (err.error) {
+          msg += JSON.stringify(err.error);
+        } else {
+          msg += err.message;
+        }
+        
+        // Use an alert to be absolutely sure the user sees it in case UI freezes
+        alert("Erreur lors de la création d'équipe:\n" + msg);
+        this.showToast('Erreur: ' + msg.substring(0, 50));
+      }
+    });
   }
 
   showToast(msg: string) {
