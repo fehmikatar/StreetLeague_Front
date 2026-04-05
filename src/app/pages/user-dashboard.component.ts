@@ -1,9 +1,26 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, Trophy, MapPin, Calendar, Activity, Users, TrendingUp, Clock, Star, ArrowRight, Bell, Target } from 'lucide-angular';
+import { LucideAngularModule, Trophy, MapPin, Calendar, Activity, Users, TrendingUp, Clock, Star, ArrowRight, Bell, Target, X, type LucideIconData } from 'lucide-angular';
 import { Subscription } from 'rxjs';
 import { BookingService, Reservation, Notification } from '../services/booking.service';
+
+/** Internal type that replaces the string icon key with a resolved Lucide icon */
+interface ActivityItem extends Omit<Notification, 'icon'> {
+  icon: LucideIconData;
+}
+
+const ICON_MAP: Record<string, LucideIconData> = {
+  bell: Bell,
+  calendar: Calendar,
+  trophy: Trophy,
+  activity: Activity,
+  users: Users,
+  'map-pin': MapPin,
+  clock: Clock,
+  star: Star,
+  target: Target,
+};
 
 @Component({
   selector: 'app-user-dashboard',
@@ -86,23 +103,35 @@ import { BookingService, Reservation, Notification } from '../services/booking.s
                 <div *ngIf="upcomingMatches.length === 0" class="text-center py-6 text-muted-foreground">
                   Aucun match prévu pour le moment.
                 </div>
-                <a *ngFor="let match of upcomingMatches" [routerLink]="['/app/matches', match.id]" class="block bg-muted/50 rounded-xl p-4 hover:bg-muted transition-all group">
+                <div *ngFor="let match of upcomingMatches" class="bg-muted/50 rounded-xl p-4 hover:bg-muted transition-all group" [ngClass]="{'opacity-60': match.status === 'cancelled'}">
                   <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-full">{{ match.type }}</span>
-                        <h4 class="font-semibold group-hover:text-primary transition-colors">{{ match.title }}</h4>
+                    <a [routerLink]="match.status === 'confirmed' ? ['/app/matches', match.id] : null" class="flex-1 block" [class.pointer-events-none]="match.status === 'cancelled'">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full" [ngClass]="match.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-primary/10 text-primary'">
+                          {{ match.status === 'cancelled' ? 'Annulée' : match.type }}
+                        </span>
+                        <h4 class="font-semibold" [ngClass]="{'group-hover:text-primary transition-colors': match.status === 'confirmed', 'text-muted-foreground': match.status === 'cancelled'}">{{ match.title }}</h4>
                       </div>
                       <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div class="flex items-center gap-1"><lucide-icon [img]="MapPinIcon" class="w-4 h-4"></lucide-icon><span>{{ match.location }}</span></div>
+                        <div class="flex items-center gap-1"><lucide-icon [img]="MapPinIcon" class="w-4 h-4"></lucide-icon><span>{{ match.fieldName }}</span></div>
                         <div class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon><span>{{ match.time }} ({{match.duration}}h)</span></div>
                       </div>
-                    </div>
-                    <div class="text-right">
-                      <div class="text-sm font-semibold">{{ formatDate(match.date) }}</div>
+                    </a>
+                    <div class="flex items-center gap-2">
+                      <div class="text-right">
+                        <div class="text-sm font-semibold">{{ formatDate(match.date) }}</div>
+                      </div>
+                      <button 
+                        *ngIf="match.status === 'confirmed'" 
+                        (click)="cancelReservation(match)" 
+                        [disabled]="cancelingReservationId === match.id"
+                        class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
+                        title="Annuler la réservation">
+                        <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
+                      </button>
                     </div>
                   </div>
-                </a>
+                </div>
                 <a routerLink="/app/booking" class="block bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl p-6 text-center border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all mt-4">
                   <lucide-icon [img]="TargetIcon" class="w-8 h-8 text-primary mx-auto mb-2"></lucide-icon>
                   <div class="font-semibold mb-1">Organiser un nouveau match</div>
@@ -165,8 +194,10 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   readonly BellIcon = Bell;
   readonly TargetIcon = Target;
   readonly TrendingUpIcon = TrendingUp;
+  readonly XIcon = X;
 
   userName = '';
+  cancelingReservationId: number | null = null;
 
   stats = [
     { label: 'Matchs joués', value: '24', icon: Trophy, trend: '+12%' },
@@ -176,7 +207,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   ];
 
   upcomingMatches: Reservation[] = [];
-  recentActivities: Notification[] = [];
+  recentActivities: ActivityItem[] = [];
 
   private subs: Subscription = new Subscription();
 
@@ -185,16 +216,19 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.userName = localStorage.getItem('user_name') || 'Utilisateur';
 
-    const userId = '1'; // Adjust later when user profile is stored in auth token
+    const userId = localStorage.getItem('user_id') || '1';
     this.subs.add(
       this.bookingService.getUserReservations(userId).subscribe(reservations => {
-        // Filter only confirmed current/future matches
         this.upcomingMatches = reservations.filter(r => r.status === 'confirmed');
       })
     );
     this.subs.add(
       this.bookingService.notifications$.subscribe(notifs => {
-        this.recentActivities = notifs;
+        // Resolve string icon keys -> actual Lucide icon objects
+        this.recentActivities = notifs.map(n => ({
+          ...n,
+          icon: ICON_MAP[n.icon] ?? Bell,
+        }));
       })
     );
   }
@@ -210,5 +244,39 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
       return dateStr;
     }
   }
-}
 
+  cancelReservation(reservation: Reservation): void {
+    const confirmCancel = confirm(`Êtes-vous sûr de vouloir annuler la réservation pour "${reservation.fieldName}" le ${this.formatDate(reservation.date)} à ${reservation.time} ?`);
+    
+    if (!confirmCancel) {
+      return;
+    }
+
+    console.log('🗑️ Annulation de la réservation ID:', reservation.id);
+    this.cancelingReservationId = reservation.id;
+
+    this.subs.add(
+      this.bookingService.cancelReservation(reservation.id).subscribe({
+        next: (response) => {
+          console.log('✅ Réservation annulée avec succès:', response);
+          this.cancelingReservationId = null;
+          // Recharger les réservations pour mettre à jour la liste
+          const userId = localStorage.getItem('user_id') || '1';
+          this.bookingService.getUserReservations(userId).subscribe(res => {
+            this.upcomingMatches = res.filter(r => r.status === 'confirmed');
+            console.log('📋 Réservations mises à jour:', this.upcomingMatches.length);
+          });
+        },
+        error: (err) => {
+          console.error('❌ Erreur lors de l\'annulation:', err);
+          console.error('Status:', err.status);
+          console.error('Message:', err.message);
+          console.error('Full error:', err);
+          const errorMsg = err?.error?.message || err?.message || 'Erreur lors de l\'annulation de la réservation';
+          alert('Impossible d\'annuler la réservation: ' + errorMsg);
+          this.cancelingReservationId = null;
+        }
+      })
+    );
+  }
+}

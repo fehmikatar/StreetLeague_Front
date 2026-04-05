@@ -6,6 +6,8 @@ import {
     MessageSquare, Activity, Gift, Settings, Map,
     LogOut, Menu, X, Bell, User, Heart, ShoppingCart, Swords
 } from 'lucide-angular';
+import { AuthService } from '../../services/auth.service';
+import { PendingChangesService } from '../../services/pending-changes.service';
 
 @Component({
     selector: 'app-layout',
@@ -69,7 +71,7 @@ export class AppLayoutComponent implements OnInit {
         });
     }
 
-    constructor(private router: Router) { }
+    constructor(private router: Router, private authService: AuthService, private pendingChangesService: PendingChangesService) { }
 
     get roleLabel(): string {
         const r = this.userType;
@@ -90,8 +92,14 @@ export class AppLayoutComponent implements OnInit {
     }
 
     handleLogout() {
-        ['auth_token', 'user_name', 'user_email', 'user_type', 'user_id'].forEach(k => localStorage.removeItem(k));
-        this.router.navigate(['/auth/login']);
+        // Notify all services/components that logout is happening - allows them to save pending changes
+        this.pendingChangesService.notifyBeforeLogout();
+        
+        // Give a moment for auto-save to complete
+        setTimeout(() => {
+            this.authService.logout();
+            this.router.navigate(['/auth/login']);
+        }, 100);
     }
 
     toggleMobileMenu() {

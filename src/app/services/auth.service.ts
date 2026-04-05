@@ -68,7 +68,14 @@ export class AuthService {
         return 'Erreur inconnue.';
     }
 
-    requestPasswordReset(email: string): Observable<any> {
-        return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+    logout(): void {
+        // Clear all auth-related localStorage items
+        ['auth_token', 'user_name', 'user_email', 'user_type', 'user_id'].forEach(k => 
+            localStorage.removeItem(k)
+        );
     }
+
+    requestPasswordReset(email: string) {
+    return this.http.post(`${environment.apiUrl}/auth/password/forgot-password`, { email });
+}
 }

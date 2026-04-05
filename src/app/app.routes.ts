@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layout/public-layout/public-layout.component';
 import { AppLayoutComponent } from './layout/app-layout/app-layout.component';
 import { authGuard } from './core/guards/auth.guard';
+import { UnsavedChangesGuard } from './core/guards/unsaved-changes.guard';
+import { ProfileResolver } from './core/guards/profile.resolver';
 
 // Public pages
 import { PublicHomePageComponent } from './pages/public/public-home-page.component';
@@ -121,7 +123,7 @@ export const routes: Routes = [
             { path: 'admin/performances/:id', component: PerformanceDetailComponent },
             { path: 'admin/performances', component: PerformanceListComponent },
             
-            { path: 'user-profile', component: UserProfileComponent },
+            { path: 'user-profile', component: UserProfileComponent, resolve: { profile: ProfileResolver }, canDeactivate: [UnsavedChangesGuard] },
             { path: 'notifications', component: NotificationsComponent },
             { path: 'favorites', component: FavoritesComponent },
 

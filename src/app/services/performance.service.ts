@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   PerformanceRequest,
   PerformanceResponse,
@@ -16,8 +17,8 @@ import {
   PlayerInfo
 } from '../models/performance.model';
 
-const API_BASE_URL = 'http://localhost:8085/api/performances';
-const PLAYER_API_URL = 'http://localhost:8085/api/players';
+const API_BASE_URL = `${environment.apiUrl}/performances`;
+const PLAYER_API_URL = `${environment.apiUrl}/players`;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 @Injectable({

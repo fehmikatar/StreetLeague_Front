@@ -13,11 +13,11 @@ export class CommunityService {
 
     // Posts
     getGlobalPosts(page = 0, size = 10): Observable<any> {
-        return this.http.get<any>(`${this.base}/community/posts?page=${page}&size=${size}`);
+        return this.http.get<any>(`${this.base}/posts?page=${page}&size=${size}`);
     }
 
     createPost(data: { content: string; communityId?: number; postType?: string }): Observable<any> {
-        return this.http.post<any>(`${this.base}/community/posts`, data);
+        return this.http.post<any>(`${this.base}/posts`, data);
     }
 
     deletePost(postId: number): Observable<void> {
