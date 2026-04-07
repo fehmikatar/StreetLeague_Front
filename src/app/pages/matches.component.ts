@@ -5,7 +5,7 @@ import { RouterModule, Router } from '@angular/router';
 import { LucideAngularModule, Trophy, MapPin, Clock, Calendar, Users, Plus, Loader2, Eye, Edit, PlayCircle, AlertOctagon, X } from 'lucide-angular';
 import { MatchService, MatchResponse, MatchStatus } from '../services/match.service';
 import { CompetitionService, CompetitionResponse } from '../services/competition.service';
-import { BookingService, Reservation } from '../services/booking.service';
+import { BookingService, Reservation, FieldFeedback } from '../services/booking.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -80,6 +80,61 @@ import { Subscription } from 'rxjs';
                 <span class="ml-auto text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                   {{ res.type }}
                 </span>
+              </div>
+
+              <div *ngIf="res.status === 'confirmed' && isPastReservation(res)" class="border-t border-border pt-3">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                    Match terminé
+                  </span>
+                  <button
+                    *ngIf="!hasFeedback(res.id)"
+                    (click)="toggleFeedbackForm(res)"
+                    class="text-xs font-semibold text-primary hover:underline">
+                    {{ feedbackDrafts[res.id]?.open ? 'Fermer' : 'Laisser un avis' }}
+                  </button>
+                  <span *ngIf="hasFeedback(res.id)" class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                    Avis envoyé
+                  </span>
+                </div>
+
+                <div *ngIf="hasFeedback(res.id)" class="bg-amber-50/60 rounded-xl p-3 text-sm">
+                  <div class="flex items-center gap-1 mb-2">
+                    <span *ngFor="let filled of getStars(savedFeedbacks[res.id].rating)" class="text-base" [class.text-amber-500]="filled" [class.text-muted-foreground]="!filled">★</span>
+                  </div>
+                  <p class="text-foreground" *ngIf="savedFeedbacks[res.id].comment">{{ savedFeedbacks[res.id].comment }}</p>
+                  <p class="text-muted-foreground" *ngIf="!savedFeedbacks[res.id].comment">Merci pour votre note sur ce terrain.</p>
+                </div>
+
+                <div *ngIf="feedbackDrafts[res.id]?.open && !hasFeedback(res.id)" class="bg-muted/40 rounded-xl p-3 space-y-3">
+                  <div>
+                    <p class="text-sm font-semibold mb-2">Comment était le terrain ?</p>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        *ngFor="let star of [1,2,3,4,5]"
+                        (click)="setFeedbackRating(res.id, star)"
+                        class="text-2xl leading-none transition-transform hover:scale-110"
+                        [class.text-amber-500]="star <= (feedbackDrafts[res.id]?.rating || 0)"
+                        [class.text-muted-foreground]="star > (feedbackDrafts[res.id]?.rating || 0)">
+                        ★
+                      </button>
+                    </div>
+                  </div>
+
+                  <textarea
+                    [(ngModel)]="feedbackDrafts[res.id].comment"
+                    rows="3"
+                    placeholder="Partagez votre expérience sur l'état du terrain, la propreté, l'éclairage..."
+                    class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary resize-none"></textarea>
+
+                  <button
+                    type="button"
+                    (click)="submitFeedback(res)"
+                    class="w-full py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
+                    Envoyer mon avis
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -255,6 +310,8 @@ export class MatchesComponent implements OnInit, OnDestroy {
   filteredMatches: MatchResponse[] = [];
   competitions: CompetitionResponse[] = [];
   myReservations: Reservation[] = [];
+  feedbackDrafts: Record<number, { rating: number; comment: string; open: boolean }> = {};
+  savedFeedbacks: Record<number, FieldFeedback> = {};
 
   loading = true;
   errorMsg = '';
@@ -278,11 +335,23 @@ export class MatchesComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.userType = localStorage.getItem('user_type') || 'ROLE_PLAYER';
+    const userId = localStorage.getItem('user_id') || '0';
 
     // ✅ S'abonner aux réservations en temps réel
     this.sub.add(
       this.bookingService.myReservations$.subscribe(res => {
         this.myReservations = res;
+        this.initializeFeedbackDrafts();
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.sub.add(
+      this.bookingService.getUserFieldFeedbacks(userId).subscribe(feedbacks => {
+        this.savedFeedbacks = feedbacks.reduce((acc, feedback) => {
+          acc[feedback.reservationId] = feedback;
+          return acc;
+        }, {} as Record<number, FieldFeedback>);
         this.cdr.detectChanges();
       })
     );
@@ -308,6 +377,82 @@ export class MatchesComponent implements OnInit, OnDestroy {
     const endH = Math.floor(totalMinutes / 60) % 24;
     const endM = totalMinutes % 60;
     return `${endH < 10 ? '0' + endH : endH}:${endM < 10 ? '0' + endM : endM}`;
+  }
+
+  isPastReservation(reservation: Reservation): boolean {
+    const endDate = this.getReservationEndDate(reservation);
+    return endDate.getTime() < Date.now();
+  }
+
+  hasFeedback(reservationId: number): boolean {
+    return !!this.savedFeedbacks[reservationId];
+  }
+
+  toggleFeedbackForm(reservation: Reservation): void {
+    if (this.hasFeedback(reservation.id)) {
+      return;
+    }
+
+    const current = this.feedbackDrafts[reservation.id] || { rating: 5, comment: '', open: false };
+    this.feedbackDrafts[reservation.id] = { ...current, open: !current.open };
+  }
+
+  setFeedbackRating(reservationId: number, rating: number): void {
+    const current = this.feedbackDrafts[reservationId] || { rating: 5, comment: '', open: true };
+    this.feedbackDrafts[reservationId] = { ...current, rating, open: true };
+  }
+
+  submitFeedback(reservation: Reservation): void {
+    const userId = localStorage.getItem('user_id') || '0';
+    const draft = this.feedbackDrafts[reservation.id];
+
+    if (!draft || draft.rating < 1) {
+      alert('Veuillez sélectionner une note.');
+      return;
+    }
+
+    if (draft.comment.trim().length < 10) {
+      alert('Veuillez écrire un commentaire d’au moins 10 caractères.');
+      return;
+    }
+
+    this.sub.add(
+      this.bookingService.saveFieldFeedback({
+        reservationId: reservation.id,
+        userId,
+        fieldId: reservation.fieldId,
+        fieldName: reservation.fieldName,
+        rating: draft.rating,
+        comment: draft.comment.trim()
+      }).subscribe({
+        next: (savedFeedback) => {
+          this.savedFeedbacks[reservation.id] = savedFeedback;
+          this.feedbackDrafts[reservation.id] = { ...draft, open: false };
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          const message = err?.error?.message || err?.message || 'Impossible d\'enregistrer votre avis.';
+          alert(message);
+        }
+      })
+    );
+  }
+
+  getStars(rating: number): number[] {
+    return [1, 2, 3, 4, 5].map(value => value <= rating ? 1 : 0);
+  }
+
+  private initializeFeedbackDrafts(): void {
+    for (const reservation of this.myReservations) {
+      if (!this.feedbackDrafts[reservation.id]) {
+        this.feedbackDrafts[reservation.id] = { rating: 5, comment: '', open: false };
+      }
+    }
+  }
+
+  private getReservationEndDate(reservation: Reservation): Date {
+    const start = new Date(`${reservation.date}T${reservation.time}:00`);
+    return new Date(start.getTime() + reservation.duration * 60 * 60 * 1000);
   }
 
   loadData() {

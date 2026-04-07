@@ -185,6 +185,7 @@ export class BookingFormComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.bookingService.refreshFields();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.fieldId = id;

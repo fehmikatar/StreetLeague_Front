@@ -1,8 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
+import { ApiService } from './api.service';
+import { environment } from '../../environments/environment';
 
 export interface WebSocketNotification {
     id?: string;
@@ -21,44 +23,63 @@ export interface WebSocketNotification {
 })
 export class WebSocketService implements OnDestroy {
     private stompClient: any = null;
+    private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private notificationsSubject = new BehaviorSubject<WebSocketNotification[]>([]);
     public notifications$ = this.notificationsSubject.asObservable();
-    
+
     private connectionStatusSubject = new BehaviorSubject<boolean>(false);
     public connectionStatus$ = this.connectionStatusSubject.asObservable();
 
-    constructor() {
+    constructor(private http: HttpClient, private api: ApiService) {
+        this.loadUnreadNotifications();
         this.initializeConnection();
     }
 
+    private hasSession(): boolean {
+        return !!localStorage.getItem('auth_token') && !!localStorage.getItem('user_id');
+    }
+
+    private scheduleReconnect(): void {
+        if (this.reconnectTimer || !this.hasSession()) {
+            return;
+        }
+
+        this.reconnectTimer = setTimeout(() => {
+            this.reconnectTimer = null;
+            this.initializeConnection();
+        }, 5000);
+    }
+
     private initializeConnection(): void {
+        if (!this.hasSession() || this.stompClient?.connected) {
+            return;
+        }
+
         try {
-            const wsUrl = environment.wsUrl + '/ws' || 'http://localhost:8085/ws';
+            const wsBaseUrl = environment.wsUrl || 'http://localhost:8085';
+            const wsUrl = `${wsBaseUrl}/ws`;
             const socket = new SockJS(wsUrl);
-            
+
             this.stompClient = Stomp.over(socket);
-            this.stompClient.debug = () => {}; // Disable debug logs
-            
-            this.stompClient.connect({}, (frame: any) => {
-                console.log('✅ WebSocket STOMP connecté:', frame);
-                this.connectionStatusSubject.next(true);
-                
-                const userId = localStorage.getItem('user_id');
-                if (userId) {
-                    // Subscribe to user-specific topic
-                    this.stompClient.subscribe(`/user/${userId}/queue/notifications`, (message: any) => {
-                        console.log('📬 Notification reçue:', message);
+            this.stompClient.debug = () => {};
+
+            this.stompClient.connect(
+                {},
+                () => {
+                    this.connectionStatusSubject.next(true);
+                    this.stompClient.subscribe('/user/queue/notifications', (message: any) => {
                         this.handleNotification(message);
                     });
+                },
+                () => {
+                    this.connectionStatusSubject.next(false);
+                    this.scheduleReconnect();
                 }
-            }, (error: any) => {
-                console.error('❌ Erreur WebSocket STOMP:', error);
-                this.connectionStatusSubject.next(false);
-                // Retry connection in 5 seconds
-                setTimeout(() => this.initializeConnection(), 5000);
-            });
+            );
         } catch (error) {
-            console.error('Erreur lors de l\'initialisation de la connexion WebSocket:', error);
+            console.error('WebSocket initialization error:', error);
+            this.connectionStatusSubject.next(false);
+            this.scheduleReconnect();
         }
     }
 
@@ -75,12 +96,23 @@ export class WebSocketService implements OnDestroy {
                 timestamp: data.timestamp || new Date().toISOString()
             });
         } catch (error) {
-            console.error('Erreur lors du parsing de la notification:', error);
+            console.error('Notification parsing error:', error);
         }
     }
 
     private addNotification(notification: WebSocketNotification): void {
         const currentNotifications = this.notificationsSubject.getValue();
+        const exists = currentNotifications.some((item) =>
+            item.id === notification.id ||
+            (item.title === notification.title &&
+                item.message === notification.message &&
+                item.timestamp === notification.timestamp)
+        );
+
+        if (exists) {
+            return;
+        }
+
         const newNotification: WebSocketNotification = {
             ...notification,
             id: notification.id || `notif-${Date.now()}`,
@@ -90,47 +122,97 @@ export class WebSocketService implements OnDestroy {
         this.notificationsSubject.next([newNotification, ...currentNotifications]);
     }
 
-    /**
-     * Obtenir toutes les notifications
-     */
+    private loadUnreadNotifications(): void {
+        const userId = this.api.getUserId();
+        if (!userId) {
+            return;
+        }
+
+        this.http.get<any[]>(`${this.api.base}/notifications/user/${userId}/unread`).subscribe({
+            next: (notifications) => {
+                notifications.forEach((notification) => {
+                    this.addNotification({
+                        id: String(notification.id),
+                        type: 'message',
+                        title: notification.title || 'Notification',
+                        message: notification.message || '',
+                        fieldName: notification.fieldName || '',
+                        date: this.formatDisplayDate(notification.createdAt),
+                        time: this.formatDisplayTime(notification.createdAt),
+                        timestamp: notification.createdAt || new Date().toISOString(),
+                        read: !!notification.isRead
+                    });
+                });
+            },
+            error: () => {
+                // No-op: initial REST sync is best effort.
+            }
+        });
+    }
+
+    public showNotification(notification: Partial<WebSocketNotification> & Pick<WebSocketNotification, 'title' | 'message'>): void {
+        this.addNotification({
+            type: notification.type || 'message',
+            title: notification.title,
+            message: notification.message,
+            fieldName: notification.fieldName || '',
+            date: notification.date || this.formatDisplayDate(),
+            time: notification.time || this.formatDisplayTime(),
+            timestamp: notification.timestamp || new Date().toISOString(),
+            read: false
+        });
+    }
+
+    private formatDisplayDate(value?: string): string {
+        const date = value ? new Date(value) : new Date();
+        return Number.isNaN(date.getTime())
+            ? ''
+            : date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    private formatDisplayTime(value?: string): string {
+        const date = value ? new Date(value) : new Date();
+        return Number.isNaN(date.getTime())
+            ? ''
+            : date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
     public getNotifications(): Observable<WebSocketNotification[]> {
         return this.notifications$;
     }
 
-    /**
-     * Marquer une notification comme lue
-     */
     public markAsRead(notificationId: string): void {
         const notifications = this.notificationsSubject.getValue();
-        const updated = notifications.map(n => 
-            n.id === notificationId ? { ...n, read: true } : n
+        const updated = notifications.map((notification) =>
+            notification.id === notificationId ? { ...notification, read: true } : notification
         );
         this.notificationsSubject.next(updated);
     }
 
-    /**
-     * Supprimer une notification
-     */
     public deleteNotification(notificationId: string): void {
         const notifications = this.notificationsSubject.getValue();
-        const filtered = notifications.filter(n => n.id !== notificationId);
+        const filtered = notifications.filter((notification) => notification.id !== notificationId);
         this.notificationsSubject.next(filtered);
     }
 
-    /**
-     * Nettoyer la connexion WebSocket
-     */
     public disconnect(): void {
-        if (this.stompClient && this.stompClient.connected) {
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+        }
+
+        if (this.stompClient?.connected) {
             this.stompClient.disconnect(() => {
-                console.log('WebSocket disconnected');
                 this.connectionStatusSubject.next(false);
             });
+        } else {
+            this.connectionStatusSubject.next(false);
         }
+
+        this.stompClient = null;
     }
 
     ngOnDestroy(): void {
         this.disconnect();
     }
 }
-

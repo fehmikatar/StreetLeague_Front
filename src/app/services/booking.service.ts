@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map, catchError, of, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { WebSocketService } from './websocket.service';
 
 export interface Field {
     id: string;
@@ -29,6 +30,19 @@ export interface Reservation {
     status: 'confirmed' | 'cancelled';
 }
 
+export interface FieldFeedback {
+    id?: number;
+    reservationId: number;
+    userId: string;
+    userName?: string;
+    fieldId: string;
+    fieldName: string;
+    rating: number;
+    comment: string;
+    status?: string;
+    createdAt: string;
+}
+
 export interface Notification {
     title: string;
     message: string;
@@ -53,7 +67,7 @@ export class BookingService {
     public notifications$ = this.notificationsSubject.asObservable();
     public myReservations$ = this.myReservationsSubject.asObservable();
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private webSocketService: WebSocketService) {
         this.loadFields();
         this.loadStaticNotifications();
         this.loadMyReservations();
@@ -64,6 +78,7 @@ export class BookingService {
             next: (response) => {
                 const data = Array.isArray(response) ? response :
                     (response?.content || response?.data || []);
+                this.spaceCacheMap.clear();
 
                 const mappedFields: Field[] = (data || []).map((space: any) => {
                     // Stocker les données brutes dans le cache local
@@ -75,7 +90,7 @@ export class BookingService {
                         location: space.location || space.address || 'Localisation',
                         type: space.type || space.sportType || 'Multisport',
                         price: space.pricePerHour || space.hourlyRate || 50,
-                        rating: space.rating || 4.5,
+                        rating: space.averageRating || space.rating || 4.5,
                         reviews: space.reviews || space.reviewCount || 0,
                         hours: space.hours || '8h - 22h',
                         available: space.available !== false
@@ -91,6 +106,57 @@ export class BookingService {
         });
     }
 
+    public refreshFields(): void {
+        console.log('🔄 Rechargement des terrains depuis le backend...');
+        this.loadFields();
+    }
+
+    public getFieldFeedbacks(fieldId: string): Observable<FieldFeedback[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/feedbacks/sport-space/${fieldId}`).pipe(
+            map(feedbacks => feedbacks.map(feedback => this.mapBackendFeedback(feedback))),
+            catchError(() => of([]))
+        );
+    }
+
+    public getUserFieldFeedbacks(userId: string): Observable<FieldFeedback[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/feedbacks/user/${userId}`).pipe(
+            map(feedbacks => feedbacks.map(feedback => this.mapBackendFeedback(feedback))),
+            catchError(() => of([]))
+        );
+    }
+
+    public saveFieldFeedback(feedback: Omit<FieldFeedback, 'createdAt'>): Observable<FieldFeedback> {
+        return this.http.post<any>(`${this.apiUrl}/feedbacks`, {
+            userId: Number(feedback.userId),
+            sportSpaceId: Number(feedback.fieldId),
+            bookingId: feedback.reservationId,
+            rating: feedback.rating,
+            comment: feedback.comment
+        }).pipe(
+            map(savedFeedback => this.mapBackendFeedback(savedFeedback)),
+            tap(() => {
+                const currentNotifs = this.notificationsSubject.getValue();
+                const newNotif: Notification = {
+                    title: 'Avis enregistré',
+                    message: `Merci pour votre retour sur "${feedback.fieldName}".`,
+                    time: 'Maintenant',
+                    icon: 'star',
+                    bgColor: 'bg-amber-50',
+                    iconColor: 'text-amber-500',
+                    read: false
+                };
+                this.notificationsSubject.next([newNotif, ...currentNotifs]);
+                this.webSocketService.showNotification({
+                    type: 'message',
+                    title: newNotif.title,
+                    message: newNotif.message,
+                    fieldName: feedback.fieldName
+                });
+                this.refreshFields();
+            })
+        );
+    }
+
     private loadStaticNotifications() {
         const defaultNotifs: Notification[] = [
             {
@@ -104,6 +170,17 @@ export class BookingService {
             },
         ];
         this.notificationsSubject.next(defaultNotifs);
+    }
+
+    public removeNotification(title: string, message: string, time: string): void {
+        const filtered = this.notificationsSubject.getValue().filter((notification) =>
+            !(
+                notification.title === title &&
+                notification.message === message &&
+                notification.time === time
+            )
+        );
+        this.notificationsSubject.next(filtered);
     }
 
     public loadMyReservations() {
@@ -195,8 +272,8 @@ export class BookingService {
         const backendPayload = {
             userId: userId,
             sportSpaceId: parseInt(reservationData.fieldId, 10),
-            startTime: startDate.toISOString(),
-            endTime: endDate.toISOString()
+            startTime: this.formatLocalDateTime(startDate),
+            endTime: this.formatLocalDateTime(endDate)
         };
         
         console.log('📤 Envoi de réservation au backend:', backendPayload);
@@ -289,13 +366,19 @@ export class BookingService {
     private mapBackendToFrontendReservation(backendBooking: any): Reservation {
         console.log('🔍 Backend booking data:', backendBooking);
         
-        const startDate = new Date(backendBooking.startTime);
-        const endDate = new Date(backendBooking.endTime);
-        const durationH = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+        const startDate = this.parseBackendLocalDateTime(backendBooking.startTime);
+        const endDate = this.parseBackendLocalDateTime(backendBooking.endTime);
+        const durationH = startDate && endDate
+            ? (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)
+            : 0;
 
         const padZero = (n: number) => n < 10 ? '0' + n : String(n);
-        const formattedDate = `${startDate.getFullYear()}-${padZero(startDate.getMonth() + 1)}-${padZero(startDate.getDate())}`;
-        const formattedTime = `${padZero(startDate.getHours())}:${padZero(startDate.getMinutes())}`;
+        const formattedDate = startDate
+            ? `${startDate.getFullYear()}-${padZero(startDate.getMonth() + 1)}-${padZero(startDate.getDate())}`
+            : '';
+        const formattedTime = startDate
+            ? `${padZero(startDate.getHours())}:${padZero(startDate.getMinutes())}`
+            : '';
 
         // Mapper le statut correctement
         const statusLower = backendBooking.status?.toLowerCase() || 'confirmed';
@@ -361,5 +444,59 @@ export class BookingService {
             type: 'Multisport',
             status: status
         };
+    }
+
+    private mapBackendFeedback(feedback: any): FieldFeedback {
+        return {
+            id: feedback.id,
+            reservationId: Number(feedback.bookingId),
+            userId: String(feedback.userId),
+            userName: feedback.userName || '',
+            fieldId: String(feedback.sportSpaceId),
+            fieldName: feedback.sportSpaceName || 'Terrain',
+            rating: Number(feedback.rating),
+            comment: feedback.comment || '',
+            status: feedback.status,
+            createdAt: feedback.createdAt || new Date().toISOString()
+        };
+    }
+
+    private formatLocalDateTime(date: Date): string {
+        const pad = (value: number) => value.toString().padStart(2, '0');
+
+        return [
+            date.getFullYear(),
+            pad(date.getMonth() + 1),
+            pad(date.getDate())
+        ].join('-') + 'T' + [
+            pad(date.getHours()),
+            pad(date.getMinutes()),
+            pad(date.getSeconds())
+        ].join(':');
+    }
+
+    private parseBackendLocalDateTime(value: string | null | undefined): Date | null {
+        if (!value) {
+            return null;
+        }
+
+        const match = value.match(
+            /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/
+        );
+
+        if (!match) {
+            const fallback = new Date(value);
+            return Number.isNaN(fallback.getTime()) ? null : fallback;
+        }
+
+        const [, year, month, day, hour, minute, second = '00'] = match;
+        return new Date(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute),
+            Number(second)
+        );
     }
 }

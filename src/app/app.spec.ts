@@ -14,10 +14,11 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('should have the correct title', () => {
     const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, streetLeaguefront-angular');
+    const app = fixture.componentInstance;
+    
+    // In Angular v16+, signals are called via function execution
+    expect(app['title']()).toEqual('streetLeaguefront-angular');
   });
 });

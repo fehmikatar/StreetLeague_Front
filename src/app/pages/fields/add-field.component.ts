@@ -6,6 +6,7 @@ import { LucideAngularModule, MapPin, Save, ArrowLeft, Search } from 'lucide-ang
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { BookingService } from '../../services/booking.service';
 
 declare const L: any;
 
@@ -159,7 +160,11 @@ export class AddFieldComponent implements AfterViewInit, OnDestroy {
 
   sportTypes = ['Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private bookingService: BookingService
+  ) {}
 
   ngAfterViewInit(): void {
     this.loadLeaflet().then(() => this.initMap());
@@ -317,6 +322,7 @@ export class AddFieldComponent implements AfterViewInit, OnDestroy {
 
         this.http.post(`${environment.apiUrl}/sport-spaces`, payload).subscribe({
           next: () => {
+            this.bookingService.refreshFields();
             this.saved = true;
             setTimeout(() => {
               this.saved = false;

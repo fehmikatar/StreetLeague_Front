@@ -8,11 +8,12 @@ import {
 } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
 import { PendingChangesService } from '../../services/pending-changes.service';
+import { WebSocketNotificationsComponent } from '../../components/websocket-notifications/websocket-notifications.component';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, RouterModule, LucideAngularModule],
+    imports: [CommonModule, RouterOutlet, RouterModule, LucideAngularModule, WebSocketNotificationsComponent],
     templateUrl: './app-layout.component.html',
 })
 export class AppLayoutComponent implements OnInit {

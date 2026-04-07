@@ -1,7 +1,13 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { WebSocketService, WebSocketNotification } from '../../services/websocket.service';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { BookingService } from '../../services/booking.service';
+import { WebSocketNotification, WebSocketService } from '../../services/websocket.service';
+
+type DisplayNotification = WebSocketNotification & {
+    source: 'websocket' | 'booking';
+    widgetId: string;
+};
 
 @Component({
     selector: 'app-websocket-notifications',
@@ -9,51 +15,85 @@ import { Observable } from 'rxjs';
     imports: [CommonModule],
     template: `
         <div class="fixed top-4 right-4 z-50 space-y-2 max-w-md">
-            <!-- Indicateur de connexion -->
-            <div class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm"
-                 [ngClass]="(connectionStatus$ | async) 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'">
-                <div class="w-2 h-2 rounded-full"
-                     [ngClass]="(connectionStatus$ | async) ? 'bg-green-600' : 'bg-red-600'"></div>
-                {{ (connectionStatus$ | async) ? 'Connecté' : 'Déconnecté' }}
-            </div>
-
-            <!-- Notifications -->
-            <div *ngFor="let notification of notifications$ | async"
-                 class="bg-white rounded-lg shadow-lg p-4 border-l-4 animate-in fade-in slide-in-from-right"
-                 [ngClass]="getNotificationStyle(notification.type)">
+            <div
+                *ngFor="let notification of notifications$ | async"
+                class="bg-white rounded-lg shadow-lg p-4 border-l-4"
+                [ngClass]="getNotificationStyle(notification.type)">
                 <div class="flex justify-between items-start gap-2">
                     <div class="flex-1">
                         <h3 class="font-semibold text-gray-900">{{ notification.title }}</h3>
                         <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
                         <div class="text-xs text-gray-500 mt-2">
-                            {{ notification.date }} à {{ notification.time }}
+                            {{ notification.date }} a {{ notification.time }}
                         </div>
                     </div>
-                    <button (click)="closeNotification(notification.id)"
-                            class="text-gray-400 hover:text-gray-600">
-                        ✕
+                    <button
+                        type="button"
+                        (click)="dismissNotification(notification.widgetId)"
+                        class="text-gray-400 hover:text-gray-600">
+                        x
                     </button>
                 </div>
             </div>
         </div>
     `,
-    styles: [`
-        @import url('https://cdn.tailwindcss.com');
-    `]
 })
-export class WebSocketNotificationsComponent implements OnInit, OnDestroy {
-    notifications$: Observable<WebSocketNotification[]>;
-    connectionStatus$: Observable<boolean>;
+export class WebSocketNotificationsComponent implements OnDestroy {
+    notifications$: Observable<DisplayNotification[]>;
+    private dismissedIds = new Set<string>();
+    private activeTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    private dismissedIdsSubject = new BehaviorSubject<Set<string>>(this.dismissedIds);
 
-    constructor(private webSocketService: WebSocketService) {
-        this.notifications$ = this.webSocketService.getNotifications();
-        this.connectionStatus$ = this.webSocketService.connectionStatus$;
+    constructor(
+        private webSocketService: WebSocketService,
+        private bookingService: BookingService
+    ) {
+        this.notifications$ = combineLatest([
+            this.webSocketService.getNotifications(),
+            this.bookingService.notifications$,
+            this.dismissedIdsSubject
+        ]).pipe(
+            map(([webSocketNotifications, bookingNotifications, dismissedIds]) => {
+                const mappedWebSocketNotifications: DisplayNotification[] = webSocketNotifications.map((notification) => ({
+                    ...notification,
+                    source: 'websocket',
+                    widgetId: `websocket-${notification.id ?? notification.timestamp}`
+                }));
+
+                const mappedBookingNotifications: DisplayNotification[] = bookingNotifications.map((notification, index) => ({
+                    id: `booking-${index}-${notification.title}-${notification.time}`,
+                    type: this.mapBookingType(notification.title),
+                    title: notification.title,
+                    message: notification.message,
+                    fieldName: '',
+                    date: '',
+                    time: notification.time,
+                    timestamp: `${index}-${notification.time}`,
+                    read: notification.read,
+                    source: 'booking',
+                    widgetId: `booking-${notification.title}-${notification.message}-${notification.time}`
+                }));
+
+                const merged = [...mappedWebSocketNotifications, ...mappedBookingNotifications]
+                    .filter((notification, index, list) =>
+                        index === list.findIndex((item) =>
+                            item.title === notification.title &&
+                            item.message === notification.message &&
+                            item.time === notification.time &&
+                            item.source === notification.source
+                        )
+                    )
+                    .filter((notification) => !dismissedIds.has(notification.widgetId));
+
+                merged.forEach((notification) => this.scheduleAutoDismiss(notification.widgetId));
+                return merged;
+            })
+        );
     }
 
-    ngOnInit(): void {
-        // Les notifications vont être gérées automatiquement par le service
+    ngOnDestroy(): void {
+        this.activeTimers.forEach((timer) => clearTimeout(timer));
+        this.activeTimers.clear();
     }
 
     getNotificationStyle(type: string): string {
@@ -71,13 +111,38 @@ export class WebSocketNotificationsComponent implements OnInit, OnDestroy {
         }
     }
 
-    closeNotification(notificationId: string | undefined): void {
-        if (notificationId) {
-            this.webSocketService.deleteNotification(notificationId);
+    dismissNotification(widgetId: string): void {
+        this.dismissedIds.add(widgetId);
+        this.dismissedIdsSubject.next(new Set(this.dismissedIds));
+        const timer = this.activeTimers.get(widgetId);
+        if (timer) {
+            clearTimeout(timer);
+            this.activeTimers.delete(widgetId);
         }
     }
 
-    ngOnDestroy(): void {
-        // La déconnexion est gérée par le WebSocketService
+    private scheduleAutoDismiss(widgetId: string): void {
+        if (this.activeTimers.has(widgetId) || this.dismissedIds.has(widgetId)) {
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            this.dismissedIds.add(widgetId);
+            this.dismissedIdsSubject.next(new Set(this.dismissedIds));
+            this.activeTimers.delete(widgetId);
+        }, 2000);
+
+        this.activeTimers.set(widgetId, timer);
+    }
+
+    private mapBookingType(title: string): WebSocketNotification['type'] {
+        const normalizedTitle = title.toLowerCase();
+        if (normalizedTitle.includes('annul')) {
+            return 'cancellation';
+        }
+        if (normalizedTitle.includes('reservation')) {
+            return 'reservation';
+        }
+        return 'message';
     }
 }

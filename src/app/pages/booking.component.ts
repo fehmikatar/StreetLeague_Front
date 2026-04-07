@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, MapPin, Clock, Calendar, DollarSign, Search, Star, Filter, CheckCircle } from 'lucide-angular';
-import { BookingService, Field } from '../services/booking.service';
+import { BookingService, Field, FieldFeedback } from '../services/booking.service';
 
 @Component({
   selector: 'app-booking',
@@ -61,6 +61,24 @@ import { BookingService, Field } from '../services/booking.service';
               <div class="flex gap-4 text-sm text-muted-foreground mb-4">
                 <span class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon>{{ field.hours }}</span>
               </div>
+              <button
+                type="button"
+                (click)="toggleFeedbacks(field.id)"
+                class="w-full mb-3 py-2 border border-border rounded-xl text-sm font-semibold hover:bg-muted transition-all">
+                {{ expandedFieldId === field.id ? 'Masquer les avis' : 'Voir les avis joueurs' }}
+              </button>
+              <div *ngIf="expandedFieldId === field.id" class="mb-4 rounded-xl bg-muted/40 p-3 space-y-3">
+                <div *ngIf="getPublicFeedbacks(field.id).length === 0" class="text-sm text-muted-foreground">
+                  Aucun avis public pour ce terrain pour le moment.
+                </div>
+                <div *ngFor="let feedback of getPublicFeedbacks(field.id)" class="rounded-lg bg-background border border-border p-3">
+                  <div class="flex items-center justify-between gap-3 mb-2">
+                    <span class="font-semibold text-sm">{{ feedback.userName || ('Joueur #' + feedback.userId) }}</span>
+                    <span class="text-amber-500 text-sm">{{ '★'.repeat(feedback.rating) }}<span class="text-muted-foreground">{{ '☆'.repeat(5 - feedback.rating) }}</span></span>
+                  </div>
+                  <p class="text-sm text-muted-foreground">{{ feedback.comment }}</p>
+                </div>
+              </div>
               <a [routerLink]="['/app/booking-form', field.id]" class="w-full block text-center py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
                 Réserver maintenant
               </a>
@@ -84,11 +102,17 @@ export class BookingComponent implements OnInit {
   sportTypes = ['Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
 
   fields: Field[] = [];
+  feedbacksByField: Record<string, FieldFeedback[]> = {};
+  expandedFieldId: string | null = null;
 
   constructor(private bookingService: BookingService) { }
 
   ngOnInit() {
-    this.bookingService.fields$.subscribe(f => this.fields = f);
+    this.bookingService.refreshFields();
+    this.bookingService.fields$.subscribe(f => {
+      this.fields = f;
+      this.loadFieldFeedbacks(f);
+    });
   }
 
   get filteredFields() {
@@ -97,6 +121,22 @@ export class BookingComponent implements OnInit {
       const matchesType = this.selectedType === 'all' || f.type === this.selectedType;
       return matchesSearch && matchesType;
     });
+  }
+
+  toggleFeedbacks(fieldId: string): void {
+    this.expandedFieldId = this.expandedFieldId === fieldId ? null : fieldId;
+  }
+
+  getPublicFeedbacks(fieldId: string): FieldFeedback[] {
+    return this.feedbacksByField[fieldId] || [];
+  }
+
+  private loadFieldFeedbacks(fields: Field[]): void {
+    for (const field of fields) {
+      this.bookingService.getFieldFeedbacks(field.id).subscribe(feedbacks => {
+        this.feedbacksByField[field.id] = feedbacks;
+      });
+    }
   }
 }
 
