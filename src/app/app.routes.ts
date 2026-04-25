@@ -55,7 +55,7 @@ import { HealthTrendsComponent } from './pages/healthcare/health-trends.componen
 import { HealthAlertsComponent } from './pages/healthcare/health-alerts.component';
 import { ComplianceTrackingComponent } from './pages/healthcare/compliance-tracking.component';
 
-// Badge pages
+
 import { BadgeDashboardComponent } from './pages/badges/badge-dashboard.component';
 import { BadgeCatalogComponent } from './pages/badges/badge-catalog.component';
 import { BadgeDetailComponent } from './pages/badges/badge-detail.component';
@@ -147,7 +147,9 @@ export const routes: Routes = [
             { path: 'healthcare/trends', component: HealthTrendsComponent },
             { path: 'healthcare/alerts', component: HealthAlertsComponent },
             { path: 'healthcare/compliance', component: ComplianceTrackingComponent },
+
         ],
+
     },
 
     // 404 Not Found
