@@ -1,80 +1,297 @@
-import { Component } from '@angular/core';
+// health-trends.component.ts
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, TrendingUp, TrendingDown, Heart, Activity, Zap, ArrowLeft } from 'lucide-angular';
+import Chart from 'chart.js/auto';
+import { firstValueFrom } from 'rxjs';
+import { HealthProfileService, HealthProfileResponse } from '../../services/health-profile.service';
+import { MedicalRecordService, MedicalRecordResponse } from '../../services/medical-record.service';
 
 @Component({
   selector: 'app-health-trends',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule],
   template: `
-    <div class="p-6 space-y-6">
-      <div class="flex items-center gap-3 mb-2">
-        <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
-          <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
-        </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
-      </div>
-      <div>
-        <h1 class="text-2xl font-bold text-foreground">Tendances de Santé</h1>
-        <p class="text-muted-foreground">Évolution de vos indicateurs de santé dans le temps</p>
-      </div>
-
-      <!-- Period selector -->
-      <div class="flex gap-2">
-        <button *ngFor="let p of periods" (click)="selectedPeriod = p"
-          class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          [ngClass]="selectedPeriod === p ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground border border-border hover:bg-muted'">
-          {{p}}
-        </button>
+    <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center gap-4">
+          <a routerLink="/app/healthcare" class="bg-white hover:bg-gray-100 text-blue-700 px-4 py-2 rounded-xl shadow-md transition">← Dashboard Santé</a>
+          <div>
+            <h1 class="text-3xl font-bold text-gray-800">📈 Tendances santé</h1>
+            <p class="text-gray-600">Évolution de vos indicateurs corporels</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Trend Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div *ngFor="let trend of trends" class="bg-card rounded-xl border border-border p-5">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <lucide-icon [name]="trend.icon" [size]="20" class="text-primary"></lucide-icon>
-              <span class="font-semibold text-foreground">{{trend.label}}</span>
-            </div>
-            <div class="flex items-center gap-1" [ngClass]="trend.positive ? 'text-green-500' : 'text-red-500'">
-              <lucide-icon [name]="trend.positive ? trendUpIcon : trendDownIcon" [size]="16"></lucide-icon>
-              <span class="text-sm font-medium">{{trend.change}}</span>
-            </div>
-          </div>
-          <div class="flex items-baseline gap-2 mb-4">
-            <span class="text-3xl font-bold text-foreground">{{trend.current}}</span>
-            <span class="text-muted-foreground text-sm">{{trend.unit}}</span>
-          </div>
-          <!-- Simple bar chart visualization -->
-          <div class="flex items-end gap-1 h-16">
-            <div *ngFor="let bar of trend.data" class="flex-1 rounded-sm bg-primary/20 hover:bg-primary/40 transition-colors"
-              [style.height.%]="(bar / getMax(trend.data)) * 100">
+      <div *ngIf="isLoading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+        <p class="mt-2">Chargement de vos données...</p>
+      </div>
+
+      <div *ngIf="!isLoading && !healthProfile" class="text-center py-12 bg-yellow-50 rounded-xl">
+        <p class="text-gray-600">⚠️ Aucun profil santé trouvé.</p>
+        <a routerLink="/app/healthcare/profile" class="text-blue-600 underline">Créez votre profil santé</a>
+      </div>
+
+      <div *ngIf="!isLoading && healthProfile">
+        <!-- 3 Cartes -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
+            <p class="text-sm text-gray-500">IMC actuel</p>
+            <p class="text-2xl font-bold">{{ currentBMI !== null ? currentBMI.toFixed(1) : '—' }}</p>
+            <p class="text-xs text-gray-400">Catégorie : {{ bmiCategory }}</p>
+            <div class="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-blue-500 rounded-full" [style.width]="bmiPercent + '%'"></div>
             </div>
           </div>
-          <div class="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>{{getWeekLabels()[0]}}</span>
-            <span>Aujourd'hui</span>
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+            <p class="text-sm text-gray-500">Blessures actives</p>
+            <p class="text-2xl font-bold">{{ activeInjuries }}</p>
+            <p class="text-xs text-gray-400">en cours de traitement</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500">
+            <p class="text-sm text-gray-500">Blessures terminées</p>
+            <p class="text-2xl font-bold">{{ completedInjuries }}</p>
+            <p class="text-xs text-gray-400">guéries</p>
+          </div>
+        </div>
+
+        <!-- 2 Graphiques -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div class="bg-white rounded-xl p-4 shadow-sm border">
+            <h3 class="font-semibold text-gray-700 mb-3">📉 Évolution de l'IMC</h3>
+            <canvas #bmiChart style="height: 250px; width: 100%"></canvas>
+            <p class="text-xs text-gray-500 mt-3 text-center">{{ bmiTrend }}</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border">
+            <h3 class="font-semibold text-gray-700 mb-3">🩺 Répartition des blessures</h3>
+            <canvas #injuryChart style="height: 250px; width: 100%"></canvas>
+            <p class="text-xs text-gray-500 mt-3 text-center" *ngIf="medicalRecords.length === 0">Aucun dossier médical</p>
+          </div>
+        </div>
+
+        <!-- Diagnostic IA -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm mt-6">
+          <h3 class="font-bold text-gray-800 flex items-center gap-2">
+            <span>🔍</span> Diagnostic santé
+          </h3>
+          <div class="mt-3 space-y-2 text-gray-700 text-sm">
+            <p *ngFor="let diag of diagnostics" class="flex items-start gap-2">
+              <span class="text-blue-600">•</span> {{ diag }}
+            </p>
           </div>
         </div>
       </div>
     </div>
   `
 })
-export class HealthTrendsComponent {
-  selectedPeriod = '7J';
-  periods = ['7J', '1M', '3M', '6M', '1A'];
-  readonly trendUpIcon = TrendingUp;
-  readonly trendDownIcon = TrendingDown;
-  readonly arrowLeftIcon = ArrowLeft;
+export class HealthTrendsComponent implements OnInit, AfterViewInit {
+  @ViewChild('bmiChart') bmiCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('injuryChart') injuryCanvas!: ElementRef<HTMLCanvasElement>;
 
-  trends = [
-    { label: 'Fréquence Cardiaque', icon: Heart, current: '72', unit: 'bpm', change: '-3%', positive: true, data: [78, 75, 74, 76, 73, 72, 72] },
-    { label: 'Forme Physique', icon: Activity, current: '83', unit: '%', change: '+5%', positive: true, data: [72, 74, 75, 77, 80, 82, 83] },
-    { label: 'Énergie', icon: Zap, current: '76', unit: '/100', change: '+8%', positive: true, data: [65, 67, 70, 71, 73, 75, 76] },
-    { label: 'Poids', icon: TrendingDown, current: '75.2', unit: 'kg', change: '-0.8kg', positive: true, data: [76.0, 75.8, 75.6, 75.5, 75.4, 75.3, 75.2] },
-  ];
+  healthProfile: HealthProfileResponse | null = null;
+  medicalRecords: MedicalRecordResponse[] = [];
+  isLoading = true;
 
-  getMax(data: number[]) { return Math.max(...data); }
-  getWeekLabels() { return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']; }
+  currentBMI: number | null = null;
+  bmiCategory = '';
+  bmiPercent = 0;
+  bmiTrend = '';
+  activeInjuries = 0;
+  completedInjuries = 0;
+  diagnostics: string[] = [];
+
+  private bmiChartInstance: Chart | null = null;
+  private injuryChartInstance: Chart | null = null;
+
+  constructor(
+    private healthProfileService: HealthProfileService,
+    private medicalRecordService: MedicalRecordService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() { 
+    this.loadUserData(); 
+  }
+
+  ngAfterViewInit() { 
+    setTimeout(() => this.renderCharts(), 500); 
+  }
+
+  private getCurrentUserId(): number | null {
+    const id = localStorage.getItem('user_id');
+    return id ? parseInt(id, 10) : null;
+  }
+
+  private async loadUserData() {
+    const userId = this.getCurrentUserId();
+    if (!userId) {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    try {
+      this.healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId)).catch(() => null);
+      
+      if (this.healthProfile) {
+        this.currentBMI = this.healthProfile.bmi;
+        this.bmiCategory = this.healthProfile.bmiCategory || this.getBmiCategory(this.currentBMI);
+        this.bmiPercent = this.currentBMI ? Math.min((this.currentBMI / 40) * 100, 100) : 0;
+        
+        this.medicalRecords = await firstValueFrom(
+          this.medicalRecordService.getByHealthProfileId(this.healthProfile.id)
+        ).catch(() => []);
+      }
+      
+      this.computeStats();
+      this.generateDiagnostics();
+      this.cdr.detectChanges();
+      setTimeout(() => this.renderCharts(), 300);
+      
+    } catch (err) {
+      console.error('Erreur chargement des données:', err);
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private getBmiCategory(bmi: number | null): string {
+    if (!bmi) return 'Non défini';
+    if (bmi < 18.5) return 'Sous-poids';
+    if (bmi < 25) return 'Normal';
+    if (bmi < 30) return 'Surpoids';
+    return 'Obésité';
+  }
+
+  private computeStats() {
+    this.activeInjuries = this.medicalRecords.filter(r => r.recoveryStatus === 'IN_PROGRESS').length;
+    this.completedInjuries = this.medicalRecords.filter(r => r.recoveryStatus === 'COMPLETED').length;
+    this.bmiTrend = this.currentBMI ? `IMC actuel : ${this.currentBMI.toFixed(1)} - ${this.bmiCategory}` : 'IMC non disponible';
+  }
+
+  private generateDiagnostics() {
+    const diag: string[] = [];
+    
+    if (this.currentBMI) {
+      if (this.currentBMI >= 30) {
+        diag.push(`⚠️ IMC élevé (${this.currentBMI.toFixed(1)}) : risque cardiovasculaire. Consultez un médecin.`);
+      } else if (this.currentBMI >= 25) {
+        diag.push(`📈 Surpoids (IMC ${this.currentBMI.toFixed(1)}). Augmentez l'activité physique.`);
+      } else if (this.currentBMI < 18.5) {
+        diag.push(`⚠️ Insuffisance pondérale (IMC ${this.currentBMI.toFixed(1)}). Suivi nutritionnel conseillé.`);
+      } else {
+        diag.push(`✅ IMC normal (${this.currentBMI.toFixed(1)}). Maintenez une bonne hygiène de vie.`);
+      }
+    } else {
+      diag.push(`📊 Aucune donnée IMC. Complétez votre profil santé.`);
+    }
+
+    if (this.activeInjuries > 0) {
+      diag.push(`🩺 ${this.activeInjuries} blessure(s) en cours. Respectez les protocoles de traitement.`);
+    }
+    if (this.completedInjuries > 0) {
+      diag.push(`✅ ${this.completedInjuries} blessure(s) terminées. Félicitations pour votre rétablissement !`);
+    }
+    if (this.activeInjuries === 0 && this.completedInjuries === 0 && this.medicalRecords.length === 0) {
+      diag.push(`📋 Aucun historique de blessure. Continuez vos bonnes pratiques !`);
+    }
+
+    this.diagnostics = diag;
+  }
+
+  private destroyCharts() {
+    if (this.bmiChartInstance) {
+      this.bmiChartInstance.destroy();
+      this.bmiChartInstance = null;
+    }
+    if (this.injuryChartInstance) {
+      this.injuryChartInstance.destroy();
+      this.injuryChartInstance = null;
+    }
+  }
+
+  private renderCharts() {
+    this.destroyCharts();
+    if (!this.healthProfile) return;
+
+    // Graphique IMC
+    if (this.bmiCanvas?.nativeElement && this.currentBMI) {
+      try {
+        this.bmiChartInstance = new Chart(this.bmiCanvas.nativeElement, {
+          type: 'line',
+          data: { 
+            labels: ['Actuel'], 
+            datasets: [{ 
+              label: 'IMC', 
+              data: [this.currentBMI], 
+              borderColor: '#3b82f6', 
+              borderWidth: 3,
+              fill: true, 
+              backgroundColor: 'rgba(59,130,246,0.1)',
+              pointRadius: 6,
+              pointBackgroundColor: '#3b82f6'
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true,
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      } catch (e) { console.warn(e); }
+    }
+
+    // Graphique blessures
+    if (this.injuryCanvas?.nativeElement && this.medicalRecords.length > 0) {
+      try {
+        const statusCount: Record<string, number> = {};
+        this.medicalRecords.forEach(r => { 
+          statusCount[r.recoveryStatus] = (statusCount[r.recoveryStatus] || 0) + 1; 
+        });
+        
+        const labels = Object.keys(statusCount);
+        const data = labels.map(key => statusCount[key]);
+        
+        const colorMap: Record<string, string> = {
+          'PENDING': '#f59e0b',
+          'IN_PROGRESS': '#3b82f6',
+          'COMPLETED': '#10b981',
+          'COMPLICATED': '#ef4444',
+          'REFERRED': '#9ca3af'
+        };
+        
+        const backgroundColors = labels.map(label => colorMap[label] || '#9ca3af');
+        
+        this.injuryChartInstance = new Chart(this.injuryCanvas.nativeElement, {
+          type: 'pie',
+          data: { 
+            labels: labels.map(l => this.getStatusLabel(l)), 
+            datasets: [{ 
+              data: data, 
+              backgroundColor: backgroundColors,
+              borderWidth: 0
+            }] 
+          },
+          options: { 
+            responsive: true, 
+            maintainAspectRatio: true,
+            plugins: { legend: { position: 'bottom' } } 
+          }
+        });
+      } catch (e) { console.warn(e); }
+    }
+  }
+
+  private getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      'PENDING': 'En attente',
+      'IN_PROGRESS': 'En cours',
+      'COMPLETED': 'Terminé',
+      'COMPLICATED': 'Compliqué',
+      'REFERRED': 'Référencé'
+    };
+    return labels[status] || status;
+  }
 }

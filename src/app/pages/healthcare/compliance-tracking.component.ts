@@ -1,107 +1,186 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, ClipboardList, CheckCircle, Circle, TrendingUp, ArrowLeft } from 'lucide-angular';
+import Chart from 'chart.js/auto';
+import { firstValueFrom } from 'rxjs';
+import { AppointmentService, AppointmentResponse } from '../../services/appointment.service';
+import { HealthProfileService, HealthProfileResponse } from '../../services/health-profile.service';
+import { DietPlanService, DietPlanResponse } from '../../services/diet-plan.service';
 
 @Component({
   selector: 'app-compliance-tracking',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule],
   template: `
-    <div class="p-6 space-y-6">
-      <div class="flex items-center gap-3 mb-2">
-        <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
-          <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
-        </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
-      </div>
-      <div>
-        <h1 class="text-2xl font-bold text-foreground">Suivi de Conformité</h1>
-        <p class="text-muted-foreground">Respect de vos programmes de santé et recommandations médicales</p>
-      </div>
-
-      <!-- Overall Score -->
-      <div class="bg-card rounded-xl border border-border p-6">
-        <div class="flex items-center gap-6">
-          <div class="relative w-24 h-24">
-            <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
-              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" stroke-width="3"/>
-              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1DB954" stroke-width="3" stroke-dasharray="78, 100"/>
-            </svg>
-            <div class="absolute inset-0 flex items-center justify-center">
-              <span class="text-xl font-bold text-primary">78%</span>
-            </div>
-          </div>
-          <div>
-            <h2 class="text-xl font-semibold text-foreground">Score de Conformité Global</h2>
-            <p class="text-muted-foreground">Bon niveau • Quelques améliorations possibles</p>
-            <div class="flex items-center gap-2 mt-2">
-              <lucide-icon [name]="trendIcon" [size]="16" class="text-green-500"></lucide-icon>
-              <span class="text-sm text-green-500">+12% ce mois</span>
-            </div>
-          </div>
+    <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
+      <div class="bg-gradient-to-r from-green-50 to-emerald-100 rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center gap-4">
+          <a routerLink="/app/healthcare" class="bg-white hover:bg-gray-100 text-green-700 px-4 py-2 rounded-xl shadow-md transition">← Dashboard Santé</a>
+          <div><h1 class="text-3xl font-bold text-gray-800">✅ Compliance & Adhésion</h1><p class="text-gray-600">Suivi de vos rendez-vous et plans nutritionnels</p></div>
         </div>
       </div>
 
-      <!-- Programs -->
-      <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-foreground">Programmes en Cours</h2>
-        <div *ngFor="let program of programs" class="bg-card rounded-xl border border-border p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold text-foreground">{{program.title}}</h3>
-            <span class="text-primary font-semibold">{{program.completion}}%</span>
+      <div *ngIf="isLoading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent"></div>
+        <p class="mt-2">Chargement de vos données...</p>
+      </div>
+
+      <div *ngIf="!isLoading && appointments.length === 0 && dietPlans.length === 0" class="text-center py-12 bg-yellow-50 rounded-xl">
+        <p class="text-gray-600">📭 Aucune donnée de compliance.</p>
+        <a routerLink="/app/healthcare/appointments" class="text-green-600 underline">Planifiez un rendez-vous</a>
+      </div>
+
+      <div *ngIf="!isLoading && (appointments.length > 0 || dietPlans.length > 0)">
+        <!-- Cartes -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+            <p class="text-sm text-gray-500">Taux de présence</p>
+            <p class="text-2xl font-bold">{{ attendanceRate }}%</p>
           </div>
-          <div class="w-full bg-muted rounded-full h-2 mb-3">
-            <div class="bg-primary h-2 rounded-full transition-all" [style.width.%]="program.completion"></div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
+            <p class="text-sm text-gray-500">Plans actifs</p>
+            <p class="text-2xl font-bold">{{ activePlans }}</p>
           </div>
-          <div class="space-y-2">
-            <div *ngFor="let task of program.tasks" class="flex items-center gap-3">
-              <lucide-icon [name]="task.done ? checkIcon : circleIcon" [size]="16"
-                [ngClass]="task.done ? 'text-green-500' : 'text-muted-foreground'">
-              </lucide-icon>
-              <span class="text-sm" [ngClass]="task.done ? 'text-muted-foreground line-through' : 'text-foreground'">{{task.label}}</span>
-            </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-yellow-500">
+            <p class="text-sm text-gray-500">Prochains RDV (7j)</p>
+            <p class="text-2xl font-bold">{{ upcomingAppointments }}</p>
+          </div>
+        </div>
+
+        <!-- Graphiques -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h3 class="font-semibold text-gray-700 mb-2">📊 Compliance rendez-vous</h3>
+            <canvas #complianceChart style="max-height: 250px;"></canvas>
+            <div *ngIf="!appointments.length" class="text-center py-8 text-gray-400">Aucun rendez-vous</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h3 class="font-semibold text-gray-700 mb-2">🥗 Plans alimentaires</h3>
+            <canvas #dietChart style="max-height: 250px;"></canvas>
+            <div *ngIf="!dietPlans.length" class="text-center py-8 text-gray-400">Aucun plan alimentaire</div>
+          </div>
+        </div>
+
+        <!-- Bilan -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm mt-6">
+          <h3 class="font-bold text-gray-800">📋 Bilan d’adhésion</h3>
+          <div class="mt-3 space-y-2 text-gray-700 text-sm">
+            <p *ngFor="let diag of diagnostics" class="flex items-start gap-2"><span class="text-green-600">•</span> {{ diag }}</p>
           </div>
         </div>
       </div>
     </div>
   `
 })
-export class ComplianceTrackingComponent {
-  readonly checkIcon = CheckCircle;
-  readonly circleIcon = Circle;
-  readonly trendIcon = TrendingUp;
-  readonly arrowLeftIcon = ArrowLeft;
+export class ComplianceTrackingComponent implements OnInit, AfterViewInit {
+  @ViewChild('complianceChart') complianceCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('dietChart') dietCanvas!: ElementRef<HTMLCanvasElement>;
 
-  programs = [
-    {
-      title: 'Programme Cardio',
-      completion: 85,
-      tasks: [
-        { label: '30 min cardio 3x/semaine', done: true },
-        { label: 'Fréquence cardiaque max < 160 bpm', done: true },
-        { label: 'Mesure tension hebdomadaire', done: false },
-      ]
-    },
-    {
-      title: 'Nutrition',
-      completion: 70,
-      tasks: [
-        { label: '2000-2400 kcal/jour', done: true },
-        { label: 'Protéines > 100g/jour', done: true },
-        { label: 'Limiter sodium < 2g/jour', done: false },
-        { label: 'Hydratation > 2.5L/jour', done: false },
-      ]
-    },
-    {
-      title: 'Suivi Médical',
-      completion: 60,
-      tasks: [
-        { label: 'Contrôle tension mensuel', done: true },
-        { label: 'Prise de médicament quotidienne', done: true },
-        { label: 'Rendez-vous kiné (3x/sem)', done: false },
-        { label: 'Bilan sanguin trimestriel', done: false },
-      ]
+  appointments: AppointmentResponse[] = [];
+  dietPlans: DietPlanResponse[] = [];
+  isLoading = true;
+  attendanceRate = 0;
+  activePlans = 0;
+  upcomingAppointments = 0;
+  diagnostics: string[] = [];
+
+  constructor(
+    private appointmentService: AppointmentService,
+    private healthProfileService: HealthProfileService,
+    private dietPlanService: DietPlanService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() { this.loadUserData(); }
+
+  ngAfterViewInit() { setTimeout(() => this.renderCharts(), 500); }
+
+  private getCurrentUserId(): number | null {
+    const id = localStorage.getItem('user_id');
+    return id ? parseInt(id, 10) : null;
+  }
+
+  private async loadUserData() {
+    const userId = this.getCurrentUserId();
+    if (!userId) {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+      return;
     }
-  ];
+
+    try {
+      this.appointments = await firstValueFrom(this.appointmentService.getByUserId(userId)).catch(() => []);
+      const healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId)).catch(() => null);
+      if (healthProfile) {
+        this.dietPlans = await firstValueFrom(this.dietPlanService.getByHealthProfileId(healthProfile.id)).catch(() => []);
+      }
+      this.computeStats();
+      this.generateDiagnostics();
+      this.cdr.detectChanges();
+      setTimeout(() => this.renderCharts(), 200);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private computeStats() {
+    const total = this.appointments.length;
+    if (total) {
+      const honored = this.appointments.filter(a => a.status === 'CONFIRMED' || a.status === 'COMPLETED').length;
+      this.attendanceRate = Math.round((honored / total) * 100);
+    } else {
+      this.attendanceRate = 0;
+    }
+    this.activePlans = this.dietPlans.filter(p => p.isActive).length;
+    const now = new Date();
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    this.upcomingAppointments = this.appointments.filter(apt => {
+      const aptDate = new Date(apt.appointmentDate);
+      return aptDate >= now && aptDate <= nextWeek && apt.status !== 'CANCELLED';
+    }).length;
+  }
+
+  private generateDiagnostics() {
+    const diag = [];
+    if (this.attendanceRate >= 80) diag.push(`🏆 Excellente compliance (${this.attendanceRate}%).`);
+    else if (this.attendanceRate >= 50) diag.push(`👍 Compliance moyenne (${this.attendanceRate}%). Améliorez votre régularité.`);
+    else if (this.appointments.length > 0) diag.push(`⚠️ Faible compliance (${this.attendanceRate}%). Les rendez-vous sont essentiels.`);
+    else diag.push(`📅 Aucun rendez-vous enregistré. Pensez à planifier vos consultations.`);
+
+    if (this.activePlans === 0 && this.dietPlans.length > 0) diag.push(`🥗 Aucun plan alimentaire actif. Activez-en un.`);
+    else if (this.activePlans > 0) diag.push(`🍎 ${this.activePlans} plan(s) actif(s) – restez motivé(e) !`);
+    else if (this.dietPlans.length === 0) diag.push(`📝 Aucun plan alimentaire. Consultez un nutritionniste.`);
+
+    if (this.upcomingAppointments > 0) diag.push(`📅 ${this.upcomingAppointments} rendez-vous dans les 7 jours. Pensez à confirmer.`);
+    else if (this.appointments.length > 0) diag.push(`✅ Aucun rendez-vous imminent.`);
+    this.diagnostics = diag;
+  }
+
+  private renderCharts() {
+    if (this.complianceCanvas?.nativeElement && this.appointments.length) {
+      try {
+        const honored = this.appointments.filter(a => a.status === 'CONFIRMED' || a.status === 'COMPLETED').length;
+        const missed = this.appointments.length - honored;
+        new Chart(this.complianceCanvas.nativeElement, {
+          type: 'doughnut',
+          data: { labels: ['Honorés', 'Manqués/Annulés'], datasets: [{ data: [honored, missed], backgroundColor: ['#10b981', '#ef4444'] }] },
+          options: { responsive: true, maintainAspectRatio: true }
+        });
+      } catch (e) { console.warn(e); }
+    }
+    if (this.dietCanvas?.nativeElement && this.dietPlans.length) {
+      try {
+        const active = this.dietPlans.filter(p => p.isActive).length;
+        const inactive = this.dietPlans.length - active;
+        new Chart(this.dietCanvas.nativeElement, {
+          type: 'pie',
+          data: { labels: ['Actifs', 'Inactifs'], datasets: [{ data: [active, inactive], backgroundColor: ['#3b82f6', '#9ca3af'] }] },
+          options: { responsive: true, maintainAspectRatio: true }
+        });
+      } catch (e) { console.warn(e); }
+    }
+  }
 }
