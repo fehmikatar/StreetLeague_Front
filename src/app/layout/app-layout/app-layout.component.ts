@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
+import { RealTimeNotificationService } from '../../services/real-time-notification.service';
 import {
     LucideAngularModule, Home, Users, Trophy, MapPin,
     MessageSquare, Activity, Gift, Settings, Map,
@@ -69,7 +70,10 @@ export class AppLayoutComponent implements OnInit {
         });
     }
 
-    constructor(private router: Router) { }
+    constructor(
+        private router: Router,
+        private realTimeNotifService: RealTimeNotificationService
+    ) { }
 
     get roleLabel(): string {
         const r = this.userType;

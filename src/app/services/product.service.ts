@@ -8,6 +8,7 @@ export interface Category {
   nom?: string;
   name?: string;
   description?: string;
+  capacity?: number;
 }
 
 export interface ProductVariant {
@@ -22,6 +23,7 @@ export interface ProductVariant {
 export interface Product {
   id: number;
   nom: string;
+  marque?: string;
   description: string;
   prix: number;
   stock: number;
@@ -31,6 +33,7 @@ export interface Product {
   createdAt?: string;
   updatedAt?: string;
   deleted?: boolean;
+  status?: string;
 }
 
 export interface ProductRequest {
@@ -41,6 +44,7 @@ export interface ProductRequest {
   images: string[];
   categoryId: number;
   variants?: ProductVariant[];
+  status?: string;
 }
 
 export interface ProductSearchCriteria {
@@ -70,6 +74,47 @@ export interface FavoriteResponse {
   addedAt: string;
 }
 
+export interface CartItemDTO {
+  id: number;
+  productId: number;
+  productName: string;
+  productImage?: string;
+  price: number;
+  quantity: number;
+  selectedVariant?: ProductVariant;
+  addedAt: string;
+}
+
+export interface CartResponse {
+  id: number;
+  orderCode?: string;
+  items: CartItemDTO[];
+  subtotal: number;
+  discount: number;
+  total: number;
+  appliedPromoCode?: string;
+  status: string;
+  createdAt: string;
+  lastModified: string;
+  clientName?: string;
+  clientAddress?: string;
+  clientPostalCode?: string;
+  clientCity?: string;
+  clientPhone?: string;
+  deliveryMode?: string;
+  paymentMode?: string;
+  deliveryFee?: number;
+  deliveryStatus?: string;
+}
+
+export interface ProductHighDemandDTO {
+  id: number;
+  nom: string;
+  quantityInActiveCarts: number;
+  currentStock: number;
+  categoryName: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -78,13 +123,25 @@ export class ProductService {
   private categoryUrl = `${environment.apiUrl}/categories`;
   private cartUrl = `${environment.apiUrl}/cart`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ==========================
   // CATEGORIES
   // ==========================
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(this.categoryUrl);
+  }
+
+  createCategory(category: Category): Observable<Category> {
+    return this.http.post<Category>(this.categoryUrl, category);
+  }
+
+  updateCategory(id: number, category: Category): Observable<Category> {
+    return this.http.put<Category>(`${this.categoryUrl}/${id}`, category);
+  }
+
+  deleteCategory(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.categoryUrl}/${id}`);
   }
 
   // ==========================
@@ -105,7 +162,7 @@ export class ProductService {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
-      
+
     if (criteria.keyword) params = params.set('keyword', criteria.keyword);
     if (criteria.categoryId) params = params.set('categoryId', criteria.categoryId.toString());
     if (criteria.minPrice != null) params = params.set('minPrice', criteria.minPrice.toString());
@@ -114,7 +171,6 @@ export class ProductService {
     return this.http.get<ProductResponse>(`${this.apiUrl}/search`, { params });
   }
 
-  // Obsolete - kept for backward compatibility mostly, redirecting to search.
   getProductsByCategory(categoryId: number, page: number = 0, size: number = 20): Observable<ProductResponse> {
     return this.searchProducts({ categoryId }, page, size);
   }
@@ -127,6 +183,10 @@ export class ProductService {
   getMostFavoritedProducts(limit: number = 10): Observable<Product[]> {
     const params = new HttpParams().set('limit', limit.toString());
     return this.http.get<Product[]>(`${this.apiUrl}/most-favorited`, { params });
+  }
+
+  getHighDemandProducts(): Observable<ProductHighDemandDTO[]> {
+    return this.http.get<ProductHighDemandDTO[]>(`${this.apiUrl}/high-demand`);
   }
 
   createProduct(request: ProductRequest): Observable<Product> {
@@ -160,8 +220,8 @@ export class ProductService {
     return this.http.post<any>(`${this.cartUrl}/items`, payload);
   }
 
-  getCart(): Observable<any> {
-    return this.http.get<any>(this.cartUrl);
+  getCart(): Observable<CartResponse> {
+    return this.http.get<CartResponse>(this.cartUrl);
   }
 
   removeFromCart(itemId: number): Observable<any> {
@@ -175,6 +235,30 @@ export class ProductService {
 
   clearCart(): Observable<any> {
     return this.http.delete<any>(this.cartUrl);
+  }
+
+  checkoutCart(request: any): Observable<CartResponse> {
+    return this.http.post<CartResponse>(`${this.cartUrl}/checkout`, request);
+  }
+
+  applyPromoCodeCart(code: string): Observable<CartResponse> {
+    return this.http.post<CartResponse>(`${this.cartUrl}/promo`, { code });
+  }
+
+  removePromoCodeCart(): Observable<CartResponse> {
+    return this.http.delete<CartResponse>(`${this.cartUrl}/promo`);
+  }
+
+  getMyOrders(): Observable<CartResponse[]> {
+    return this.http.get<CartResponse[]>(`${this.cartUrl}/orders/my`);
+  }
+
+  getAllOrders(): Observable<CartResponse[]> {
+    return this.http.get<CartResponse[]>(`${this.cartUrl}/orders/all`);
+  }
+
+  updateOrderStatus(cartId: number, status: string): Observable<CartResponse> {
+    return this.http.put<CartResponse>(`${this.cartUrl}/orders/${cartId}/status`, { status });
   }
 
   // ==========================
@@ -216,4 +300,41 @@ export class ProductService {
   categorizeFavorite(favoriteId: number, categoryId: number): Observable<any> {
     return this.http.put<any>(`${this.favoriteUrl}/${favoriteId}/categorize/${categoryId}`, {});
   }
+
+    searchFavorites(productName: string = '', categoryName: string = ''): Observable<FavoriteResponse[]> {
+    const params = new HttpParams()
+      .set('productName', productName)
+      .set('categoryName', categoryName);
+    return this.http.get<FavoriteResponse[]>(`${this.favoriteUrl}/search`, { params });
+  }
+
+  getLowStockFavorites(): Observable<FavoriteResponse[]> {
+    return this.http.get<FavoriteResponse[]>(`${this.favoriteUrl}/low-stock`);
+  }
+
+  triggerStockCheck(): Observable<void> {
+    return this.http.post<void>(`${this.favoriteUrl}/trigger-check`, {});
+  }
+
+  // ==========================
+  // STATISTICS & ANALYTICS
+  // ==========================
+  private statsUrl = `${environment.apiUrl}/stats`;
+
+  getTopSellingProductsStats(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.statsUrl}/top-products`);
+  }
+
+  getAbandonedCartStatsCity(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.statsUrl}/abandoned-by-city`);
+  }
+
+  getPromoCodeUsageStats(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.statsUrl}/promo-codes`);
+  }
+
+  getOrderSummaryStats(userId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.statsUrl}/order-summary/${userId}`);
+  }
 }
+

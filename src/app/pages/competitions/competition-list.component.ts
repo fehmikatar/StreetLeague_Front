@@ -29,7 +29,8 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
       <div class="bg-card border border-border rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 shadow-sm">
         <div class="relative flex-1">
           <lucide-icon [name]="SearchIcon" [size]="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"></lucide-icon>
-          <input type="text" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Rechercher une compétition ou ville..." class="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-xl focus:outline-none focus:border-primary font-medium">
+          <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Rechercher une compétition ou ville..." class="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-xl focus:outline-none focus:border-primary font-medium">
+          <button *ngIf="searchQuery" (click)="searchQuery=''; onSearch()" class="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">×</button>
         </div>
         
         <div class="flex gap-4 overflow-x-auto pb-1 md:pb-0">
@@ -190,6 +191,26 @@ export class CompetitionListComponent implements OnInit {
     }
 
     this.filteredCompetitions = filtered.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+  }
+
+  onSearch() {
+    if (!this.searchQuery.trim()) {
+      this.loadCompetitions();
+      return;
+    }
+
+    this.loading = true;
+    this.competitionService.searchCompetitions(this.searchQuery).subscribe({
+      next: (res) => {
+        this.competitions = res;
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error searching competitions', err);
+        this.loading = false;
+      }
+    });
   }
 
   formatDate(dateStr: string): string {

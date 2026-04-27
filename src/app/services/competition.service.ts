@@ -69,4 +69,10 @@ export class CompetitionService {
   deleteCompetition(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  searchCompetitions(keyword: string): Observable<CompetitionResponse[]> {
+    return this.http.get<CompetitionResponse[]>(`${this.apiUrl}/search`, {
+      params: { keyword }
+    });
+  }
 }

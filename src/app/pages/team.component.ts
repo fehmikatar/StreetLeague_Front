@@ -181,7 +181,7 @@ export class TeamComponent implements OnInit {
     city: ''
   };
 
-  constructor(public router: Router, private teamService: TeamService) {}
+  constructor(public router: Router, private teamService: TeamService) { }
 
   ngOnInit() {
     this.loadTeams();
@@ -225,7 +225,7 @@ export class TeamComponent implements OnInit {
 
   submitTeam() {
     if (!this.newTeam.name || !this.newTeam.sport) return;
-    
+
     this.creating = true;
     const userIdStr = localStorage.getItem('user_id');
     const userId = userIdStr ? Number(userIdStr) : 1;
@@ -246,7 +246,7 @@ export class TeamComponent implements OnInit {
         } else {
           msg += err.message;
         }
-        
+
         // Use an alert to be absolutely sure the user sees it in case UI freezes
         alert("Erreur lors de la création d'équipe:\n" + msg);
         this.showToast('Erreur: ' + msg.substring(0, 50));

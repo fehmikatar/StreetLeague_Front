@@ -4,10 +4,10 @@ import { LucideAngularModule, User, Mail, Phone, MapPin, Camera, Edit, Shield, B
 import { Router } from '@angular/router';
 
 @Component({
-    selector: 'app-user-profile',
-    standalone: true,
-    imports: [CommonModule, LucideAngularModule],
-    template: `
+  selector: 'app-user-profile',
+  standalone: true,
+  imports: [CommonModule, LucideAngularModule],
+  template: `
     <div class="p-6 max-w-3xl mx-auto space-y-6">
       <h1 class="text-2xl font-bold text-foreground">Mon Profil</h1>
 
@@ -90,39 +90,39 @@ import { Router } from '@angular/router';
   `
 })
 export class UserProfileComponent {
-    readonly userIcon = User;
-    readonly mailIcon = Mail;
-    readonly phoneIcon = Phone;
-    readonly locationIcon = MapPin;
-    readonly cameraIcon = Camera;
-    readonly editIcon = Edit;
-    readonly shieldIcon = Shield;
-    readonly bellIcon = Bell;
+  readonly userIcon = User;
+  readonly mailIcon = Mail;
+  readonly phoneIcon = Phone;
+  readonly locationIcon = MapPin;
+  readonly cameraIcon = Camera;
+  readonly editIcon = Edit;
+  readonly shieldIcon = Shield;
+  readonly bellIcon = Bell;
 
-    editing = false;
+  editing = false;
 
-    profile = { name: 'Fehmi Katar', role: 'Joueur • Admin', email: 'fehmi2013katar@gmail.com', phone: '+33 6 12 34 56 78' };
+  profile = { name: 'Fehmi Katar', role: 'Joueur • Admin', email: 'fehmi2013katar@gmail.com', phone: '+33 6 12 34 56 78' };
 
-    stats = [
-        { label: 'Matchs Joués', value: '47' },
-        { label: 'Buts Marqués', value: '23' },
-        { label: 'Équipes', value: '3' },
-    ];
+  stats = [
+    { label: 'Matchs Joués', value: '47' },
+    { label: 'Buts Marqués', value: '23' },
+    { label: 'Équipes', value: '3' },
+  ];
 
-    sections = [
-        {
-            title: 'Notifications', icon: Bell, items: [
-                { label: 'Nouveaux matchs', value: true },
-                { label: 'Messages équipe', value: true },
-                { label: 'Rappels réservation', value: true },
-                { label: 'Newsletters', value: false },
-            ]
-        },
-        {
-            title: 'Confidentialité', icon: Shield, items: [
-                { label: 'Profil visible publiquement', value: true },
-                { label: 'Partager les statistiques', value: false },
-            ]
-        }
-    ];
+  sections = [
+    {
+      title: 'Notifications', icon: Bell, items: [
+        { label: 'Nouveaux matchs', value: true },
+        { label: 'Messages équipe', value: true },
+        { label: 'Rappels réservation', value: true },
+        { label: 'Newsletters', value: false },
+      ]
+    },
+    {
+      title: 'Confidentialité', icon: Shield, items: [
+        { label: 'Profil visible publiquement', value: true },
+        { label: 'Partager les statistiques', value: false },
+      ]
+    }
+  ];
 }

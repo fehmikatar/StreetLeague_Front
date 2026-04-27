@@ -33,6 +33,11 @@ import { UserProfileComponent } from './pages/user-profile.component';
 import { NotificationsComponent } from './pages/notifications.component';
 import { FavoritesComponent } from './pages/favorites.component';
 
+// Admin specific pages
+import { AdminCategoriesComponent } from './pages/admin-categories.component';
+import { AdminOrdersComponent } from './components/admin-orders/admin-orders.component';
+import { AdminStatsComponent } from './components/admin-stats/admin-stats.component';
+
 // Competition pages
 import { CompetitionListComponent } from './pages/competitions/competition-list.component';
 import { CompetitionDetailComponent } from './pages/competitions/competition-detail.component';
@@ -106,7 +111,10 @@ export const routes: Routes = [
             { path: 'sponsors/:id', component: ProductDetailComponent },
             { path: 'admin', component: AdminComponent },
             { path: 'admin/products', component: AdminProductsComponent },
-            
+            { path: 'admin/categories', component: AdminCategoriesComponent },
+            { path: 'admin/orders', component: AdminOrdersComponent },
+            { path: 'admin/stats', component: AdminStatsComponent },
+
             // Admin - Badge Management (specific routes before parameter-based routes)
             { path: 'admin/badges/dashboard', component: BadgeDashboardComponent },
             { path: 'admin/badges/create', component: BadgeFormComponent },
@@ -120,7 +128,7 @@ export const routes: Routes = [
             { path: 'admin/performances/:id/edit', component: PerformanceFormComponent },
             { path: 'admin/performances/:id', component: PerformanceDetailComponent },
             { path: 'admin/performances', component: PerformanceListComponent },
-            
+
             { path: 'user-profile', component: UserProfileComponent },
             { path: 'notifications', component: NotificationsComponent },
             { path: 'favorites', component: FavoritesComponent },

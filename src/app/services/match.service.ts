@@ -74,4 +74,13 @@ export class MatchService {
   updateScore(id: number, scores: MatchScoreUpdate): Observable<MatchResponse> {
     return this.http.put<MatchResponse>(`${this.base}/${id}/score`, scores);
   }
+
+  searchMatches(keyword: string): Observable<MatchResponse[]> {
+    let params = new HttpParams().set('keyword', keyword);
+    return this.http.get<MatchResponse[]>(`${this.base}/search`, { params });
+  }
+
+  getHighScoringMatches(): Observable<MatchResponse[]> {
+    return this.http.get<MatchResponse[]>(`${this.base}/high-scoring`);
+  }
 }

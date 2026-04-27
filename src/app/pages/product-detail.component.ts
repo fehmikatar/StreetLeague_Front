@@ -1,202 +1,229 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, Heart, ShoppingCart, Loader2, Star, Truck, ShieldCheck, Undo2 } from 'lucide-angular';
+import { LucideAngularModule, ArrowLeft, Heart, ShoppingCart, Loader2, Star, Truck, ShieldCheck, Undo2, Search, Plus, Minus, AlertCircle, ShoppingBag } from 'lucide-angular';
 import { ProductService, Product, ProductVariant } from '../services/product.service';
+import { catchError, finalize, map, switchMap, take, takeUntil, timeout, tap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule, FormsModule],
   template: `
-    <div class="min-h-screen bg-background pb-20">
+    <div class="min-h-screen bg-background pb-20 font-sans">
       
-      <div class="bg-card border-b border-border sticky top-0 z-40 shadow-sm backdrop-blur-md bg-card/90">
-        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
-           <button (click)="goBack()" class="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
-              <lucide-icon [name]="ArrowLeftIcon" [size]="20"></lucide-icon>
-              Retour à la boutique
+      <!-- Top Navigation -->
+      <div class="bg-card border-b border-border sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-4 h-14 flex items-center justify-between">
+           <button (click)="goBack()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">
+              <lucide-icon [name]="ArrowLeftIcon" [size]="16"></lucide-icon>
+              Retour Boutique
            </button>
+           <span class="text-[10px] font-bold text-muted-foreground opacity-30">{{ debugInfo }}</span>
         </div>
       </div>
 
+      <!-- Loading State (Non-blocking) -->
       <div *ngIf="loading" class="flex flex-col items-center justify-center min-h-[60vh]">
-         <lucide-icon [name]="Loader2Icon" [size]="48" class="animate-spin text-primary/50 mb-4"></lucide-icon>
-         <p class="text-muted-foreground">Chargement des détails...</p>
+         <div class="loader-static"></div>
+         <p class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-4">Chargement instantané...</p>
       </div>
 
-      <div *ngIf="!loading && !product" class="flex flex-col items-center justify-center min-h-[60vh] text-center">
-         <div class="text-6xl mb-6">🔍</div>
-         <h2 class="text-2xl font-bold mb-2">Produit introuvable</h2>
-         <p class="text-muted-foreground mb-6">Le produit que vous cherchez n'existe pas ou a été retiré.</p>
-         <button (click)="goBack()" class="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold">Retourner à la boutique</button>
+      <!-- Error State -->
+      <div *ngIf="!loading && errorMessage" class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+         <div class="h-16 w-16 bg-destructive/10 text-destructive rounded-2xl flex items-center justify-center mb-6">
+            <lucide-icon [name]="AlertCircleIcon" [size]="32"></lucide-icon>
+         </div>
+         <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Oups ! Erreur de chargement</h2>
+         <p class="text-muted-foreground mb-8 max-w-sm text-sm">{{ errorMessage }}</p>
+         <button (click)="loadProduct()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs">RÉESSAYER</button>
       </div>
 
+      <!-- Product Detail (Stable Layout) -->
       <div *ngIf="!loading && product" class="container mx-auto px-4 py-8 max-w-7xl">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
-          <!-- Image Gallery -->
-          <div class="space-y-4">
-             <div class="aspect-square bg-card rounded-3xl border border-border p-8 flex items-center justify-center relative overflow-hidden group">
-                <!-- Sale Badge -->
-                <div *ngIf="product.stock === 0" class="absolute top-4 left-4 z-10 bg-background/90 text-foreground font-bold px-4 py-1.5 rounded-lg border border-border">Rupture de stock</div>
-                <div *ngIf="(product.stock || 0) > 0 && (product.stock || 0) < 10" class="absolute top-4 left-4 z-10 bg-destructive/10 text-destructive font-bold px-4 py-1.5 rounded-lg backdrop-blur-sm">Stock limité</div>
-
-                <img *ngIf="currentImage" [src]="currentImage" [alt]="product.nom" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
-                <div *ngIf="!currentImage" class="text-8xl">🛒</div>
+          <!-- LEFT: Image (Static) -->
+          <div class="space-y-6">
+             <div class="bg-card border border-border rounded-lg overflow-hidden aspect-square flex items-center justify-center p-8 relative">
+                <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                  <span *ngIf="product.stock === 0" class="bg-black text-white px-3 py-1 text-[9px] font-black uppercase">Rupture</span>
+                  <span *ngIf="product.stock > 0 && product.stock < 10" class="bg-red-600 text-white px-3 py-1 text-[9px] font-black uppercase">Stock Faible</span>
+                </div>
+                <img *ngIf="currentImage" [src]="currentImage" [alt]="product.nom" class="w-full h-full object-contain">
+                <div *ngIf="!currentImage" class="text-6xl opacity-10">📦</div>
              </div>
 
-             <!-- Thumbnails -->
-             <div *ngIf="product.images && (product.images.length || 0) > 1" class="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                <button *ngFor="let img of product.images; let i = index" 
+             <!-- Static Miniatures -->
+             <div *ngIf="product.images && product.images.length > 1" class="flex gap-3 overflow-x-auto pb-2">
+                <button *ngFor="let img of product.images" 
                         (click)="setCurrentImage(img)"
+                        class="w-20 h-20 rounded border-2 transition-all p-1 bg-white shrink-0"
                         [class.border-primary]="currentImage === img"
-                        [class.border-transparent]="currentImage !== img"
-                        class="w-20 h-20 shrink-0 bg-card rounded-xl p-2 border-2 hover:border-primary/50 transition-colors overflow-hidden">
+                        [class.border-border]="currentImage !== img">
                    <img [src]="img" class="w-full h-full object-contain">
                 </button>
              </div>
           </div>
 
-          <!-- Product Details -->
+          <!-- RIGHT: Content (Static) -->
           <div class="flex flex-col">
-             
-             <!-- Header -->
-             <div class="mb-6">
-                <div class="text-sm font-semibold text-primary mb-2 uppercase tracking-wider">{{ product.category?.nom || product.category?.name || 'Catégorie Générale' }}</div>
-                <h1 class="text-3xl lg:text-5xl font-extrabold mb-4 leading-tight">{{ product.nom }}</h1>
-                <div class="flex items-center gap-4 text-sm text-muted-foreground">
-                   <div class="flex items-center gap-1 text-amber-400">
-                      <lucide-icon [name]="StarIcon" [size]="16" class="fill-current"></lucide-icon>
-                      <lucide-icon [name]="StarIcon" [size]="16" class="fill-current"></lucide-icon>
-                      <lucide-icon [name]="StarIcon" [size]="16" class="fill-current"></lucide-icon>
-                      <lucide-icon [name]="StarIcon" [size]="16" class="fill-current"></lucide-icon>
-                      <lucide-icon [name]="StarIcon" [size]="16" class="fill-current opacity-50"></lucide-icon>
-                      <span class="text-foreground ml-1 font-medium">4.5</span>
-                   </div>
-                   <span>•</span>
-                   <span>124 Avis</span>
-                </div>
+             <div class="mb-4">
+                <span class="text-[10px] font-black uppercase tracking-widest text-primary">{{ product.category?.nom || 'Sport' }}</span>
+                <h1 class="text-4xl font-black text-foreground uppercase tracking-tighter mt-1">{{ product.nom }}</h1>
+                <p *ngIf="product.marque" class="text-xs font-bold text-muted-foreground uppercase mt-1">Marque : {{ product.marque }}</p>
              </div>
 
-             <!-- Price -->
-             <div class="text-4xl font-black text-foreground mb-8">
-                {{ formatPrice(selectedPrice) }}
+             <div class="flex items-center gap-4 mb-8">
+                <span class="text-3xl font-black text-primary">{{ formatPrice(selectedPrice) }}</span>
+                <span class="h-4 w-px bg-border"></span>
+                 <span *ngIf="($any(product).status === 'EN_STOCK' || !$any(product).status) && product.stock > 0" class="text-[10px] font-bold text-green-600 uppercase">✓ En Stock</span>
+                 <span *ngIf="$any(product).status === 'RUPTURE_DE_STOCK' || product.stock === 0" class="text-[10px] font-bold text-red-600 uppercase">✗ Épuisé</span>
+                 <span *ngIf="$any(product).status === 'EN_ARRIVAGE' && product.stock > 0" class="text-[10px] font-bold text-amber-500 uppercase">⏳ En Arrivage</span>
              </div>
 
-             <div class="h-px w-full bg-border mb-8"></div>
-
-             <!-- Variants Selection -->
-             <div *ngIf="colorVariants.length > 0" class="mb-6">
-                <h3 class="text-sm font-semibold mb-3">Couleurs disponibles</h3>
-                <div class="flex flex-wrap gap-3">
-                   <button *ngFor="let color of colorVariants" 
-                           (click)="selectColor(color)"
-                           [class.ring-2]="selectedColor === color"
-                           class="px-4 py-2 rounded-xl text-sm font-medium border border-border shadow-sm hover:border-primary transition-all bg-card ring-primary ring-offset-2 ring-offset-background">
-                      {{ color }}
-                   </button>
-                </div>
-             </div>
-
-             <div *ngIf="sizeVariants.length > 0" class="mb-8">
-                <h3 class="text-sm font-semibold mb-3 flex items-center justify-between">
-                   Tailles disponibles
-                </h3>
-                <div class="flex flex-wrap gap-3">
-                   <button *ngFor="let size of sizeVariants" 
-                           (click)="selectSize(size)"
-                           [class.bg-primary]="selectedSize === size"
-                           [class.text-primary-foreground]="selectedSize === size"
-                           [class.bg-card]="selectedSize !== size"
-                           class="w-14 h-12 rounded-xl text-sm font-bold border border-border hover:border-primary transition-all flex items-center justify-center">
-                      {{ size }}
-                   </button>
-                </div>
-             </div>
-
-             <!-- Action Buttons -->
-             <div class="flex gap-4 mb-8">
-                <button (click)="addToCart()"
-                        [disabled]="(product.stock || 0) === 0 || addingToCart || (!selectedVariant && (product.variants?.length || 0) > 0)"
-                        class="flex-1 h-14 bg-primary text-primary-foreground rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1">
-                   <lucide-icon *ngIf="!addingToCart" [name]="ShoppingCartIcon" [size]="24"></lucide-icon>
-                   <lucide-icon *ngIf="addingToCart" [name]="Loader2Icon" [size]="24" class="animate-spin"></lucide-icon>
-                   <span *ngIf="(product.stock || 0) > 0">Ajouter au panier</span>
-                   <span *ngIf="(product.stock || 0) === 0">En rupture</span>
-                </button>
+             <div class="prose prose-sm mb-10 text-muted-foreground font-medium">
+                {{ product.description }}
                 
-                <button (click)="toggleFavorite()"
-                        class="h-14 w-14 bg-card border border-border rounded-2xl flex items-center justify-center hover:bg-muted transition-colors"
-                        [class.text-red-500]="isFavorite"
-                        [class.border-red-500]="isFavorite">
-                   <lucide-icon [name]="HeartIcon" [size]="24" [class.fill-current]="isFavorite"></lucide-icon>
-                </button>
-             </div>
-
-             <!-- Assurances -->
-             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8 bg-muted/40 p-6 rounded-2xl">
-                <div class="flex items-center gap-3">
-                   <div class="h-10 w-10 bg-background rounded-full flex items-center justify-center shadow-sm text-primary">
-                      <lucide-icon [name]="TruckIcon" [size]="20"></lucide-icon>
-                   </div>
-                   <div class="text-sm">
-                      <div class="font-bold">Livraison Rapide</div>
-                      <div class="text-muted-foreground">Sous 48-72h</div>
-                   </div>
-                </div>
-                <div class="flex items-center gap-3">
-                   <div class="h-10 w-10 bg-background rounded-full flex items-center justify-center shadow-sm text-primary">
-                      <lucide-icon [name]="Undo2Icon" [size]="20"></lucide-icon>
-                   </div>
-                   <div class="text-sm">
-                      <div class="font-bold">Retour Facile</div>
-                      <div class="text-muted-foreground">30 jours inclus</div>
-                   </div>
+                <div class="mt-4 pt-4 border-t border-border/50">
+                    <span class="uppercase tracking-wider text-[10px] font-black text-muted-foreground">Tailles Disponibles:</span>
+                    <span *ngIf="sizeVariants.length > 0" class="ml-2 font-bold text-foreground text-sm">{{ sizeVariants.join(', ') }}</span>
+                    <span *ngIf="sizeVariants.length === 0" class="ml-2 font-bold text-foreground text-sm uppercase">XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL</span>
                 </div>
              </div>
 
-             <!-- Description Accordion / Content -->
-             <div class="space-y-6">
-                <div>
-                   <h3 class="text-xl font-bold mb-3 border-b border-border pb-2">Description du produit</h3>
-                   <div class="text-muted-foreground leading-relaxed whitespace-pre-line text-sm md:text-base">
-                      {{ product.description }}
+             <!-- Selection & Actions -->
+             <div class="space-y-8 border-t border-border pt-8">
+                
+                <!-- Sizes -->
+                <div *ngIf="sizeVariants.length > 0">
+                   <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Choisir Taille</h3>
+                   <div class="flex flex-wrap gap-2">
+                      <button *ngFor="let s of sizeVariants" 
+                              (click)="selectSize(s)"
+                              class="w-12 h-12 rounded border flex items-center justify-center font-bold text-sm transition-all"
+                              [class.bg-primary]="selectedSize === s"
+                              [class.text-black]="selectedSize === s"
+                              [class.border-primary]="selectedSize === s"
+                              [class.border-border]="selectedSize !== s">
+                         {{ s }}
+                      </button>
+                   </div>
+                </div>
+
+                <!-- Quantity & Add -->
+                <div class="flex flex-col gap-4">
+                   <div class="flex items-center gap-4">
+                      <div class="flex border rounded h-12 w-32 overflow-hidden shadow-sm">
+                         <button (click)="decrementQuantity()" class="flex-1 hover:bg-muted font-bold text-lg">-</button>
+                         <input type="number" [(ngModel)]="quantity" class="w-12 text-center font-bold border-x outline-none bg-transparent" readonly>
+                         <button (click)="incrementQuantity()" class="flex-1 hover:bg-muted font-bold text-lg">+</button>
+                      </div>
+                      <div class="flex-1 flex flex-col items-end">
+                         <span class="text-[9px] font-black uppercase opacity-40">Total</span>
+                         <span class="text-xl font-black">{{ formatPrice(selectedPrice * quantity) }}</span>
+                      </div>
+                   </div>
+
+                   <div class="flex gap-3 h-14">
+                      <button (click)="addToCart()"
+                              [disabled]="product.stock === 0 || addingToCart || ($any(product).status && $any(product).status !== 'EN_STOCK')"
+                              class="flex-1 bg-primary text-black font-black uppercase text-xs tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale">
+                         <ng-container *ngIf="addingToCart">Chargement...</ng-container>
+                         <ng-container *ngIf="!addingToCart && product.stock === 0">ÉPUISÉ</ng-container>
+                         <ng-container *ngIf="!addingToCart && product.stock > 0 && $any(product).status === 'RUPTURE_DE_STOCK'">RUPTURE DE STOCK</ng-container>
+                         <ng-container *ngIf="!addingToCart && product.stock > 0 && $any(product).status === 'EN_ARRIVAGE'">BIENTÔT DISPONIBLE</ng-container>
+                         <ng-container *ngIf="!addingToCart && ($any(product).status === 'EN_STOCK' || !$any(product).status) && product.stock > 0">AJOUTER AU PANIER</ng-container>
+                      </button>
+
+                      <button (click)="toggleFavorite()"
+                              class="w-14 h-full flex items-center justify-center border-2 transition-all active:scale-90"
+                              [class.bg-red-500]="isFavorite"
+                              [class.border-red-500]="isFavorite"
+                              [class.text-white]="isFavorite"
+                              [class.border-border]="!isFavorite">
+                         <lucide-icon [name]="HeartIcon" [size]="20" [class.fill-current]="isFavorite"></lucide-icon>
+                      </button>
+                   </div>
+                </div>
+
+                <div class="flex gap-8 p-4 bg-muted/50 rounded-lg">
+                   <div class="flex flex-col gap-1">
+                      <span class="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Livraison Express</span>
+                      <span class="text-[10px] font-bold">24-48 HEURES</span>
+                   </div>
+                   <div class="flex flex-col gap-1">
+                      <span class="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Paiement Sécurisé</span>
+                      <span class="text-[10px] font-bold">CARTE / CASH</span>
                    </div>
                 </div>
              </div>
 
           </div>
-
         </div>
       </div>
 
-      <!-- Toast Notification -->
-      <div *ngIf="toast" class="fixed bottom-6 right-6 bg-card border border-border rounded-xl px-5 py-4 shadow-2xl flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
-        <div class="h-8 w-8 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center shrink-0">✓</div>
-        <p class="text-sm font-medium pr-4">{{ toast }}</p>
+      <!-- Not Found Fallback -->
+      <div *ngIf="!loading && !product && !errorMessage" class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+         <div class="h-16 w-16 bg-muted text-muted-foreground rounded-2xl flex items-center justify-center mb-6">
+            <lucide-icon [name]="SearchIcon" [size]="32"></lucide-icon>
+         </div>
+         <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Produit introuvable</h2>
+         <p class="text-muted-foreground mb-8 max-w-sm text-sm">Cet article n'existe plus ou est momentanément indisponible.</p>
+         <button (click)="goBack()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs">RETOUR À LA BOUTIQUE</button>
+      </div>
+
+      <!-- Static Toast -->
+      <div *ngIf="toast" class="fixed bottom-6 right-6 bg-black text-white px-6 py-4 rounded shadow-2xl z-[100] border-l-4 border-primary">
+         <span class="text-xs font-black uppercase tracking-widest">{{ toast }}</span>
       </div>
 
     </div>
   `,
   styles: [`
+    :host { 
+      --primary-gold: #ffb800; 
+      --product-red: #d0021b; 
+    }
+
+    /* Static Fast Loader */
+    .loader-static { 
+      width: 40px; 
+      height: 40px; 
+      border: 4px solid #f3f3f3; 
+      border-top: 4px solid var(--primary-gold); 
+      border-radius: 50%; 
+      animation: spin 0.6s linear infinite; 
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   `]
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, OnDestroy {
   readonly ArrowLeftIcon = ArrowLeft;
   readonly HeartIcon = Heart;
   readonly ShoppingCartIcon = ShoppingCart;
+  readonly ShoppingBagIcon = ShoppingBag;
   readonly Loader2Icon = Loader2;
-  readonly StarIcon = Star;
+  readonly SearchIcon = Search;
+  readonly PlusIcon = Plus;
+  readonly MinusIcon = Minus;
+  readonly AlertCircleIcon = AlertCircle;
   readonly TruckIcon = Truck;
   readonly ShieldCheckIcon = ShieldCheck;
-  readonly Undo2Icon = Undo2;
 
-  productId!: number;
+  private destroy$ = new Subject<void>();
+  private loadProduct$ = new Subject<number>();
+
+  productId: number = 0;
   product: Product | null = null;
-  loading = true;
+  loading: boolean = true;
+  errorMessage: string | null = null;
+  debugInfo: string = '';
   
   currentImage: string | null = null;
   
@@ -211,61 +238,128 @@ export class ProductDetailComponent implements OnInit {
   addingToCart = false;
   isFavorite = false;
   toast: string | null = null;
+  quantity: number = 1;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private productService: ProductService
+    private productService: ProductService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.setupProductLoadingStream();
+
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const id = params.get('id');
       if (id) {
         this.productId = +id;
-        this.loadProduct();
-        this.checkIfFavorite();
+        this.loadProduct$.next(this.productId);
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupProductLoadingStream() {
+    this.loadProduct$.pipe(
+      tap((id: number) => {
+        this.loading = true;
+        this.product = null; 
+        this.errorMessage = null;
+        this.debugInfo = `Chargement ID: ${id}...`;
+        this.cdr.detectChanges();
+      }),
+      switchMap((id: number) => {
+        return this.productService.getProductById(id).pipe(
+          timeout(8000),
+          catchError(err => {
+            console.error('Fetch error:', err);
+            this.errorMessage = err.status === 404 
+              ? "Produit introuvable (404)." 
+              : "Erreur de connexion au serveur.";
+            return of(null);
+          })
+        );
+      }),
+      catchError(outerErr => {
+         console.error('Outer stream error:', outerErr);
+         this.loading = false;
+         this.errorMessage = "Erreur système inattendue.";
+         this.cdr.detectChanges();
+         return of(null);
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe(res => {
+      this.loading = false;
+      
+      if (!res && !this.errorMessage) {
+        this.errorMessage = "L'article demandé n'est pas disponible.";
+      }
+      
+      if (res) {
+         this.handleProductData(res);
+         this.debugInfo = `ID ${res.id} chargé.`;
+         this.checkIfFavorite();
+      } else {
+         this.debugInfo = 'Erreur ou non trouvé.';
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
+  private handleProductData(res: Product | null) {
+    try {
+      this.product = res;
+      if (this.product) {
+        if (this.product.images?.length) {
+          this.currentImage = this.product.images[0];
+        } else {
+          this.currentImage = null;
+        }
+        this.extractVariants();
+      }
+    } catch (e) {
+      console.error('Data processing error', e);
+      this.errorMessage = "Erreur lors de l'analyse des données reçues.";
+    }
   }
 
   loadProduct() {
-    this.loading = true;
-    this.productService.getProductById(this.productId).subscribe({
-      next: (res) => {
-        this.product = res;
-        if (this.product.images?.length > 0) {
-          this.currentImage = this.product.images[0];
-        }
-        this.extractVariants();
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Erreur', err);
-        this.loading = false;
-      }
-    });
+     if (this.productId) this.loadProduct$.next(this.productId);
   }
 
   extractVariants() {
-    if (!this.product?.variants || this.product.variants.length === 0) return;
-    
-    const sizes = new Set<string>();
-    const colors = new Set<string>();
+    try {
+      if (!this.product?.variants || !Array.isArray(this.product.variants) || this.product.variants.length === 0) {
+        this.sizeVariants = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
+        this.colorVariants = [];
+        this.selectedSize = null; // Force choice
+        return;
+      }
+      
+      const sizes = new Set<string>();
+      const colors = new Set<string>();
 
-    this.product.variants.forEach(v => {
-      if (v.size) sizes.add(v.size);
-      if (v.color) colors.add(v.color);
-    });
+      this.product.variants.forEach(v => {
+        if (v && v.size) sizes.add(v.size);
+        if (v && v.color) colors.add(v.color);
+      });
 
-    this.sizeVariants = Array.from(sizes);
-    this.colorVariants = Array.from(colors);
+      this.sizeVariants = Array.from(sizes);
+      this.colorVariants = Array.from(colors);
 
-    // Auto-select first available
-    if (this.sizeVariants.length > 0) this.selectSize(this.sizeVariants[0]);
-    if (this.colorVariants.length > 0) this.selectColor(this.colorVariants[0]);
-    
-    this.updateSelectedVariant();
+      // Force explicit selection by setting to null
+      this.selectedSize = null;
+      this.selectedColor = null;
+      
+      this.updateSelectedVariant();
+    } catch (e) {
+      console.error('Error extracting variants', e);
+    }
   }
 
   selectSize(size: string) {
@@ -304,10 +398,11 @@ export class ProductDetailComponent implements OnInit {
   }
 
   checkIfFavorite() {
-    this.productService.checkIfFavorite(this.productId).subscribe({
-      next: (res) => this.isFavorite = res,
-      error: () => this.isFavorite = false
-    });
+    this.productService.checkIfFavorite(this.productId).pipe(
+      timeout(5000),
+      take(1),
+      catchError(() => of(false))
+    ).subscribe(res => this.isFavorite = res);
   }
 
   toggleFavorite() {
@@ -318,7 +413,7 @@ export class ProductDetailComponent implements OnInit {
       this.productService.removeFromFavorites(this.productId).subscribe({
          error: () => {
              this.isFavorite = true; // rollback
-             this.showToast('Erreur lors du retrait des favoris');
+             this.showToast('Error removing from favorites');
          }
       });
     } else {
@@ -327,35 +422,68 @@ export class ProductDetailComponent implements OnInit {
              if (res === null) {
                 // API constraints: product already in favorites, just keep heart filled
              } else {
-                this.showToast('Produit ajouté aux listes de souhaits ❤️');
+                this.showToast('Product added to wishlists ❤️');
              }
          },
          error: () => {
              this.isFavorite = false; // rollback
-             this.showToast("Erreur lors de l'ajout aux favoris");
+             this.showToast("Error adding to favorites");
          }
       });
+    }
+  }
+
+  incrementQuantity() {
+    this.quantity++;
+  }
+
+  decrementQuantity() {
+    if (this.quantity > 1) {
+      this.quantity--;
     }
   }
 
   addToCart() {
     if (!this.product) return;
     
-    // Safety check if variants exist but none selected
-    if (this.product.variants && this.product.variants.length > 0 && !this.selectedVariant) {
-       alert("Veuillez sélectionner une taille/couleur.");
+    // Block if product is not EN_STOCK (backend would reject anyway)
+    const productStatus = (this.product as any).status;
+    if (productStatus && productStatus !== 'EN_STOCK') {
+      this.showToast(productStatus === 'EN_ARRIVAGE' 
+        ? '⏳ Ce produit est en arrivage et sera bientôt disponible !'
+        : '❌ Ce produit est actuellement indisponible.');
+      return;
+    }
+    if (this.product.stock === 0) {
+      this.showToast('❌ Ce produit est épuisé.');
+      return;
+    }
+    
+    // Strict enforcement: A size MUST be selected if sizes exist
+    if (this.sizeVariants.length > 0 && !this.selectedSize) {
+       alert("Veuillez choisir une taille avant d'ajouter au panier.");
+       return;
+    }
+    
+    if (this.colorVariants.length > 0 && !this.selectedColor) {
+       alert("Veuillez choisir une couleur.");
        return;
     }
 
     this.addingToCart = true;
-    this.productService.addToCart(this.product.id, 1, this.selectedVariant?.id).subscribe({
+    this.cdr.detectChanges();
+
+    this.productService.addToCart(this.product.id, this.quantity, this.selectedVariant?.id).subscribe({
       next: () => {
         this.addingToCart = false;
-        this.showToast('Article ajouté au panier !');
+        this.showToast('Produit ajouté au panier !');
+        this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error adding to cart:', err);
         this.addingToCart = false;
-        alert("Erreur lors de l'ajout au panier.");
+        alert("Erreur lors de l'ajout au panier. Vérifiez votre connexion ou contactez l'administrateur.");
+        this.cdr.detectChanges();
       }
     });
   }
@@ -366,6 +494,10 @@ export class ProductDetailComponent implements OnInit {
 
   showToast(msg: string) {
     this.toast = msg;
-    setTimeout(() => this.toast = null, 3000);
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.toast = null;
+      this.cdr.detectChanges();
+    }, 3000);
   }
 }

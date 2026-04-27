@@ -48,7 +48,11 @@ import { CompetitionService, CompetitionResponse } from '../services/competition
             <button *ngIf="dateFilter" (click)="dateFilter=''; applyFilters()" class="text-muted-foreground hover:text-foreground">×</button>
           </div>
 
-          <div class="flex-1"></div>
+          <div class="flex-1 flex items-center gap-2 border border-border rounded-xl bg-background px-3 h-11">
+            <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()" placeholder="Rechercher (équipe, lieu, compet...)" class="bg-transparent border-none outline-none font-medium text-sm w-full">
+            <button (click)="onSearch()" class="text-primary hover:text-primary/70 font-bold text-sm px-2">Chercher</button>
+            <button *ngIf="searchKeyword" (click)="searchKeyword=''; onSearch()" class="text-muted-foreground hover:text-foreground">×</button>
+          </div>
 
           <select [(ngModel)]="sortBy" (change)="applyFilters()" class="w-full md:w-auto h-11 px-4 bg-background border border-border rounded-xl font-medium focus:border-primary outline-none">
             <option value="dateDesc">Plus récents d'abord</option>
@@ -168,7 +172,7 @@ export class MatchesComponent implements OnInit {
   matches: MatchResponse[] = [];
   filteredMatches: MatchResponse[] = [];
   competitions: CompetitionResponse[] = [];
-  
+
   loading = true;
   errorMsg = '';
   userType = '';
@@ -177,14 +181,15 @@ export class MatchesComponent implements OnInit {
   competitionFilter = '';
   statusFilter = '';
   dateFilter = '';
-  sortBy = 'dateDesc'; 
+  searchKeyword = '';
+  sortBy = 'dateDesc';
 
   constructor(
-    public router: Router, 
+    public router: Router,
     private matchService: MatchService,
     private competitionService: CompetitionService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.userType = localStorage.getItem('user_type') || 'ROLE_PLAYER';
@@ -211,17 +216,17 @@ export class MatchesComponent implements OnInit {
         setTimeout(() => {
           // Handle cases where Spring returns a paginated object { content: [...] } instead of []
           if (data && data.content) {
-               this.matches = data.content;
+            this.matches = data.content;
           } else if (data && data._embedded) {
-               // Extract from Spring Data REST usually _embedded.matches or first key
-               const key = Object.keys(data._embedded)[0];
-               this.matches = data._embedded[key] || [];
+            // Extract from Spring Data REST usually _embedded.matches or first key
+            const key = Object.keys(data._embedded)[0];
+            this.matches = data._embedded[key] || [];
           } else if (data && data.data && Array.isArray(data.data)) {
-               this.matches = data.data;
+            this.matches = data.data;
           } else if (Array.isArray(data)) {
-               this.matches = data;
+            this.matches = data;
           } else {
-               this.matches = [];
+            this.matches = [];
           }
           this.applyFilters();
           this.loading = false;
@@ -258,7 +263,7 @@ export class MatchesComponent implements OnInit {
     filtered.sort((a, b) => {
       const timeA = a.scheduledAt ? new Date(a.scheduledAt).getTime() : 0;
       const timeB = b.scheduledAt ? new Date(b.scheduledAt).getTime() : 0;
-      
+
       if (this.sortBy === 'status') {
         const rank: Record<string, number> = { 'LIVE': 1, 'SCHEDULED': 2, 'FINISHED': 3, 'CANCELED': 4 };
         const scoreA = rank[a.status] || 9;
@@ -275,9 +280,31 @@ export class MatchesComponent implements OnInit {
     this.filteredMatches = filtered;
   }
 
-  startMatch(match: MatchResponse) {
-    if(!confirm('Démarrer ce match ? Le statut passera à LIVE et vous pourrez ajouter des événements.')) return;
+  onSearch() {
+    if (!this.searchKeyword) {
+      this.loadData();
+      return;
+    }
     
+    this.loading = true;
+    this.matchService.searchMatches(this.searchKeyword).subscribe({
+      next: (data) => {
+        this.matches = data;
+        this.applyFilters();
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  startMatch(match: MatchResponse) {
+    if (!confirm('Démarrer ce match ? Le statut passera à LIVE et vous pourrez ajouter des événements.')) return;
+
     // Convert MatchResponse to MatchRequest format 
     // Usually the backend uses PATCH or PUT on the status or entire entity.
     const req: any = {
@@ -293,9 +320,9 @@ export class MatchesComponent implements OnInit {
       next: (res) => {
         const idx = this.matches.findIndex(m => m.id === res.id);
         if (idx > -1) {
-           this.matches[idx] = res;
+          this.matches[idx] = res;
         } else {
-           this.matches.push(res);
+          this.matches.push(res);
         }
         this.applyFilters();
       },
@@ -337,7 +364,7 @@ export class MatchesComponent implements OnInit {
     if (!dateStr) return '';
     try {
       const d = new Date(dateStr);
-      return new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' }).format(d);
+      return new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d);
     } catch { return dateStr; }
   }
 
