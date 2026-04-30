@@ -22,7 +22,7 @@ import { LucideAngularModule, FileText, Plus, Download, ArrowLeft } from 'lucide
         </div>
         <button (click)="ajouter()" class="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
           <lucide-icon [name]="plusIcon" [size]="16"></lucide-icon>
-          Ajouter
+          Add
         </button>
       </div>
       <div *ngIf="notification" class="bg-primary/10 border border-primary/20 rounded-xl p-3 text-primary text-sm font-medium">

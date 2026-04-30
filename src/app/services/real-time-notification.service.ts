@@ -1,5 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Client, IMessage } from '@stomp/stompjs';
+import { Subject } from 'rxjs';
 // @ts-ignore
 import SockJS from 'sockjs-client/dist/sockjs';
 import { toast } from 'ngx-sonner';
@@ -11,6 +12,8 @@ import { environment } from '../../environments/environment';
 export class RealTimeNotificationService implements OnDestroy {
   private stompClient: Client | null = null;
   private userId: string | null = null;
+  private messageSubject = new Subject<any>();
+  public messages$ = this.messageSubject.asObservable();
 
   constructor() {
     this.userId = localStorage.getItem('user_id');
@@ -61,10 +64,17 @@ export class RealTimeNotificationService implements OnDestroy {
       const notification = JSON.parse(message.body);
       this.handleNotification(notification);
     });
+
+    // Orders updates destination
+    this.stompClient.subscribe('/topic/orders', (message: IMessage) => {
+      const notification = JSON.parse(message.body);
+      this.handleNotification(notification);
+    });
   }
 
   private handleNotification(notification: any) {
     console.log('Received notification:', notification);
+    this.messageSubject.next(notification);
     
     // Show toast using ngx-sonner
     if (notification.type === 'LOW_STOCK') {

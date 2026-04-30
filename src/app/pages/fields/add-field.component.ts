@@ -19,7 +19,7 @@ import { environment } from '../../../environments/environment';
             <lucide-icon [img]="ArrowLeftIcon" class="w-5 h-5"></lucide-icon>
           </a>
           <div>
-            <h1 class="mb-1">Ajouter un Terrain</h1>
+            <h1 class="mb-1">Add un Terrain</h1>
             <p class="text-muted-foreground">Référencez votre espace sportif</p>
           </div>
         </div>
@@ -46,7 +46,7 @@ import { environment } from '../../../environments/environment';
             </div>
             <div class="grid md:grid-cols-2 gap-6">
               <div>
-                <label class="block mb-2 font-semibold">Prix par heure (€)</label>
+                <label class="block mb-2 font-semibold">Price par heure (DT)</label>
                 <input [(ngModel)]="price" name="price" type="number" placeholder="50" class="w-full px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
               </div>
               <div>

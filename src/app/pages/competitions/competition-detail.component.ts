@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule, Trophy, MapPin, Calendar, Clock, Edit, ShieldX, Users, Swords, ArrowLeft, Trash2, CheckCircle, XCircle, PlayCircle, Loader2 } from 'lucide-angular';
+import { environment } from '../../../environments/environment';
 import { CompetitionService, CompetitionResponse, CompetitionStatus, CompetitionFormat } from '../../services/competition.service';
 
 @Component({
@@ -82,11 +83,11 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
               </button>
 
               <button *ngIf="comp.status !== 'CANCELED'" (click)="updateStatus('CANCELED')" class="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground font-bold py-2.5 px-6 rounded-xl transition-all flex items-center justify-center gap-2 mt-2">
-                <lucide-icon [name]="XCircleIcon" [size]="18"></lucide-icon> Annuler
+                <lucide-icon [name]="XCircleIcon" [size]="18"></lucide-icon> Cancel
               </button>
 
               <button *ngIf="comp.status === 'DRAFT'" (click)="deleteCompetition()" class="text-destructive/70 hover:text-destructive text-sm font-bold flex items-center justify-center gap-1 mt-2">
-                <lucide-icon [name]="Trash2Icon" [size]="14"></lucide-icon> Supprimer
+                <lucide-icon [name]="Trash2Icon" [size]="14"></lucide-icon> Delete
               </button>
             </div>
           </div>
@@ -231,7 +232,7 @@ export class CompetitionDetailComponent implements OnInit {
       return;
     }
 
-    const url = `http://localhost:8085/api/competitions/${this.compId}`;
+    const url = `${environment.apiUrl}/competitions/${this.compId}`;
     console.log('[CompetitionDetail] Calling API:', url);
 
     this.competitionService.getCompetitionById(this.compId).subscribe({
@@ -250,7 +251,7 @@ export class CompetitionDetailComponent implements OnInit {
         } else if (err.status === 401 || err.status === 403) {
           this.error = `Accès refusé (${err.status}). Reconnectez-vous.`;
         } else if (err.status === 0) {
-          this.error = `Serveur injoignable. Vérifiez que Spring Boot tourne sur le port 8085.`;
+          this.error = `Serveur injoignable. Vérifiez que le backend (${environment.apiUrl}) est actif.`;
         } else {
           this.error = `Erreur ${err.status || 'inconnue'} lors du chargement.`;
         }
@@ -288,7 +289,7 @@ export class CompetitionDetailComponent implements OnInit {
     this.competitionService.updateCompetition(this.compId, req).subscribe({
        next: (res) => {
           this.comp = res;
-          this.showToast(`Statut mis à jour : ${newStatus}`);
+          this.showToast(`Status mis à jour : ${newStatus}`);
           this.cdr.detectChanges();
        },
        error: (err) => {
@@ -304,7 +305,7 @@ export class CompetitionDetailComponent implements OnInit {
   }
 
   deleteCompetition() {
-    if (!this.comp || !confirm("Supprimer définitivement cette compétition ? Cette action est irréversible.")) return;
+    if (!this.comp || !confirm("Delete définitivement cette compétition ? Cette action est irréversible.")) return;
     
     this.competitionService.deleteCompetition(this.compId).subscribe({
       next: () => {
@@ -312,7 +313,7 @@ export class CompetitionDetailComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.showToast("Erreur lors de la suppression.");
+        this.showToast("Error during deletion.");
         this.cdr.detectChanges();
       }
     });

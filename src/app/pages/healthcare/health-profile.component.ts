@@ -97,7 +97,7 @@ export class HealthProfileComponent {
   toggleEdit() { this.editing = !this.editing; }
 
   personalInfo = [
-    { label: 'Taille', value: '178 cm' },
+    { label: 'Size', value: '178 cm' },
     { label: 'Poids', value: '75 kg' },
     { label: 'IMC', value: '23.7' },
     { label: 'Sport Principal', value: 'Football' },

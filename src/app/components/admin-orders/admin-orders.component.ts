@@ -1,22 +1,29 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ProductService, CartResponse } from '../../services/product.service';
+import { QRCodeComponent } from 'angularx-qrcode';
+import { RealTimeNotificationService } from '../../services/real-time-notification.service';
+import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, QRCodeComponent],
   templateUrl: './admin-orders.component.html',
   styleUrls: ['./admin-orders.component.css']
 })
-export class AdminOrdersComponent implements OnInit {
+export class AdminOrdersComponent implements OnInit, OnDestroy {
   orders: CartResponse[] = [];
   selectedOrder: CartResponse | null = null;
   loading = false;
   error = '';
   showAllCarts = false;
+  private notificationSubscription: Subscription | null = null;
+  private pollingSubscription: Subscription | null = null;
+  currentQrData: string = '';
 
   statuses = [
     { value: 'EN_COURS_DE_TRAITEMENT', label: 'En cours de traitement' },
@@ -26,11 +33,47 @@ export class AdminOrdersComponent implements OnInit {
 
   constructor(
     private productService: ProductService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private realTimeNotifService: RealTimeNotificationService
   ) {}
 
   ngOnInit(): void {
     this.loadOrders();
+    this.listenForUpdates();
+    this.startPolling();
+  }
+
+  listenForUpdates(): void {
+    this.notificationSubscription = this.realTimeNotifService.messages$.subscribe(msg => {
+      if (msg && msg.type === 'ORDER_UPDATE') {
+        console.log('AdminOrdersComponent: Real-time update received:', msg);
+        this.loadOrders(); // Refresh the list
+      }
+    });
+  }
+
+  startPolling(): void {
+    // Fallback: Refresh every 5 seconds to ensure "automatic" update
+    this.pollingSubscription = new Subscription();
+    const intervalId = setInterval(() => {
+      this.loadOrders();
+    }, 5000);
+    this.pollingSubscription.add(() => clearInterval(intervalId));
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+    }
+  }
+
+  getConfirmationUrl(order: CartResponse): string {
+    // Force backendBase to the persistent localtunnel URL to bypass firewall
+    const backendBase = 'https://streetleague-api-2026.loca.lt';
+    return `${backendBase}/api/cart/confirm-delivery/${order.deliveryConfirmationCode}`;
   }
 
   toggleDiagnostics(): void {
@@ -47,6 +90,16 @@ export class AdminOrdersComponent implements OnInit {
         console.log('AdminOrdersComponent: Received orders:', data);
         this.orders = data || [];
         this.loading = false;
+        
+        // Update selectedOrder if it's currently open
+        if (this.selectedOrder) {
+          const updated = this.orders.find(o => o.id === this.selectedOrder?.id);
+          if (updated) {
+            this.selectedOrder = updated;
+            this.currentQrData = this.getConfirmationUrl(updated);
+          }
+        }
+
         // The data is there, we force a view update just in case
         setTimeout(() => this.cdr.detectChanges(), 0);
       },
@@ -61,10 +114,12 @@ export class AdminOrdersComponent implements OnInit {
 
   viewDetails(order: CartResponse): void {
     this.selectedOrder = order;
+    this.currentQrData = this.getConfirmationUrl(order);
   }
 
   closeDetails(): void {
     this.selectedOrder = null;
+    this.currentQrData = '';
   }
 
   updateStatus(order: CartResponse, newStatus: string): void {

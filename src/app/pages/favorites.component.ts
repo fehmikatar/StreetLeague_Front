@@ -73,14 +73,6 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
              Almost Out of Stock
            </button>
 
-           <!-- Trigger Live Alert Button -->
-           <button 
-             (click)="triggerManualCheck()"
-             [disabled]="triggeringCheck"
-             class="w-full flex items-center gap-3 px-4 py-3 mt-1 rounded-xl transition-all font-semibold text-left hover:bg-muted text-primary">
-             <lucide-icon [img]="BellIcon" [size]="18" [class.animate-bounce]="triggeringCheck"></lucide-icon>
-             {{ triggeringCheck ? 'Checking...' : 'Refresh Alerts' }}
-           </button>
 
            <div class="pt-6 pb-2">
               <span class="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-4">My Collections</span>
@@ -293,11 +285,6 @@ export class FavoritesComponent implements OnInit {
   ngOnInit() {
     this.loadCategories();
     this.loadFavorites();
-    
-    // Auto-trigger stock check to instantly demo the new notification requirement
-    setTimeout(() => {
-      this.triggerManualCheck();
-    }, 1500);
   }
 
   get selectedCategoryName(): string {
@@ -481,8 +468,8 @@ export class FavoritesComponent implements OnInit {
   }
 
   formatPrice(price: number | undefined): string {
-    if (price === undefined || price === null) return '0,00 €';
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+    if (price === undefined || price === null) return '0,00 DT';
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(price).replace('TND', 'DT');
   }
 
   triggerManualCheck() {

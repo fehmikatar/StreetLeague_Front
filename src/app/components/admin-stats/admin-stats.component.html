@@ -16,7 +16,7 @@
         <div class="card-icon">📈</div>
         <div class="card-info">
           <span class="label">Revenu Perdu (Abandons)</span>
-          <span class="value">{{ lostRevenueTotal | currency:'EUR' }}</span>
+          <span class="value">{{ lostRevenueTotal | currency:'TND':'DT ' }}</span>
         </div>
       </div>
       <div class="card glass shadow-purple">
@@ -58,7 +58,7 @@
                 <td>{{ item.productName }}</td>
                 <td><span class="cat-pill">{{ item.categoryName }}</span></td>
                 <td>{{ item.quantitySold }}</td>
-                <td class="revenue">{{ item.revenue | currency:'EUR' }}</td>
+                <td class="revenue">{{ item.revenue | currency:'TND':'DT ' }}</td>
               </tr>
             </tbody>
           </table>
@@ -115,7 +115,7 @@
             <div class="progress-bar">
               <div class="fill" [style.width.%]="(item.lostRevenue / lostRevenueTotal) * 100"></div>
             </div>
-            <span class="city-amount">{{ item.lostRevenue | currency:'EUR' }}</span>
+            <span class="city-amount">{{ item.lostRevenue | currency:'TND':'DT ' }}</span>
           </div>
         </div>
       </section>
@@ -135,7 +135,7 @@
               </div>
               <div class="stat">
                 <span class="s-label">Chiffre d'Affaires</span>
-                <span class="s-value">{{ item.totalRevenue | currency:'EUR' }}</span>
+                <span class="s-value">{{ item.totalRevenue | currency:'TND':'DT ' }}</span>
               </div>
             </div>
           </div>

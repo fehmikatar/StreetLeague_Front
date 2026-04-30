@@ -141,7 +141,7 @@ import { LucideAngularModule, Trophy, Users, MapPin, Activity, ArrowRight, Check
                   </li>
                 </ul>
                 <a routerLink="/auth/signup" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg hover:scale-105">
-                  Ajouter mon terrain
+                  Add mon terrain
                   <lucide-icon [img]="ArrowRightIcon" class="w-5 h-5"></lucide-icon>
                 </a>
               </div>

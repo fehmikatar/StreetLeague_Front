@@ -52,7 +52,7 @@ import { Router } from '@angular/router';
               <input type="email" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm" value="fehmi2013katar@gmail.com">
               <div class="flex gap-2">
                 <button (click)="editing = false" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors">Enregistrer</button>
-                <button (click)="editing = false" class="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors">Annuler</button>
+                <button (click)="editing = false" class="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors">Cancel</button>
               </div>
             </div>
           </div>

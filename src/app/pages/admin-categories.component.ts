@@ -20,13 +20,13 @@ import { Router, RouterModule } from '@angular/router';
                 <lucide-icon [name]="ArrowLeftIcon" [size]="24"></lucide-icon>
              </button>
              <div>
-               <h1 class="text-3xl font-bold">Catégories de Sponsors</h1>
+               <h1 class="text-3xl font-bold">Categories de Sponsors</h1>
                <p class="text-muted-foreground">Gérez les catégories de votre boutique / sponsors</p>
              </div>
           </div>
           <div class="flex gap-3">
              <button (click)="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 hover:shadow-lg transition-all">
-                <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon> Nouvelle Catégorie
+                <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon> Nouvelle Category
              </button>
           </div>
         </div>
@@ -76,7 +76,7 @@ import { Router, RouterModule } from '@angular/router';
          
          <!-- Modal Header -->
          <div class="px-6 py-4 border-b border-border flex items-center justify-between">
-            <h2 class="text-xl font-bold">{{ isEditing ? 'Modifier' : 'Ajouter' }} une Catégorie</h2>
+            <h2 class="text-xl font-bold">{{ isEditing ? 'Modifier' : 'Add' }} une Category</h2>
             <button (click)="closeModal()" class="p-2 hover:bg-muted rounded-full transition-colors"><lucide-icon [name]="XIcon" [size]="20"></lucide-icon></button>
          </div>
 
@@ -102,7 +102,7 @@ import { Router, RouterModule } from '@angular/router';
 
          <!-- Modal Footer -->
          <div class="px-6 py-4 border-t border-border bg-muted/20 flex justify-end gap-3 rounded-b-2xl">
-            <button (click)="closeModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Annuler</button>
+            <button (click)="closeModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Cancel</button>
             <button (click)="saveCategory()" [disabled]="saving" class="px-5 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all flex items-center gap-2">
                <lucide-icon [name]="SaveIcon" [size]="18"></lucide-icon> {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
             </button>
@@ -193,7 +193,7 @@ export class AdminCategoriesComponent implements OnInit {
     if (this.isEditing && this.editingId) {
        this.productService.updateCategory(this.editingId, this.currentFormData).subscribe({
           next: () => {
-             this.showToast('Catégorie modifiée avec succès !');
+             this.showToast('Category modifiée avec succès !');
              this.finishSave();
           },
           error: (err) => { this.saving = false; console.error(err); alert("Erreur serveur lors de la modification"); }
@@ -201,7 +201,7 @@ export class AdminCategoriesComponent implements OnInit {
     } else {
        this.productService.createCategory(this.currentFormData).subscribe({
           next: () => {
-             this.showToast('Catégorie créée avec succès !');
+             this.showToast('Category créée avec succès !');
              this.finishSave();
           },
           error: (err) => { this.saving = false; console.error(err); alert("Erreur serveur lors de la création"); }
@@ -219,10 +219,10 @@ export class AdminCategoriesComponent implements OnInit {
     if (confirm("Êtes-vous sûr de vouloir supprimer définitivement cette catégorie ? (Les produits associés pourraient être affectés)")) {
        this.productService.deleteCategory(id).subscribe({
           next: () => {
-             this.showToast('Catégorie supprimée.');
+             this.showToast('Category supprimée.');
              this.loadCategories();
           },
-          error: (err) => { console.error(err); alert("Erreur lors de la suppression.") }
+          error: (err) => { console.error(err); alert("Error during deletion.") }
        });
     }
   }

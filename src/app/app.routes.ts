@@ -32,6 +32,7 @@ import { AdminProductsComponent } from './pages/admin-products.component';
 import { UserProfileComponent } from './pages/user-profile.component';
 import { NotificationsComponent } from './pages/notifications.component';
 import { FavoritesComponent } from './pages/favorites.component';
+import { UserOrdersComponent } from './pages/user-orders.component';
 
 // Admin specific pages
 import { AdminCategoriesComponent } from './pages/admin-categories.component';
@@ -130,6 +131,7 @@ export const routes: Routes = [
             { path: 'admin/performances', component: PerformanceListComponent },
 
             { path: 'user-profile', component: UserProfileComponent },
+            { path: 'orders', component: UserOrdersComponent },
             { path: 'notifications', component: NotificationsComponent },
             { path: 'favorites', component: FavoritesComponent },
 

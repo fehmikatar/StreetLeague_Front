@@ -85,7 +85,7 @@ import { TeamService } from '../services/team.service';
             </div>
 
             <div class="flex gap-3 justify-end mt-6">
-              <button (click)="showCreateModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="showCreateModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Cancel</button>
               <button (click)="submitTeam()" [disabled]="creating || !newTeam.name || !newTeam.sport" 
                 class="px-5 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2">
                 <lucide-icon *ngIf="creating" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>

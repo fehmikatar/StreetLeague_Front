@@ -56,7 +56,7 @@ import { LucideAngularModule, Calendar, Clock, MapPin, Plus, Check, X, ArrowLeft
                 <button (click)="confirmAppointment(apt)" class="p-2 hover:bg-green-50 rounded-lg transition-colors" title="Confirmer">
                   <lucide-icon [name]="checkIcon" [size]="16" class="text-green-500"></lucide-icon>
                 </button>
-                <button (click)="cancelAppointment(apt)" class="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Annuler">
+                <button (click)="cancelAppointment(apt)" class="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Cancel">
                   <lucide-icon [name]="cancelIcon" [size]="16" class="text-red-500"></lucide-icon>
                 </button>
               </div>

@@ -38,14 +38,14 @@ import { BookingService, Field } from '../services/booking.service';
                 <lucide-icon [name]="locationIcon" [size]="14"></lucide-icon>
                 {{ field.location || 'Localisation inconnue' }}
               </p>
-              <p class="text-primary font-semibold mt-1">{{ field.price }} €/heure</p>
+              <p class="text-primary font-semibold mt-1">{{ field.price }} DT/heure</p>
             </div>
           </div>
         </div>
 
         <!-- Booking Form -->
         <div class="bg-card rounded-xl border border-border p-6 space-y-5">
-          <h3 class="font-semibold text-foreground">Détails de la réservation</h3>
+          <h3 class="font-semibold text-foreground">Details de la réservation</h3>
 
           <!-- Date -->
           <div>
@@ -65,7 +65,7 @@ import { BookingService, Field } from '../services/booking.service';
               </label>
               <select [(ngModel)]="bookingTime" class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground">
                 <option *ngFor="let slot of timeSlots" [value]="slot" [disabled]="!isSlotAvailable(slot)">
-                  {{slot}} {{ !isSlotAvailable(slot) ? '(Indisponible)' : '' }}
+                  {{slot}} {{ !isSlotAvailable(slot) ? '(Unavailable)' : '' }}
                 </option>
               </select>
             </div>
@@ -101,10 +101,10 @@ import { BookingService, Field } from '../services/booking.service';
         <div class="bg-card rounded-xl border border-border p-5">
           <h3 class="font-semibold text-foreground mb-3">Récapitulatif</h3>
           <div class="space-y-2 text-sm">
-            <div class="flex justify-between"><span class="text-muted-foreground">Location ({{bookingDuration}}h)</span><span>{{ field.price * bookingDuration }} €</span></div>
-            <div class="flex justify-between"><span class="text-muted-foreground">Frais de service</span><span>5 €</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Location ({{bookingDuration}}h)</span><span>{{ field.price * bookingDuration }} DT</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Frais de service</span><span>5 DT</span></div>
             <div class="flex justify-between font-bold text-lg border-t border-border pt-2 mt-2">
-              <span>Total</span><span class="text-primary">{{ (field.price * bookingDuration) + 5 }} €</span>
+              <span>Total</span><span class="text-primary">{{ (field.price * bookingDuration) + 5 }} DT</span>
             </div>
           </div>
         </div>

@@ -168,13 +168,13 @@ import { TeamService } from '../services/team.service';
                     </button>
 
                     <button *ngIf="match.status !== 'FINISHED' && match.status !== 'CANCELED'" (click)="updateStatus('CANCELED')" class="bg-background border border-border hover:bg-destructive hover:text-destructive-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all mt-2">
-                      <lucide-icon [name]="XCircleIcon" [size]="18"></lucide-icon> Annuler
+                      <lucide-icon [name]="XCircleIcon" [size]="18"></lucide-icon> Cancel
                     </button>
                   </div>
 
                   <!-- Quick Logging Form (Only if LIVE) -->
                   <form *ngIf="match.status === 'LIVE'" [formGroup]="eventForm" (ngSubmit)="submitEvent()" class="flex flex-col gap-4 pt-2">
-                    <h4 class="font-bold text-sm text-muted-foreground uppercase tracking-widest">Ajouter un évènement</h4>
+                    <h4 class="font-bold text-sm text-muted-foreground uppercase tracking-widest">Add un évènement</h4>
                     
                     <div class="grid grid-cols-2 gap-2">
                        <button type="button" (click)="setEventType('GOAL')" class="p-2 border border-border bg-background rounded-lg font-bold text-xs hover:border-emerald-500 hover:text-emerald-500 transition-colors flex flex-col items-center gap-1" [class.border-emerald-500]="eventForm.value.type==='GOAL'">

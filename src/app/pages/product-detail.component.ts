@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { LucideAngularModule, ArrowLeft, Heart, ShoppingCart, Loader2, Star, Truck, ShieldCheck, Undo2, Search, Plus, Minus, AlertCircle, ShoppingBag } from 'lucide-angular';
+import { LucideAngularModule, ArrowLeft, Heart, ShoppingCart, Loader2, Star, Truck, ShieldCheck, Undo2, Search, Plus, Minus, AlertCircle, ShoppingBag, Sparkles } from 'lucide-angular';
 import { ProductService, Product, ProductVariant } from '../services/product.service';
 import { catchError, finalize, map, switchMap, take, takeUntil, timeout, tap } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
@@ -73,22 +73,23 @@ import { of, Subject } from 'rxjs';
              <div class="mb-4">
                 <span class="text-[10px] font-black uppercase tracking-widest text-primary">{{ product.category?.nom || 'Sport' }}</span>
                 <h1 class="text-4xl font-black text-foreground uppercase tracking-tighter mt-1">{{ product.nom }}</h1>
-                <p *ngIf="product.marque" class="text-xs font-bold text-muted-foreground uppercase mt-1">Marque : {{ product.marque }}</p>
+                <p *ngIf="product.marque" class="text-xs font-bold text-muted-foreground uppercase mt-1">Brand : {{ product.marque }}</p>
              </div>
 
              <div class="flex items-center gap-4 mb-8">
                 <span class="text-3xl font-black text-primary">{{ formatPrice(selectedPrice) }}</span>
                 <span class="h-4 w-px bg-border"></span>
-                 <span *ngIf="($any(product).status === 'EN_STOCK' || !$any(product).status) && product.stock > 0" class="text-[10px] font-bold text-green-600 uppercase">✓ En Stock</span>
-                 <span *ngIf="$any(product).status === 'RUPTURE_DE_STOCK' || product.stock === 0" class="text-[10px] font-bold text-red-600 uppercase">✗ Épuisé</span>
-                 <span *ngIf="$any(product).status === 'EN_ARRIVAGE' && product.stock > 0" class="text-[10px] font-bold text-amber-500 uppercase">⏳ En Arrivage</span>
+                  <span *ngIf="($any(product).status === 'EN_STOCK' || $any(product).status === 'IN_STOCK' || !$any(product).status) && product.stock > 0" class="text-[10px] font-bold text-green-600 uppercase">✓ En Stock</span>
+                  <span *ngIf="$any(product).status === 'RUPTURE_DE_STOCK' || product.stock === 0" class="text-[10px] font-bold text-red-600 uppercase">✗ Épuisé</span>
+                  <span *ngIf="($any(product).status === 'ARRIVING_SOON' || $any(product).status === 'EN_ARRIVAGE') && product.stock > 0" class="text-[10px] font-bold text-amber-500 uppercase">⏳ En Arrivage</span>
              </div>
 
              <div class="prose prose-sm mb-10 text-muted-foreground font-medium">
                 {{ product.description }}
+                <div *ngIf="debugInfo" class="mt-1 text-[8px] opacity-40">{{ debugInfo }}</div>
                 
                 <div class="mt-4 pt-4 border-t border-border/50">
-                    <span class="uppercase tracking-wider text-[10px] font-black text-muted-foreground">Tailles Disponibles:</span>
+                    <span class="uppercase tracking-wider text-[10px] font-black text-muted-foreground">Sizes Disponibles:</span>
                     <span *ngIf="sizeVariants.length > 0" class="ml-2 font-bold text-foreground text-sm">{{ sizeVariants.join(', ') }}</span>
                     <span *ngIf="sizeVariants.length === 0" class="ml-2 font-bold text-foreground text-sm uppercase">XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL</span>
                 </div>
@@ -97,21 +98,52 @@ import { of, Subject } from 'rxjs';
              <!-- Selection & Actions -->
              <div class="space-y-8 border-t border-border pt-8">
                 
-                <!-- Sizes -->
-                <div *ngIf="sizeVariants.length > 0">
-                   <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Choisir Taille</h3>
-                   <div class="flex flex-wrap gap-2">
-                      <button *ngFor="let s of sizeVariants" 
-                              (click)="selectSize(s)"
-                              class="w-12 h-12 rounded border flex items-center justify-center font-bold text-sm transition-all"
-                              [class.bg-primary]="selectedSize === s"
-                              [class.text-black]="selectedSize === s"
-                              [class.border-primary]="selectedSize === s"
-                              [class.border-border]="selectedSize !== s">
-                         {{ s }}
-                      </button>
-                   </div>
-                </div>
+                 <div *ngIf="sizeVariants.length > 0" class="mb-6">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Choisir Taille</h3>
+                    <div class="flex flex-wrap gap-2">
+                       <button *ngFor="let s of sizeVariants" 
+                               (click)="selectSize(s)"
+                               class="relative w-12 h-12 flex items-center justify-center text-xs font-bold border-2 transition-all rounded-lg overflow-hidden"
+                               [class.bg-primary]="selectedSize === s && getVariantStock(s) > 0"
+                               [class.text-primary-foreground]="selectedSize === s && getVariantStock(s) > 0"
+                               [class.border-primary]="selectedSize === s && getVariantStock(s) > 0"
+                               [class.border-border]="selectedSize !== s && getVariantStock(s) > 0"
+                               [class.border-gray-300]="getVariantStock(s) === 0"
+                               [title]="getVariantStock(s) === 0 ? 'En rupture de stock' : 'En stock'">
+                          <!-- Ligne rouge en diagonale pour Rupture de Stock (SVG robuste) -->
+                          <svg *ngIf="getVariantStock(s) === 0" class="absolute inset-0 w-full h-full text-red-500 opacity-70 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                             <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" stroke-width="4" />
+                          </svg>
+                          <span class="relative z-10">{{ s }}</span>
+                       </button>
+                    </div>
+                 </div>
+
+                 <!-- Couleurs Disponibles -->
+                 <div *ngIf="isClothingItem() || colorVariants.length > 0" class="mb-8">
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Choisir Couleur</h3>
+                    <div class="flex flex-wrap gap-4">
+                       <!-- We show either the standard colors or the specific variants found -->
+                       <button *ngFor="let col of (isClothingItem() ? CLOTHING_COLORS : getCustomColors())" 
+                          (click)="selectColor(col.name)"
+                          class="flex flex-col items-center gap-2 group transition-all">
+                          <div [style.background-color]="col.hex"
+                             class="w-10 h-10 rounded-full border border-border shadow-sm relative overflow-hidden transition-transform group-hover:scale-110 active:scale-95"
+                             [class.ring-2]="selectedColor === col.name"
+                             [class.ring-primary]="selectedColor === col.name"
+                             [class.ring-offset-2]="selectedColor === col.name">
+                             
+                             <!-- Slash si rupture -->
+                             <svg *ngIf="!isColorAvailable(col.name)" class="absolute inset-0 w-full h-full text-red-500 opacity-70 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" stroke-width="4" />
+                             </svg>
+                             
+                             <lucide-icon *ngIf="selectedColor === col.name && isColorAvailable(col.name)" [img]="CheckIcon" [size]="14" class="text-white absolute inset-0 m-auto drop-shadow-md"></lucide-icon>
+                          </div>
+                          <span class="text-[9px] font-bold uppercase" [class.text-primary]="selectedColor === col.name">{{ col.name }}</span>
+                       </button>
+                    </div>
+                 </div>
 
                 <!-- Quantity & Add -->
                 <div class="flex flex-col gap-4">
@@ -129,22 +161,23 @@ import { of, Subject } from 'rxjs';
 
                    <div class="flex gap-3 h-14">
                       <button (click)="addToCart()"
-                              [disabled]="product.stock === 0 || addingToCart || ($any(product).status && $any(product).status !== 'EN_STOCK')"
-                              class="flex-1 bg-primary text-black font-black uppercase text-xs tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale">
-                         <ng-container *ngIf="addingToCart">Chargement...</ng-container>
-                         <ng-container *ngIf="!addingToCart && product.stock === 0">ÉPUISÉ</ng-container>
-                         <ng-container *ngIf="!addingToCart && product.stock > 0 && $any(product).status === 'RUPTURE_DE_STOCK'">RUPTURE DE STOCK</ng-container>
-                         <ng-container *ngIf="!addingToCart && product.stock > 0 && $any(product).status === 'EN_ARRIVAGE'">BIENTÔT DISPONIBLE</ng-container>
-                         <ng-container *ngIf="!addingToCart && ($any(product).status === 'EN_STOCK' || !$any(product).status) && product.stock > 0">AJOUTER AU PANIER</ng-container>
+                              [disabled]="product.stock === 0 || addingToCart || (selectedVariant && selectedVariant.stock === 0) || ($any(product).status && $any(product).status !== 'EN_STOCK' && $any(product).status !== 'IN_STOCK')"
+                              class="flex-1 flex items-center justify-center bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest rounded-lg shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed gap-2">
+                         <lucide-icon *ngIf="!addingToCart && product.stock > 0" [img]="ShoppingCartIcon" [size]="18"></lucide-icon>
+                         <lucide-icon *ngIf="addingToCart" [img]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
+                         <span *ngIf="addingToCart">Loading...</span>
+                         <span *ngIf="!addingToCart && (product.stock === 0 || (selectedVariant && $any(selectedVariant).stock === 0))">Out of Stock</span>
+                         <span *ngIf="!addingToCart && product.stock > 0 && (!selectedVariant || $any(selectedVariant).stock > 0) && ($any(product).status === 'ARRIVING_SOON' || $any(product).status === 'EN_ARRIVAGE')">Coming Soon</span>
+                         <span *ngIf="!addingToCart && product.stock > 0 && (!selectedVariant || $any(selectedVariant).stock > 0) && ($any(product).status === 'IN_STOCK' || $any(product).status === 'EN_STOCK' || !$any(product).status)">Add to Cart</span>
                       </button>
 
                       <button (click)="toggleFavorite()"
-                              class="w-14 h-full flex items-center justify-center border-2 transition-all active:scale-90"
+                              class="w-14 h-full flex items-center justify-center border-2 rounded-lg transition-all active:scale-90"
                               [class.bg-red-500]="isFavorite"
                               [class.border-red-500]="isFavorite"
                               [class.text-white]="isFavorite"
                               [class.border-border]="!isFavorite">
-                         <lucide-icon [name]="HeartIcon" [size]="20" [class.fill-current]="isFavorite"></lucide-icon>
+                         <lucide-icon [img]="HeartIcon" [size]="20" [class.fill-current]="isFavorite"></lucide-icon>
                       </button>
                    </div>
                 </div>
@@ -173,6 +206,48 @@ import { of, Subject } from 'rxjs';
          <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Produit introuvable</h2>
          <p class="text-muted-foreground mb-8 max-w-sm text-sm">Cet article n'existe plus ou est momentanément indisponible.</p>
          <button (click)="goBack()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs">RETOUR À LA BOUTIQUE</button>
+      </div>
+
+      <!-- Similar AI Products -->
+      <div class="container mx-auto px-4 py-16 max-w-7xl border-t border-border/50">
+        <div class="flex items-center justify-between mb-8">
+           <div class="flex items-center gap-3">
+              <lucide-icon [img]="SparklesIcon" [size]="24" class="text-primary"></lucide-icon>
+              <h2 class="text-2xl font-black uppercase tracking-tighter">Accueil</h2>
+           </div>
+           <span *ngIf="loadingSimilar" class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <lucide-icon [img]="Loader2Icon" [size]="14" class="animate-spin"></lucide-icon> Analyse IA en cours...
+           </span>
+        </div>
+        
+        <!-- Empty / Error state -->
+        <div *ngIf="!loadingSimilar && similarProducts.length === 0" class="bg-muted/30 border border-border/50 rounded-2xl p-12 text-center">
+           <lucide-icon [img]="SparklesIcon" [size]="40" class="mx-auto text-muted-foreground/30 mb-4"></lucide-icon>
+           <h3 class="text-sm font-black uppercase tracking-widest text-muted-foreground mb-2">Aucune recommandation</h3>
+           <p class="text-xs text-muted-foreground max-w-md mx-auto">L'intelligence artificielle n'a pas trouvé d'articles similaires pour le moment, ou vous n'êtes pas connecté.</p>
+           <p class="text-[10px] mt-4 font-mono text-muted-foreground opacity-50">{{ debugAiMessage }}</p>
+        </div>
+
+        <div *ngIf="!loadingSimilar && similarProducts.length > 0" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+           <div *ngFor="let sim of similarProducts" 
+                (click)="goToProduct(sim.id)"
+                class="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group flex flex-col">
+              <div class="aspect-square bg-white p-4 flex items-center justify-center relative overflow-hidden border-b border-border/50">
+                 <img *ngIf="sim.images && sim.images.length > 0" [src]="sim.images[0]" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
+                 <div *ngIf="!sim.images || sim.images.length === 0" class="text-4xl opacity-10">📦</div>
+              </div>
+              <div class="p-4 flex flex-col flex-1 bg-muted/10">
+                 <span class="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{{ sim.category?.nom || sim.category?.name || 'Sport' }}</span>
+                 <h3 class="text-sm font-black uppercase line-clamp-2 mb-2 group-hover:text-primary transition-colors leading-tight">{{ sim.nom }}</h3>
+                 <div class="mt-auto pt-3 border-t border-border/50 flex items-center justify-between">
+                    <span class="font-black text-lg text-foreground">{{ formatPrice(sim.prix) }}</span>
+                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                       <lucide-icon [img]="ArrowLeftIcon" [size]="14" class="rotate-180"></lucide-icon>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
       </div>
 
       <!-- Static Toast -->
@@ -215,6 +290,16 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   readonly AlertCircleIcon = AlertCircle;
   readonly TruckIcon = Truck;
   readonly ShieldCheckIcon = ShieldCheck;
+  readonly CheckIcon = Star; 
+  readonly SparklesIcon = Sparkles;
+
+  readonly CLOTHING_COLORS = [
+    { name: 'Gris', hex: '#808080' },
+    { name: 'Bleu', hex: '#0000FF' },
+    { name: 'Noir', hex: '#000000' },
+    { name: 'Marron', hex: '#8B4513' },
+    { name: 'Blanc', hex: '#FFFFFF' }
+  ];
 
   private destroy$ = new Subject<void>();
   private loadProduct$ = new Subject<number>();
@@ -224,16 +309,21 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   loading: boolean = true;
   errorMessage: string | null = null;
   debugInfo: string = '';
-  
+
   currentImage: string | null = null;
-  
+
   // Variants
   sizeVariants: string[] = [];
   colorVariants: string[] = [];
   selectedSize: string | null = null;
   selectedColor: string | null = null;
   selectedVariant: ProductVariant | null = null;
-  
+
+  // AI Similar Products
+  similarProducts: Product[] = [];
+  loadingSimilar: boolean = false;
+  debugAiMessage: string = 'Initialisation...';
+
   // State
   addingToCart = false;
   isFavorite = false;
@@ -245,7 +335,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private productService: ProductService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.setupProductLoadingStream();
@@ -268,7 +358,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.loadProduct$.pipe(
       tap((id: number) => {
         this.loading = true;
-        this.product = null; 
+        this.product = null;
         this.errorMessage = null;
         this.debugInfo = `Chargement ID: ${id}...`;
         this.cdr.detectChanges();
@@ -278,36 +368,130 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           timeout(8000),
           catchError(err => {
             console.error('Fetch error:', err);
-            this.errorMessage = err.status === 404 
-              ? "Produit introuvable (404)." 
+            this.errorMessage = err.status === 404
+              ? "Produit introuvable (404)."
               : "Erreur de connexion au serveur.";
             return of(null);
           })
         );
       }),
       catchError(outerErr => {
-         console.error('Outer stream error:', outerErr);
-         this.loading = false;
-         this.errorMessage = "Erreur système inattendue.";
-         this.cdr.detectChanges();
-         return of(null);
+        console.error('Outer stream error:', outerErr);
+        this.loading = false;
+        this.errorMessage = "Erreur système inattendue.";
+        this.cdr.detectChanges();
+        return of(null);
       }),
       takeUntil(this.destroy$)
     ).subscribe(res => {
       this.loading = false;
-      
+
       if (!res && !this.errorMessage) {
         this.errorMessage = "L'article demandé n'est pas disponible.";
       }
-      
+
       if (res) {
-         this.handleProductData(res);
-         this.debugInfo = `ID ${res.id} chargé.`;
-         this.checkIfFavorite();
+        this.handleProductData(res);
+        this.debugInfo = `ID ${res.id} chargé. Variants: ${res.variants?.length || 0}`;
+        this.checkIfFavorite();
+        this.loadSimilarProducts();
       } else {
-         this.debugInfo = 'Erreur ou non trouvé.';
+        this.debugInfo = 'Erreur ou non trouvé.';
       }
       this.cdr.detectChanges();
+    });
+  }
+
+  loadSimilarProducts() {
+    const userIdStr = localStorage.getItem('user_id');
+    if (!userIdStr) {
+       this.debugAiMessage = 'Utilisateur non connecté (userId manquant dans le cache).';
+       this.loadingSimilar = false;
+       return;
+    }
+    const userId = parseInt(userIdStr, 10);
+    if (isNaN(userId)) {
+       this.debugAiMessage = 'Utilisateur invalide.';
+       this.loadingSimilar = false;
+       return;
+    }
+
+    this.loadingSimilar = true;
+    this.debugAiMessage = 'Appel au service Flask ML via Spring Boot...';
+    
+    // First, fetch AI recommendations
+    this.productService.getAIRecommendations(userId, 20).pipe(
+      timeout(8000),
+      catchError(err => {
+        this.debugAiMessage = `Timeout ou Erreur réseau: ${err.message || 'Le serveur met trop de temps à répondre.'}`;
+        this.loadingSimilar = false;
+        this.cdr.detectChanges();
+        return of(null);
+      })
+    ).subscribe({
+      next: (aiRes) => {
+        if (!aiRes) return; // Already handled by catchError
+
+        if (aiRes.flask_available === false) {
+          this.debugAiMessage = 'Le serveur Flask (IA) est hors ligne ou indisponible.';
+          this.loadingSimilar = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        if (!aiRes.ranked_products || aiRes.ranked_products.length === 0) {
+          this.debugAiMessage = 'L\'IA a renvoyé 0 produit recommandé.';
+          this.loadingSimilar = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        
+        // Extract product IDs and sort by AI score
+        const aiRankedIds = aiRes.ranked_products
+          .sort((a: any, b: any) => b.recommendation_score - a.recommendation_score)
+          .map((r: any) => Number(r.product_id))
+          .filter((id: number) => id !== this.productId); // Exclude current product
+          
+        if (aiRankedIds.length === 0) {
+          this.debugAiMessage = 'Tous les produits recommandés ont été filtrés (soit c\'est le produit actuel, soit liste vide).';
+          this.loadingSimilar = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.debugAiMessage = `IA a trouvé ${aiRankedIds.length} produits. Récupération des détails...`;
+
+        // Now fetch details for these IDs
+        this.productService.getAllProducts(0, 100).pipe(
+          timeout(8000),
+          finalize(() => {
+            this.loadingSimilar = false;
+            this.cdr.detectChanges();
+          })
+        ).subscribe({
+          next: (prodRes) => {
+            const allProducts = prodRes.content || [];
+            this.similarProducts = aiRankedIds
+              .map((id: number) => allProducts.find(p => p.id === id))
+              .filter((p: Product | undefined): p is Product => p !== undefined)
+              .slice(0, 4);
+              
+            if (this.similarProducts.length === 0) {
+               this.debugAiMessage = 'Les produits recommandés par l\'IA n\'existent plus dans la base de données.';
+            } else {
+               this.debugAiMessage = `Succès ! ${this.similarProducts.length} produits affichés.`;
+            }
+          },
+          error: () => {
+            this.debugAiMessage = 'Erreur lors de la récupération des détails des produits.';
+          }
+        });
+      },
+      error: (err) => {
+        this.debugAiMessage = `Erreur critique: ${err.message || 'Le serveur ne répond pas.'}`;
+        this.loadingSimilar = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -329,7 +513,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   loadProduct() {
-     if (this.productId) this.loadProduct$.next(this.productId);
+    if (this.productId) this.loadProduct$.next(this.productId);
   }
 
   extractVariants() {
@@ -340,7 +524,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         this.selectedSize = null; // Force choice
         return;
       }
-      
+
       const sizes = new Set<string>();
       const colors = new Set<string>();
 
@@ -355,7 +539,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       // Force explicit selection by setting to null
       this.selectedSize = null;
       this.selectedColor = null;
-      
+
       this.updateSelectedVariant();
     } catch (e) {
       console.error('Error extracting variants', e);
@@ -374,23 +558,87 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   updateSelectedVariant() {
     if (!this.product?.variants) return;
-    
+
     this.selectedVariant = this.product.variants.find(v => {
-      const sizeMatch = this.sizeVariants.length === 0 || v.size === this.selectedSize;
-      const colorMatch = this.colorVariants.length === 0 || v.color === this.selectedColor;
+      const vSize = (v.size || '').trim().toLowerCase();
+      const sSize = (this.selectedSize || '').trim().toLowerCase();
+      const vColor = (v.color || '').trim().toLowerCase();
+      const sColor = (this.selectedColor || '').trim().toLowerCase();
+
+      const sizeMatch = this.sizeVariants.length === 0 || vSize === sSize;
+      const colorMatch = this.colorVariants.length === 0 || vColor === sColor;
       return sizeMatch && colorMatch;
     }) || null;
   }
 
+  getColorHex(colorName: string): string {
+    const found = this.CLOTHING_COLORS.find(c => c.name.toLowerCase() === colorName.toLowerCase());
+    return found ? found.hex : '#CCCCCC'; // Default light gray for unknown colors
+  }
+
+  getCustomColors(): { name: string, hex: string }[] {
+    return this.colorVariants.map(c => ({
+      name: c,
+      hex: this.getColorHex(c)
+    }));
+  }
+
+  isClothingItem(): boolean {
+    if (!this.product) return false;
+    const cat = (this.product.category?.nom || '').toLowerCase();
+    const name = (this.product.nom || '').toLowerCase();
+    
+    const clothingKeywords = ['vetement', 'vêtement', 't-shirt', 'ensemble', 'pull', 'maillot', 'pantalon', 'short', 'football', 'chaussette'];
+    return clothingKeywords.some(key => cat.includes(key) || name.includes(key));
+  }
+
+  isColorAvailable(colorName: string): boolean {
+    if (!this.product?.variants || this.product.variants.length === 0) {
+      return (this.product?.stock ?? 0) > 0;
+    }
+    
+    // If a size is selected, check only variants with that size
+    const variantsToSearch = this.selectedSize 
+      ? this.product.variants.filter(v => (v.size || '').trim().toLowerCase() === this.selectedSize!.trim().toLowerCase())
+      : this.product.variants;
+
+    const totalColorStock = variantsToSearch
+      .filter(v => (v.color || '').trim().toLowerCase() === colorName.trim().toLowerCase())
+      .reduce((sum, v) => sum + (v.stock ?? 0), 0);
+    return totalColorStock > 0;
+  }
+
+  getVariantStock(size: string): number {
+    if (!this.product?.variants || this.product.variants.length === 0) {
+      return this.product && this.product.stock !== undefined ? this.product.stock : 0;
+    }
+
+    // If a color is selected, check only variants with that color
+    const variantsToSearch = this.selectedColor 
+      ? this.product.variants.filter(v => (v.color || '').trim().toLowerCase() === this.selectedColor!.trim().toLowerCase())
+      : this.product.variants;
+
+    const totalSizeStock = variantsToSearch
+      .filter(v => (v.size || '').trim().toLowerCase() === size.trim().toLowerCase())
+      .reduce((sum, v) => sum + (v.stock ?? 0), 0);
+    return totalSizeStock;
+  }
+
   get selectedPrice(): number {
-    if (!this.product) return 0;
-    const basePrice = this.product.prix || 0;
+    const prod = this.product;
+    if (!prod) return 0;
+    const basePrice = prod.prix || 0;
     const adjustment = this.selectedVariant?.priceAdjustment || 0;
     return basePrice + adjustment;
   }
 
   setCurrentImage(img: string) {
     this.currentImage = img;
+  }
+
+  goToProduct(id: number) {
+    this.router.navigate(['/app/sponsors', id]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   goBack() {
@@ -402,7 +650,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       timeout(5000),
       take(1),
       catchError(() => of(false))
-    ).subscribe(res => this.isFavorite = res);
+    ).subscribe((res: boolean) => this.isFavorite = res);
   }
 
   toggleFavorite() {
@@ -411,24 +659,24 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
     if (wasFavorite) {
       this.productService.removeFromFavorites(this.productId).subscribe({
-         error: () => {
-             this.isFavorite = true; // rollback
-             this.showToast('Error removing from favorites');
-         }
+        error: () => {
+          this.isFavorite = true; // rollback
+          this.showToast('Error removing from favorites');
+        }
       });
     } else {
       this.productService.addToFavorites(this.productId).subscribe({
-         next: (res) => {
-             if (res === null) {
-                // API constraints: product already in favorites, just keep heart filled
-             } else {
-                this.showToast('Product added to wishlists ❤️');
-             }
-         },
-         error: () => {
-             this.isFavorite = false; // rollback
-             this.showToast("Error adding to favorites");
-         }
+        next: (res) => {
+          if (res === null) {
+            // API constraints: product already in favorites, just keep heart filled
+          } else {
+            this.showToast('Product added to wishlists ❤️');
+          }
+        },
+        error: () => {
+          this.isFavorite = false; // rollback
+          this.showToast("Error adding to favorites");
+        }
       });
     }
   }
@@ -445,41 +693,47 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   addToCart() {
     if (!this.product) return;
-    
-    // Block if product is not EN_STOCK (backend would reject anyway)
+
     const productStatus = (this.product as any).status;
-    if (productStatus && productStatus !== 'EN_STOCK') {
-      this.showToast(productStatus === 'EN_ARRIVAGE' 
-        ? '⏳ Ce produit est en arrivage et sera bientôt disponible !'
-        : '❌ Ce produit est actuellement indisponible.');
+    const isAvailable = !productStatus || productStatus === 'EN_STOCK' || productStatus === 'IN_STOCK' || productStatus === 'EN_STOCK';
+
+    if (!isAvailable) {
+      this.showToast(
+        (productStatus === 'ARRIVING_SOON' || productStatus === 'EN_ARRIVAGE')
+          ? '⏳ This product is arriving soon and will be available shortly!'
+          : '❌ This product is currently unavailable.'
+      );
       return;
     }
-    if (this.product.stock === 0) {
-      this.showToast('❌ Ce produit est épuisé.');
+    if (this.product.stock === 0 || (this.selectedVariant && this.selectedVariant.stock === 0)) {
+      this.showToast('❌ This variant is out of stock.');
       return;
     }
-    
+
     // Strict enforcement: A size MUST be selected if sizes exist
     if (this.sizeVariants.length > 0 && !this.selectedSize) {
-       alert("Veuillez choisir une taille avant d'ajouter au panier.");
-       return;
+      alert("Veuillez choisir une taille avant d'ajouter au panier.");
+      return;
     }
-    
+
     if (this.colorVariants.length > 0 && !this.selectedColor) {
-       alert("Veuillez choisir une couleur.");
-       return;
+      alert("Veuillez choisir une couleur.");
+      return;
     }
 
     this.addingToCart = true;
     this.cdr.detectChanges();
 
-    this.productService.addToCart(this.product.id, this.quantity, this.selectedVariant?.id).subscribe({
+    const prod = this.product;
+    if (!prod) return;
+
+    this.productService.addToCart(prod.id, this.quantity, this.selectedVariant?.id).subscribe({
       next: () => {
         this.addingToCart = false;
         this.showToast('Produit ajouté au panier !');
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error adding to cart:', err);
         this.addingToCart = false;
         alert("Erreur lors de l'ajout au panier. Vérifiez votre connexion ou contactez l'administrateur.");
@@ -489,7 +743,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   formatPrice(price: number): string {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(price).replace('TND', 'DT');
   }
 
   showToast(msg: string) {

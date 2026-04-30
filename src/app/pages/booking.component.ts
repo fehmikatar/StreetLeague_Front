@@ -22,7 +22,7 @@ import { BookingService, Field } from '../services/booking.service';
           <div class="grid md:grid-cols-3 gap-4">
             <div class="relative">
               <lucide-icon [img]="SearchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></lucide-icon>
-              <input type="text" [(ngModel)]="search" placeholder="Rechercher..." class="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+              <input type="text" [(ngModel)]="search" placeholder="Search..." class="w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
             </div>
             <select [(ngModel)]="selectedType" class="px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all">
               <option value="all">Tous les sports</option>
@@ -56,7 +56,7 @@ import { BookingService, Field } from '../services/booking.service';
                   <span class="font-semibold">{{ field.rating }}</span>
                   <span class="text-sm text-muted-foreground">({{ field.reviews }})</span>
                 </div>
-                <div class="font-semibold text-primary">{{ field.price }}€/h</div>
+                <div class="font-semibold text-primary">{{ field.price }}DT/h</div>
               </div>
               <div class="flex gap-4 text-sm text-muted-foreground mb-4">
                 <span class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon>{{ field.hours }}</span>

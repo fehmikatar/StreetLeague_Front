@@ -24,7 +24,7 @@ import { environment } from '../../../environments/environment';
             <p class="text-muted-foreground">Gérez vos espaces sportifs</p>
           </div>
           <a routerLink="/app/fields/add" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
-            <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>Ajouter un terrain
+            <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>Add un terrain
           </a>
         </div>
 
@@ -42,7 +42,7 @@ import { environment } from '../../../environments/environment';
         <div *ngIf="!loading && fields.length === 0" class="text-center py-20 text-muted-foreground">
           <div class="text-5xl mb-4">🏟️</div>
           <p class="font-semibold mb-2">Aucun terrain pour le moment</p>
-          <a routerLink="/app/fields/add" class="text-primary hover:underline text-sm">Ajouter votre premier terrain →</a>
+          <a routerLink="/app/fields/add" class="text-primary hover:underline text-sm">Add votre premier terrain →</a>
         </div>
 
         <!-- Fields Grid -->
@@ -58,11 +58,11 @@ import { environment } from '../../../environments/environment';
               </div>
               <div class="flex items-center justify-between mb-4">
                 <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{{ field.sportType || 'Sport' }}</span>
-                <span class="text-primary font-semibold">{{ field.pricePerHour || field.price }}€/h</span>
+                <span class="text-primary font-semibold">{{ field.pricePerHour || field.price }}DT/h</span>
               </div>
               <div class="flex gap-2">
-                <a [routerLink]="['/app/fields', field.id]" class="flex-1 py-2 text-center text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">Détails</a>
-                <button (click)="deleteField(field)" class="p-2 bg-destructive/10 rounded-lg hover:bg-destructive/20 transition-all text-destructive" title="Supprimer">
+                <a [routerLink]="['/app/fields', field.id]" class="flex-1 py-2 text-center text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">Details</a>
+                <button (click)="deleteField(field)" class="p-2 bg-destructive/10 rounded-lg hover:bg-destructive/20 transition-all text-destructive" title="Delete">
                   <lucide-icon [name]="TrashIcon" [size]="16"></lucide-icon>
                 </button>
               </div>
@@ -107,13 +107,13 @@ export class FieldsListComponent implements OnInit {
   }
 
   deleteField(field: any) {
-    if (!confirm(`Supprimer "${field.name}" ?`)) return;
+    if (!confirm(`Delete "${field.name}" ?`)) return;
     this.http.delete(`${environment.apiUrl}/sport-spaces/${field.id}`).subscribe({
       next: () => {
         this.fields = this.fields.filter(f => f.id !== field.id);
         this.showNotification(`✅ Terrain "${field.name}" supprimé`);
       },
-      error: () => this.showNotification('❌ Erreur lors de la suppression')
+      error: () => this.showNotification('❌ Error during deletion')
     });
   }
 

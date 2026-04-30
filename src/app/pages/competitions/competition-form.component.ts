@@ -14,7 +14,7 @@ import { CompetitionService, CompetitionRequest, CompetitionResponse, Competitio
       <!-- Header -->
       <div class="mb-8">
         <button (click)="goBack()" class="flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium transition-colors mb-6">
-          <lucide-icon [name]="ArrowLeftIcon" [size]="18"></lucide-icon> Annuler
+          <lucide-icon [name]="ArrowLeftIcon" [size]="18"></lucide-icon> Cancel
         </button>
         <h1 class="text-3xl font-black">{{ isEditMode ? 'Modifier la Compétition' : 'Créer une Compétition' }}</h1>
         <p class="text-muted-foreground mt-2">
@@ -70,7 +70,7 @@ import { CompetitionService, CompetitionRequest, CompetitionResponse, Competitio
               </div>
               
               <div *ngIf="isEditMode">
-                <label class="block text-sm font-bold text-muted-foreground mb-1.5">Statut actuel</label>
+                <label class="block text-sm font-bold text-muted-foreground mb-1.5">Status actuel</label>
                 <select 
                   name="status" 
                   [(ngModel)]="formData.status" 
@@ -140,7 +140,7 @@ import { CompetitionService, CompetitionRequest, CompetitionResponse, Competitio
           <!-- Text Contents -->
           <div class="space-y-4 pt-4">
             <h3 class="text-lg font-bold flex items-center gap-2 mb-4 border-b border-border pb-2">
-              <lucide-icon [name]="AlignLeftIcon" [size]="20" class="text-primary"></lucide-icon> Détails & Règlement
+              <lucide-icon [name]="AlignLeftIcon" [size]="20" class="text-primary"></lucide-icon> Details & Règlement
             </h3>
 
             <div>
@@ -182,7 +182,7 @@ import { CompetitionService, CompetitionRequest, CompetitionResponse, Competitio
             </div>
 
             <button type="button" (click)="goBack()" class="w-full sm:w-auto px-6 py-3 font-bold text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors">
-              Annuler
+              Cancel
             </button>
             <button 
               type="submit" 

@@ -106,7 +106,7 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus } from '../s
 
           <div class="pt-6 border-t border-border flex justify-end gap-3">
             <button type="button" routerLink="/app/matches" class="px-6 py-3 rounded-xl font-bold bg-muted text-muted-foreground hover:bg-muted/80 transition-all">
-              Annuler
+              Cancel
             </button>
             <button type="submit" [disabled]="loading || matchForm.invalid" class="px-8 py-3 rounded-xl font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-primary/20">
               <lucide-icon *ngIf="loading" [name]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>

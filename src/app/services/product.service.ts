@@ -105,6 +105,7 @@ export interface CartResponse {
   paymentMode?: string;
   deliveryFee?: number;
   deliveryStatus?: string;
+  deliveryConfirmationCode?: string;
 }
 
 export interface ProductHighDemandDTO {
@@ -125,9 +126,7 @@ export class ProductService {
 
   constructor(private http: HttpClient) { }
 
-  // ==========================
-  // CATEGORIES
-  // ==========================
+
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(this.categoryUrl);
   }
@@ -144,9 +143,7 @@ export class ProductService {
     return this.http.delete<any>(`${this.categoryUrl}/${id}`);
   }
 
-  // ==========================
-  // PRODUCTS
-  // ==========================
+
   getAllProducts(page: number = 0, size: number = 20): Observable<ProductResponse> {
     const params = new HttpParams()
       .set('page', page.toString())
@@ -211,9 +208,12 @@ export class ProductService {
     return this.http.get(`${this.apiUrl}/bulk/export`, { responseType: 'blob' });
   }
 
-  // ==========================
-  // CART
-  // ==========================
+  uploadImage(file: File): Observable<{url: string}> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{url: string}>(`${this.apiUrl}/upload-image`, formData);
+  }
+
   addToCart(productId: number, quantity: number = 1, variantId?: number): Observable<any> {
     const payload: any = { productId, quantity };
     if (variantId) payload.variantId = variantId;
@@ -261,9 +261,7 @@ export class ProductService {
     return this.http.put<CartResponse>(`${this.cartUrl}/orders/${cartId}/status`, { status });
   }
 
-  // ==========================
-  // FAVORITES & WISHLIST
-  // ==========================
+
   private favoriteUrl = `${environment.apiUrl}/favorites`;
 
   addToFavorites(productId: number, categoryId?: number): Observable<FavoriteResponse | null> {
@@ -316,10 +314,26 @@ export class ProductService {
     return this.http.post<void>(`${this.favoriteUrl}/trigger-check`, {});
   }
 
-  // ==========================
-  // STATISTICS & ANALYTICS
-  // ==========================
+
   private statsUrl = `${environment.apiUrl}/stats`;
+  private sponsoredUrl = `${environment.apiUrl}/sponsored`;
+
+
+  getAIRecommendations(userId: number, limit: number = 20): Observable<{
+    user_id: number;
+    total: number;
+    flask_available: boolean;
+    debug_favorite_products: number[];
+    debug_preferred_categories: number[];
+    ranked_products: { product_id: number; rank: number; recommendation_score: number; priority: string }[];
+  }> {
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('limit', limit.toString());
+    return this.http.get<any>(`${this.sponsoredUrl}/recommendations/ai`, { params });
+  }
+
+
 
   getTopSellingProductsStats(): Observable<any[]> {
     return this.http.get<any[]>(`${this.statsUrl}/top-products`);
@@ -335,6 +349,15 @@ export class ProductService {
 
   getOrderSummaryStats(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.statsUrl}/order-summary/${userId}`);
+  }
+
+  calculateDeliveryFee(address: string): Observable<number> {
+    const params = new HttpParams().set('address', address);
+    return this.http.get<number>(`${this.cartUrl}/calculate-delivery`, { params });
+  }
+
+  confirmDelivery(code: string): Observable<string> {
+    return this.http.get(`${this.cartUrl}/confirm-delivery/${code}`, { responseType: 'text' });
   }
 }
 

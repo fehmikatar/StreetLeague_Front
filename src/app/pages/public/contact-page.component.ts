@@ -143,7 +143,7 @@ export class ContactPageComponent {
         { question: 'Comment créer un compte ?', answer: "Cliquez sur \"S'inscrire\" en haut de la page, remplissez le formulaire et choisissez votre type de compte." },
         { question: 'Comment réserver un terrain ?', answer: 'Parcourez les terrains disponibles, sélectionnez celui qui vous convient, choisissez une date et un horaire, puis confirmez votre réservation.' },
         { question: 'Quels sont les moyens de paiement acceptés ?', answer: 'Nous acceptons les cartes bancaires (Visa, Mastercard), PayPal et les virements bancaires.' },
-        { question: 'Comment ajouter mon terrain sur la plateforme ?', answer: 'Créez un compte propriétaire, accédez à votre tableau de bord et cliquez sur "Ajouter un terrain".' },
+        { question: 'Comment ajouter mon terrain sur la plateforme ?', answer: 'Créez un compte propriétaire, accédez à votre tableau de bord et cliquez sur "Add un terrain".' },
         { question: 'Puis-je annuler une réservation ?', answer: "Oui, vous pouvez annuler gratuitement jusqu'à 24h avant le début de la réservation." },
     ];
 }

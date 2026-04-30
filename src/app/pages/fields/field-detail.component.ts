@@ -14,7 +14,7 @@ import { LucideAngularModule, MapPin, Star, Clock, Calendar, Users, ArrowLeft, C
           <a routerLink="/app/fields" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
             <lucide-icon [img]="ArrowLeftIcon" class="w-5 h-5"></lucide-icon>
           </a>
-          <h1>Détails du Terrain</h1>
+          <h1>Details du Terrain</h1>
         </div>
         <div class="grid lg:grid-cols-3 gap-8">
           <div class="lg:col-span-2">
@@ -37,7 +37,7 @@ import { LucideAngularModule, MapPin, Star, Clock, Calendar, Users, ArrowLeft, C
           </div>
           <div class="space-y-6">
             <div class="bg-card rounded-2xl p-6 border border-border sticky top-6">
-              <div class="text-3xl font-bold text-primary mb-1">50€<span class="text-base font-normal text-muted-foreground">/heure</span></div>
+              <div class="text-3xl font-bold text-primary mb-1">50DT<span class="text-base font-normal text-muted-foreground">/heure</span></div>
               <div class="space-y-4 mt-4">
                 <div>
                   <label class="block mb-2 text-sm font-semibold">Date</label>

@@ -54,6 +54,7 @@ export class AppLayoutComponent implements OnInit {
         { path: '/app/healthcare', icon: this.HeartIcon, label: 'Santé' },
         { path: '/app/sponsors', icon: this.GiftIcon, label: 'Sponsors (Boutique)' },
         { path: '/app/favorites', icon: this.HeartIcon, label: 'Mes Favoris' },
+        { path: '/app/orders', icon: this.ShoppingCartIcon, label: 'Mes Commandes' },
         { path: '/app/user-profile', icon: this.UserIcon, label: 'Mon Profil' },
         { path: '/app/notifications', icon: this.BellIcon, label: 'Notifications' },
     ];

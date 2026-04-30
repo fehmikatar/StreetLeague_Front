@@ -101,18 +101,18 @@ import { Router, RouterModule } from '@angular/router';
                           </div>
                        </td>
                        <td class="px-6 py-4 text-muted-foreground">{{ p.category?.nom || p.category?.name || 'N/A' }}</td>
-                       <td class="px-6 py-4 font-bold">{{ p.prix }} €</td>
+                       <td class="px-6 py-4 font-bold">{{ p.prix }} DT</td>
                        <td class="px-6 py-4">
                           <span [class.text-destructive]="p.stock < 10" [class.font-bold]="p.stock < 10">{{ p.stock }}</span>
                        </td>
                        <td class="px-6 py-4">
                           <span class="px-2 py-1 rounded text-xs font-bold"
                             [ngClass]="{
-                               'bg-green-500/10 text-green-500': $any(p).status === 'EN_STOCK' || !$any(p).status,
+                               'bg-green-500/10 text-green-500': $any(p).status === 'IN_STOCK' || !$any(p).status,
                                'bg-red-500/10 text-red-500': $any(p).status === 'RUPTURE_DE_STOCK',
-                               'bg-blue-500/10 text-blue-500': $any(p).status === 'EN_ARRIVAGE'
+                               'bg-blue-500/10 text-blue-500': $any(p).status === 'ARRIVING_SOON'
                             }">
-                            {{ $any(p).status === 'EN_STOCK' ? 'In stock' : $any(p).status === 'RUPTURE_DE_STOCK' ? 'Out of stock' : $any(p).status === 'EN_ARRIVAGE' ? 'Arriving' : 'In stock' }}
+                            {{ $any(p).status === 'IN_STOCK' ? 'In stock' : $any(p).status === 'RUPTURE_DE_STOCK' ? 'Out of stock' : $any(p).status === 'ARRIVING_SOON' ? 'Arriving' : 'In stock' }}
                           </span>
                        </td>
                        <td class="px-6 py-4 text-right">
@@ -230,7 +230,7 @@ import { Router, RouterModule } from '@angular/router';
 
                <div class="grid grid-cols-2 gap-4">
                   <div class="space-y-2">
-                     <label class="text-sm font-semibold">Price (€) <span class="text-destructive">*</span></label>
+                     <label class="text-sm font-semibold">Price (DT) <span class="text-destructive">*</span></label>
                      <input type="number" [(ngModel)]="currentFormData.prix" name="prix" step="0.01" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
                   <div class="space-y-2">
@@ -353,7 +353,7 @@ export class AdminProductsComponent implements OnInit {
    }
 
    formatPrice(price: number): string {
-      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(price).replace('TND', 'DT');
    }
 
    loadCategories() {
@@ -409,11 +409,11 @@ export class AdminProductsComponent implements OnInit {
       this.isEditing = true;
       this.editingId = p.id;
       this.currentFormData = {
-         nom: p.nom,
-         description: p.description,
-         prix: p.prix,
-         stock: p.stock,
-         categoryId: p.category?.id || 0,
+         nom: p.nom || 'Sans nom',
+         description: p.description || 'Description non fournie',
+         prix: p.prix || 0.1,
+         stock: p.stock || 0,
+         categoryId: (p.category && (p.category as any).id) ? (p.category as any).id : (this.categories.length > 0 ? this.categories[0].id : 1),
          images: p.images || []
       };
       (this.currentFormData as any).status = (p as any).status || 'EN_STOCK';
@@ -451,8 +451,13 @@ export class AdminProductsComponent implements OnInit {
             error: (err) => {
                this.saving = false;
                console.error('Update error (detailed):', err);
-               const errorMsg = err.error?.message || err.message || JSON.stringify(err.error) || "Unknown error";
-               alert("Error modifying product: " + errorMsg);
+               let errorMsg = "Unknown error";
+               if (err.error && err.error.details) {
+                  errorMsg = Object.entries(err.error.details).map(([k, v]) => `${k}: ${v}`).join('\n');
+               } else {
+                  errorMsg = err.error?.message || err.message || JSON.stringify(err.error);
+               }
+               alert("Error modifying product:\n" + errorMsg);
             }
          });
       } else {
@@ -465,8 +470,13 @@ export class AdminProductsComponent implements OnInit {
             error: (err) => {
                this.saving = false;
                console.error('Create error (detailed):', err);
-               const errorMsg = err.error?.message || err.message || JSON.stringify(err.error) || "Unknown error";
-               alert("Error creating product: " + errorMsg);
+               let errorMsg = "Unknown error";
+               if (err.error && err.error.details) {
+                  errorMsg = Object.entries(err.error.details).map(([k, v]) => `${k}: ${v}`).join('\n');
+               } else {
+                  errorMsg = err.error?.message || err.message || JSON.stringify(err.error);
+               }
+               alert("Error creating product:\n" + errorMsg);
             }
          });
       }

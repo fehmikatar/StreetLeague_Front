@@ -34,7 +34,7 @@ import { CommunityService } from '../services/community.service';
             <textarea [(ngModel)]="newPostContent" rows="4" placeholder="Partagez quelque chose avec la communauté..."
               class="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none mb-4"></textarea>
             <div class="flex gap-3 justify-end">
-              <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Cancel</button>
               <button (click)="submitPost()" [disabled]="posting" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
                 {{ posting ? 'Publication...' : 'Publier' }}
               </button>

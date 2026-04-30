@@ -75,7 +75,7 @@ import { LucideAngularModule, MapPin, Star, Clock, DollarSign, Search, Filter, A
                     <span class="text-sm text-muted-foreground">({{ field.reviews }} avis)</span>
                   </div>
                   <div class="flex items-center gap-1 text-primary font-semibold">
-                    <span>{{ field.price }}€</span>
+                    <span>{{ field.price }}DT</span>
                     <span class="text-xs text-muted-foreground">/heure</span>
                   </div>
                 </div>
