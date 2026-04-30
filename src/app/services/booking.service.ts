@@ -62,8 +62,8 @@ export class BookingService {
             next: (data) => {
                 const mappedFields: Field[] = data.map(space => ({
                     id: String(space.id),
-                    name: space.name || 'Terrain Inconnu',
-                    location: space.location || 'Localisation non spécifiée',
+                    name: space.name || 'Unknown Field',
+                    location: space.location || 'Location not specified',
                     type: space.type || 'Multisport',
                     price: space.pricePerHour || 50,
                     rating: 4.5, // Dummy default
@@ -79,7 +79,7 @@ export class BookingService {
 
     private loadStaticNotifications() {
         const defaultNotifs: Notification[] = [
-            { title: 'Bienvenue', message: 'Bienvenue sur StreetLeague !', time: 'Maintenant', icon: Bell, bgColor: 'bg-blue-50', iconColor: 'text-blue-500', read: false },
+            { title: 'Welcome', message: 'Welcome to StreetLeague!', time: 'Now', icon: Bell, bgColor: 'bg-blue-50', iconColor: 'text-blue-500', read: false },
         ];
         this.notificationsSubject.next(defaultNotifs);
     }
@@ -145,9 +145,9 @@ export class BookingService {
                 // Add Notification
                 const currentNotifs = this.notificationsSubject.getValue();
                 const newNotif: Notification = {
-                    title: 'Réservation confirmée',
-                    message: `Votre réservation pour "${reservationData.fieldName}" est confirmée.`,
-                    time: 'Maintenant',
+                    title: 'Booking confirmed',
+                    message: `Your booking for "${reservationData.fieldName}" is confirmed.`,
+                    time: 'Now',
                     icon: Calendar,
                     bgColor: 'bg-green-50',
                     iconColor: 'text-green-500',
@@ -170,8 +170,8 @@ export class BookingService {
         return {
             id: backendBooking.id,
             fieldId: String(backendBooking.sportSpaceId),
-            fieldName: backendBooking.sportSpaceName || 'Terrain',
-            title: `Réservation`,
+            fieldName: backendBooking.sportSpaceName || 'Field',
+            title: `Booking`,
             location: '',
             date: formattedDate,
             time: formattedTime,

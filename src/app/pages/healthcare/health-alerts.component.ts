@@ -13,15 +13,15 @@ import { LucideAngularModule, Bell, AlertTriangle, Info, CheckCircle, X, ArrowLe
         <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
           <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
         </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
+        <span class="text-sm text-muted-foreground">Health</span>
       </div>
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-foreground">Alertes Santé</h1>
-          <p class="text-muted-foreground">Notifications et alertes concernant votre santé</p>
+          <h1 class="text-2xl font-bold text-foreground">Health Alerts</h1>
+          <p class="text-muted-foreground">Notifications and alerts regarding your health</p>
         </div>
         <span class="bg-primary text-primary-foreground text-sm px-3 py-1 rounded-full">
-          {{alerts.length}} alertes
+          {{alerts.length}} alerts
         </span>
       </div>
 
@@ -47,7 +47,7 @@ import { LucideAngularModule, Bell, AlertTriangle, Info, CheckCircle, X, ArrowLe
             <p class="text-sm text-muted-foreground mt-1">{{alert.message}}</p>
             <p class="text-xs text-muted-foreground mt-2">{{alert.time}}</p>
           </div>
-          <button (click)="dismissAlert(alert)" class="p-1 hover:bg-muted rounded transition-colors" title="Ignorer">
+          <button (click)="dismissAlert(alert)" class="p-1 hover:bg-muted rounded transition-colors" title="Dismiss">
             <lucide-icon [name]="closeIcon" [size]="14" class="text-muted-foreground"></lucide-icon>
           </button>
         </div>
@@ -67,16 +67,16 @@ export class HealthAlertsComponent {
   }
 
   categories = [
-    { label: 'Urgentes', count: 1, color: 'text-red-500' },
+    { label: 'Urgent', count: 1, color: 'text-red-500' },
     { label: 'Attention', count: 2, color: 'text-yellow-500' },
-    { label: 'Informations', count: 4, color: 'text-blue-500' },
+    { label: 'Information', count: 4, color: 'text-blue-500' },
   ];
 
   alerts = [
-    { type: 'danger', title: 'Hypertension détectée', message: 'Votre tension artérielle est élevée (145/92). Consultez votre médecin rapidement.', time: 'Il y a 2 heures' },
-    { type: 'warning', title: 'Carence en Vitamine D', message: 'Votre taux de Vitamine D est en dessous de la normale. Envisagez une supplémentation.', time: 'Il y a 1 jour' },
-    { type: 'warning', title: 'Rendez-vous à confirmer', message: 'Votre rendez-vous du 10 Mars avec Dr. Moreau est à confirmer avant demain.', time: 'Il y a 2 jours' },
-    { type: 'info', title: 'Bilan annuel recommandé', message: 'Il est temps de planifier votre bilan de santé annuel.', time: 'Il y a 3 jours' },
-    { type: 'info', title: 'Objectif Hydratation atteint', message: 'Félicitations ! Vous avez atteint votre objectif d\'hydratation 5 jours de suite.', time: 'Il y a 4 jours' },
+    { type: 'danger', title: 'Hypertension detected', message: 'Your blood pressure is high (145/92). Consult your doctor soon.', time: '2 hours ago' },
+    { type: 'warning', title: 'Vitamin D Deficiency', message: 'Your Vitamin D level is below normal. Consider supplementation.', time: '1 day ago' },
+    { type: 'warning', title: 'Appointment to confirm', message: 'Your appointment on March 10 with Dr. Moreau needs confirmation before tomorrow.', time: '2 days ago' },
+    { type: 'info', title: 'Annual check-up recommended', message: 'It\'s time to schedule your annual health check-up.', time: '3 days ago' },
+    { type: 'info', title: 'Hydration goal reached', message: 'Congratulations! You reached your hydration goal 5 days in a row.', time: '4 days ago' },
   ];
 }

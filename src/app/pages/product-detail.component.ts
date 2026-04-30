@@ -15,21 +15,21 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
         <div class="container mx-auto px-4 h-16 flex items-center justify-between">
            <button (click)="goBack()" class="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
               <lucide-icon [name]="ArrowLeftIcon" [size]="20"></lucide-icon>
-              Retour à la boutique
+              Back to Store
            </button>
         </div>
       </div>
 
       <div *ngIf="loading" class="flex flex-col items-center justify-center min-h-[60vh]">
          <lucide-icon [name]="Loader2Icon" [size]="48" class="animate-spin text-primary/50 mb-4"></lucide-icon>
-         <p class="text-muted-foreground">Chargement des détails...</p>
+         <p class="text-muted-foreground">Loading details...</p>
       </div>
 
       <div *ngIf="!loading && !product" class="flex flex-col items-center justify-center min-h-[60vh] text-center">
          <div class="text-6xl mb-6">🔍</div>
-         <h2 class="text-2xl font-bold mb-2">Produit introuvable</h2>
-         <p class="text-muted-foreground mb-6">Le produit que vous cherchez n'existe pas ou a été retiré.</p>
-         <button (click)="goBack()" class="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold">Retourner à la boutique</button>
+         <h2 class="text-2xl font-bold mb-2">Product not found</h2>
+         <p class="text-muted-foreground mb-6">The product you are looking for does not exist or has been removed.</p>
+         <button (click)="goBack()" class="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold">Return to Store</button>
       </div>
 
       <div *ngIf="!loading && product" class="container mx-auto px-4 py-8 max-w-7xl">
@@ -39,8 +39,8 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
           <div class="space-y-4">
              <div class="aspect-square bg-card rounded-3xl border border-border p-8 flex items-center justify-center relative overflow-hidden group">
                 <!-- Sale Badge -->
-                <div *ngIf="product.stock === 0" class="absolute top-4 left-4 z-10 bg-background/90 text-foreground font-bold px-4 py-1.5 rounded-lg border border-border">Rupture de stock</div>
-                <div *ngIf="(product.stock || 0) > 0 && (product.stock || 0) < 10" class="absolute top-4 left-4 z-10 bg-destructive/10 text-destructive font-bold px-4 py-1.5 rounded-lg backdrop-blur-sm">Stock limité</div>
+                <div *ngIf="product.stock === 0" class="absolute top-4 left-4 z-10 bg-background/90 text-foreground font-bold px-4 py-1.5 rounded-lg border border-border">Out of stock</div>
+                <div *ngIf="(product.stock || 0) > 0 && (product.stock || 0) < 10" class="absolute top-4 left-4 z-10 bg-destructive/10 text-destructive font-bold px-4 py-1.5 rounded-lg backdrop-blur-sm">Limited stock</div>
 
                 <img *ngIf="currentImage" [src]="currentImage" [alt]="product.nom" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
                 <div *ngIf="!currentImage" class="text-8xl">🛒</div>
@@ -63,7 +63,7 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
              
              <!-- Header -->
              <div class="mb-6">
-                <div class="text-sm font-semibold text-primary mb-2 uppercase tracking-wider">{{ product.category?.nom || product.category?.name || 'Catégorie Générale' }}</div>
+                <div class="text-sm font-semibold text-primary mb-2 uppercase tracking-wider">{{ product.category?.nom || product.category?.name || 'General Category' }}</div>
                 <h1 class="text-3xl lg:text-5xl font-extrabold mb-4 leading-tight">{{ product.nom }}</h1>
                 <div class="flex items-center gap-4 text-sm text-muted-foreground">
                    <div class="flex items-center gap-1 text-amber-400">
@@ -75,7 +75,7 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
                       <span class="text-foreground ml-1 font-medium">4.5</span>
                    </div>
                    <span>•</span>
-                   <span>124 Avis</span>
+                   <span>124 Reviews</span>
                 </div>
              </div>
 
@@ -88,7 +88,7 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
 
              <!-- Variants Selection -->
              <div *ngIf="colorVariants.length > 0" class="mb-6">
-                <h3 class="text-sm font-semibold mb-3">Couleurs disponibles</h3>
+                <h3 class="text-sm font-semibold mb-3">Available colors</h3>
                 <div class="flex flex-wrap gap-3">
                    <button *ngFor="let color of colorVariants" 
                            (click)="selectColor(color)"
@@ -101,7 +101,7 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
 
              <div *ngIf="sizeVariants.length > 0" class="mb-8">
                 <h3 class="text-sm font-semibold mb-3 flex items-center justify-between">
-                   Tailles disponibles
+                   Available sizes
                 </h3>
                 <div class="flex flex-wrap gap-3">
                    <button *ngFor="let size of sizeVariants" 
@@ -122,8 +122,8 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
                         class="flex-1 h-14 bg-primary text-primary-foreground rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1">
                    <lucide-icon *ngIf="!addingToCart" [name]="ShoppingCartIcon" [size]="24"></lucide-icon>
                    <lucide-icon *ngIf="addingToCart" [name]="Loader2Icon" [size]="24" class="animate-spin"></lucide-icon>
-                   <span *ngIf="(product.stock || 0) > 0">Ajouter au panier</span>
-                   <span *ngIf="(product.stock || 0) === 0">En rupture</span>
+                   <span *ngIf="(product.stock || 0) > 0">Add to cart</span>
+                   <span *ngIf="(product.stock || 0) === 0">Out of stock</span>
                 </button>
                 
                 <button (click)="toggleFavorite()"
@@ -141,8 +141,8 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
                       <lucide-icon [name]="TruckIcon" [size]="20"></lucide-icon>
                    </div>
                    <div class="text-sm">
-                      <div class="font-bold">Livraison Rapide</div>
-                      <div class="text-muted-foreground">Sous 48-72h</div>
+                      <div class="font-bold">Fast Delivery</div>
+                      <div class="text-muted-foreground">In 48-72h</div>
                    </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -150,8 +150,8 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
                       <lucide-icon [name]="Undo2Icon" [size]="20"></lucide-icon>
                    </div>
                    <div class="text-sm">
-                      <div class="font-bold">Retour Facile</div>
-                      <div class="text-muted-foreground">30 jours inclus</div>
+                      <div class="font-bold">Easy Return</div>
+                      <div class="text-muted-foreground">30 days included</div>
                    </div>
                 </div>
              </div>
@@ -159,7 +159,7 @@ import { ProductService, Product, ProductVariant } from '../services/product.ser
              <!-- Description Accordion / Content -->
              <div class="space-y-6">
                 <div>
-                   <h3 class="text-xl font-bold mb-3 border-b border-border pb-2">Description du produit</h3>
+                   <h3 class="text-xl font-bold mb-3 border-b border-border pb-2">Product description</h3>
                    <div class="text-muted-foreground leading-relaxed whitespace-pre-line text-sm md:text-base">
                       {{ product.description }}
                    </div>
@@ -241,7 +241,7 @@ export class ProductDetailComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Erreur', err);
+        console.error('Error', err);
         this.loading = false;
       }
     });
@@ -318,7 +318,7 @@ export class ProductDetailComponent implements OnInit {
       this.productService.removeFromFavorites(this.productId).subscribe({
          error: () => {
              this.isFavorite = true; // rollback
-             this.showToast('Erreur lors du retrait des favoris');
+             this.showToast('Error removing from favorites');
          }
       });
     } else {
@@ -327,12 +327,12 @@ export class ProductDetailComponent implements OnInit {
              if (res === null) {
                 // API constraints: product already in favorites, just keep heart filled
              } else {
-                this.showToast('Produit ajouté aux listes de souhaits ❤️');
+                this.showToast('Product added to wishlist ❤️');
              }
          },
          error: () => {
              this.isFavorite = false; // rollback
-             this.showToast("Erreur lors de l'ajout aux favoris");
+             this.showToast("Error adding to favorites");
          }
       });
     }
@@ -343,7 +343,7 @@ export class ProductDetailComponent implements OnInit {
     
     // Safety check if variants exist but none selected
     if (this.product.variants && this.product.variants.length > 0 && !this.selectedVariant) {
-       alert("Veuillez sélectionner une taille/couleur.");
+       alert("Please select a size/color.");
        return;
     }
 
@@ -351,17 +351,17 @@ export class ProductDetailComponent implements OnInit {
     this.productService.addToCart(this.product.id, 1, this.selectedVariant?.id).subscribe({
       next: () => {
         this.addingToCart = false;
-        this.showToast('Article ajouté au panier !');
+        this.showToast('Item added to cart!');
       },
       error: () => {
         this.addingToCart = false;
-        alert("Erreur lors de l'ajout au panier.");
+        alert("Error adding to cart.");
       }
     });
   }
 
   formatPrice(price: number): string {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
   }
 
   showToast(msg: string) {

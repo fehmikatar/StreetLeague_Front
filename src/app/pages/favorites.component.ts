@@ -20,8 +20,8 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
               <lucide-icon [name]="HeartIcon" [size]="24" class="fill-current"></lucide-icon>
            </div>
            <div>
-              <h1 class="text-xl font-black">Listes d'envies</h1>
-              <p class="text-xs text-muted-foreground">Gérez vos équipements préférés</p>
+              <h1 class="text-xl font-black">Wishlists</h1>
+              <p class="text-xs text-muted-foreground">Manage your favorite equipment</p>
            </div>
         </div>
 
@@ -34,11 +34,11 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
              [class.hover:bg-muted]="selectedCategoryId !== null"
              class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-left">
              <lucide-icon [name]="FolderHeartIcon" [size]="18" [class.text-primary]="selectedCategoryId !== null"></lucide-icon>
-             Tous mes favoris
+             All my favorites
            </button>
 
            <div class="pt-6 pb-2">
-              <span class="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-4">Mes Collections</span>
+              <span class="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-4">My Collections</span>
            </div>
 
            <!-- Loading Categories -->
@@ -63,7 +63,7 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
         </div>
 
         <button (click)="openCreateModal()" class="mt-8 w-full flex items-center justify-center gap-2 border-2 border-dashed border-border py-4 rounded-xl text-muted-foreground hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all font-bold">
-           <lucide-icon [name]="PlusIcon" [size]="20"></lucide-icon> Nouvelle liste
+           <lucide-icon [name]="PlusIcon" [size]="20"></lucide-icon> New list
         </button>
       </div>
 
@@ -83,10 +83,10 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
            <div class="h-24 w-24 bg-muted/50 rounded-full flex items-center justify-center mb-6">
               <lucide-icon [name]="HeartCrackIcon" [size]="40" class="text-muted-foreground/50"></lucide-icon>
            </div>
-           <h2 class="text-2xl font-bold mb-3">Cette liste est vide</h2>
-           <p class="text-muted-foreground text-lg mb-8">Baladez-vous dans la boutique et cliquez sur le ❤️ pour sauvegarder des équipements ici !</p>
+           <h2 class="text-2xl font-bold mb-3">This list is empty</h2>
+           <p class="text-muted-foreground text-lg mb-8">Browse the shop and click the ❤️ to save equipment here!</p>
            <a routerLink="/app/sponsors" class="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:-translate-y-1">
-              Explorer la boutique
+              Explore the shop
            </a>
         </div>
 
@@ -99,9 +99,9 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
                  <select 
                     (change)="onMoveFavorite(fav.id, $event)"
                     class="h-9 truncate pl-3 pr-8 bg-background/80 backdrop-blur-sm focus:outline-none focus:ring-2 ring-primary rounded-xl text-xs font-bold shadow-sm border border-border cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Déplacer dans une collection...">
-                    <option value="" disabled selected>📦 Déplacer...</option>
-                    <option [value]="0">Tous mes favoris</option>
+                    title="Move to a collection...">
+                    <option value="" disabled selected>📦 Move to...</option>
+                    <option [value]="0">All my favorites</option>
                     <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
                  </select>
               </div>
@@ -125,7 +125,7 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
               <div class="p-5 flex flex-col flex-1">
                 <div class="flex items-center justify-between mb-1">
                   <div class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {{ fav.product.category?.nom || fav.product.category?.name || 'Équipement' }}
+                    {{ fav.product.category?.nom || fav.product.category?.name || 'Equipment' }}
                   </div>
                   <div *ngIf="fav.category" class="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full truncate max-w-[100px]">
                     {{ fav.category.name }}
@@ -145,7 +145,7 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
                     [disabled]="addingToCartId === fav.product.id">
                     <lucide-icon *ngIf="addingToCartId !== fav.product.id" [name]="ShoppingCartIcon" [size]="18"></lucide-icon>
                     <lucide-icon *ngIf="addingToCartId === fav.product.id" [name]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
-                    <span class="text-sm">Panier</span>
+                    <span class="text-sm">Cart</span>
                   </button>
                 </div>
               </div>
@@ -158,14 +158,14 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
       <div *ngIf="isCreateModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
          <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="closeCreateModal()"></div>
          <div class="relative bg-card border border-border shadow-2xl rounded-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200">
-            <h3 class="text-xl font-bold mb-4">Nouvelle collection</h3>
-            <p class="text-sm text-muted-foreground mb-4">Donnez un nom à votre nouvelle liste d'envies pour organiser vos trouvailles.</p>
-            <input type="text" [(ngModel)]="newCategoryName" placeholder="Ex: Matériel Football..." class="w-full h-11 px-4 bg-background border border-border rounded-xl mb-6 focus:outline-none focus:border-primary font-medium" (keyup.enter)="submitCategory()">
+             <h3 class="text-xl font-bold mb-4">New Collection</h3>
+            <p class="text-sm text-muted-foreground mb-4">Give a name to your new wishlist to organize your finds.</p>
+            <input type="text" [(ngModel)]="newCategoryName" placeholder="Ex: Football Gear..." class="w-full h-11 px-4 bg-background border border-border rounded-xl mb-6 focus:outline-none focus:border-primary font-medium" (keyup.enter)="submitCategory()">
             
             <div class="flex gap-3">
-               <button (click)="closeCreateModal()" class="flex-1 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Annuler</button>
+               <button (click)="closeCreateModal()" class="flex-1 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Cancel</button>
                <button (click)="submitCategory()" [disabled]="creatingCategory || !newCategoryName.trim()" class="flex-1 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
-                  Créer la liste
+                  Create list
                </button>
             </div>
          </div>
@@ -223,9 +223,9 @@ export class FavoritesComponent implements OnInit {
   }
 
   get selectedCategoryName(): string {
-     if (this.selectedCategoryId === null) return 'Tous mes favoris';
+     if (this.selectedCategoryId === null) return 'All my favorites';
      const cat = this.categories.find(c => c.id === this.selectedCategoryId);
-     return cat ? cat.name : 'Ma Liste';
+     return cat ? cat.name : 'My List';
   }
 
   loadCategories() {
@@ -289,11 +289,11 @@ export class FavoritesComponent implements OnInit {
            this.categories.push(cat);
            this.creatingCategory = false;
            this.closeCreateModal();
-           this.showToast('Liste créée avec succès !');
+           this.showToast('List created successfully!');
         },
         error: () => {
            this.creatingCategory = false;
-           this.showToast('Erreur lors de la création de la liste');
+           this.showToast('Error creating list');
         }
      });
   }
@@ -309,14 +309,14 @@ export class FavoritesComponent implements OnInit {
      
      this.productService.categorizeFavorite(favId, catId).subscribe({
         next: () => {
-           this.showToast('Article déplacé !');
+           this.showToast('Item moved!');
            if (this.selectedCategoryId !== null && catId !== this.selectedCategoryId) {
               // Removes it visually if we moved it elsewhere while in a specific collection
               this.favorites = this.favorites.filter(f => f.id !== favId);
            }
         },
         error: () => {
-           this.showToast('Erreur lors du déplacement');
+           this.showToast('Error moving item');
            event.target.value = ""; // reset dropdown
         }
      });
@@ -327,9 +327,9 @@ export class FavoritesComponent implements OnInit {
     this.productService.removeFromFavorites(productId).subscribe({
       next: () => {
         this.favorites = this.favorites.filter(f => f.product?.id !== productId);
-        this.showToast('Article retiré des favoris');
+        this.showToast('Item removed from favorites');
       },
-      error: () => this.showToast('Erreur lors du retrait')
+      error: () => this.showToast('Error removing item')
     });
   }
 
@@ -339,18 +339,18 @@ export class FavoritesComponent implements OnInit {
     this.productService.addToCart(product.id, 1).subscribe({
       next: () => {
         this.addingToCartId = null;
-        this.showToast(`${product.nom} ajouté au panier`);
+        this.showToast(`${product.nom} added to cart`);
       },
       error: () => {
         this.addingToCartId = null;
-        this.showToast("Erreur d'ajout au panier");
+        this.showToast("Error adding to cart");
       }
     });
   }
 
   formatPrice(price: number | undefined): string {
-    if (price === undefined || price === null) return '0,00 €';
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+    if (price === undefined || price === null) return '$0.00';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
   }
 
   showToast(msg: string) {

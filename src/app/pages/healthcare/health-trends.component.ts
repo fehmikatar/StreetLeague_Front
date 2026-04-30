@@ -13,11 +13,11 @@ import { LucideAngularModule, TrendingUp, TrendingDown, Heart, Activity, Zap, Ar
         <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
           <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
         </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
+        <span class="text-sm text-muted-foreground">Health</span>
       </div>
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Tendances de Santé</h1>
-        <p class="text-muted-foreground">Évolution de vos indicateurs de santé dans le temps</p>
+        <h1 class="text-2xl font-bold text-foreground">Health Trends</h1>
+        <p class="text-muted-foreground">Evolution of your health indicators over time</p>
       </div>
 
       <!-- Period selector -->
@@ -54,7 +54,7 @@ import { LucideAngularModule, TrendingUp, TrendingDown, Heart, Activity, Zap, Ar
           </div>
           <div class="flex justify-between text-xs text-muted-foreground mt-1">
             <span>{{getWeekLabels()[0]}}</span>
-            <span>Aujourd'hui</span>
+            <span>Today</span>
           </div>
         </div>
       </div>
@@ -62,19 +62,19 @@ import { LucideAngularModule, TrendingUp, TrendingDown, Heart, Activity, Zap, Ar
   `
 })
 export class HealthTrendsComponent {
-  selectedPeriod = '7J';
-  periods = ['7J', '1M', '3M', '6M', '1A'];
+  selectedPeriod = '7D';
+  periods = ['7D', '1M', '3M', '6M', '1Y'];
   readonly trendUpIcon = TrendingUp;
   readonly trendDownIcon = TrendingDown;
   readonly arrowLeftIcon = ArrowLeft;
 
   trends = [
-    { label: 'Fréquence Cardiaque', icon: Heart, current: '72', unit: 'bpm', change: '-3%', positive: true, data: [78, 75, 74, 76, 73, 72, 72] },
-    { label: 'Forme Physique', icon: Activity, current: '83', unit: '%', change: '+5%', positive: true, data: [72, 74, 75, 77, 80, 82, 83] },
-    { label: 'Énergie', icon: Zap, current: '76', unit: '/100', change: '+8%', positive: true, data: [65, 67, 70, 71, 73, 75, 76] },
-    { label: 'Poids', icon: TrendingDown, current: '75.2', unit: 'kg', change: '-0.8kg', positive: true, data: [76.0, 75.8, 75.6, 75.5, 75.4, 75.3, 75.2] },
+    { label: 'Heart Rate', icon: Heart, current: '72', unit: 'bpm', change: '-3%', positive: true, data: [78, 75, 74, 76, 73, 72, 72] },
+    { label: 'Fitness Level', icon: Activity, current: '83', unit: '%', change: '+5%', positive: true, data: [72, 74, 75, 77, 80, 82, 83] },
+    { label: 'Energy', icon: Zap, current: '76', unit: '/100', change: '+8%', positive: true, data: [65, 67, 70, 71, 73, 75, 76] },
+    { label: 'Weight', icon: TrendingDown, current: '75.2', unit: 'kg', change: '-0.8kg', positive: true, data: [76.0, 75.8, 75.6, 75.5, 75.4, 75.3, 75.2] },
   ];
 
   getMax(data: number[]) { return Math.max(...data); }
-  getWeekLabels() { return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']; }
+  getWeekLabels() { return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']; }
 }

@@ -26,22 +26,22 @@ import { AuthService } from '../../services/auth.service';
         
         <div class="p-8">
           <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold mb-2">Bon retour ! 👋</h1>
-            <p class="text-muted-foreground text-sm">Entrez vos identifiants pour accéder à votre compte</p>
+            <h1 class="text-2xl font-bold mb-2">Welcome back! 👋</h1>
+            <p class="text-muted-foreground text-sm">Enter your credentials to access your account</p>
           </div>
 
           <!-- Alert Note -->
           <div class="bg-primary/10 border border-primary/20 rounded-xl p-4 mb-6 flex items-start gap-3">
             <lucide-icon [img]="LogInIcon" class="w-5 h-5 text-primary shrink-0 mt-0.5"></lucide-icon>
             <p class="text-sm text-primary/90">
-              C'est votre première fois ? <a routerLink="/auth/signup" class="font-bold underline hover:text-primary transition-colors">Créer un compte</a>
+              First time? <a routerLink="/auth/signup" class="font-bold underline hover:text-primary transition-colors">Create an account</a>
             </p>
           </div>
 
           <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="space-y-5">
             <!-- Email -->
             <div class="space-y-1.5">
-              <label class="text-sm font-medium text-foreground ml-1">Adresse email</label>
+              <label class="text-sm font-medium text-foreground ml-1">Email address</label>
               <div class="relative group">
                 <lucide-icon [img]="MailIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors"></lucide-icon>
                 <input 
@@ -50,7 +50,7 @@ import { AuthService } from '../../services/auth.service';
                   [(ngModel)]="email"
                   required
                   class="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all text-foreground"
-                  placeholder="vous@exemple.com"
+                  placeholder="you@example.com"
                 />
               </div>
             </div>
@@ -58,8 +58,8 @@ import { AuthService } from '../../services/auth.service';
             <!-- Password -->
             <div class="space-y-1.5">
               <div class="flex items-center justify-between ml-1">
-                <label class="text-sm font-medium text-foreground">Mot de passe</label>
-                <a routerLink="/auth/password-reset" class="text-xs text-primary font-medium hover:underline">Oublié ?</a>
+                <label class="text-sm font-medium text-foreground">Password</label>
+                <a routerLink="/auth/password-reset" class="text-xs text-primary font-medium hover:underline">Forgot?</a>
               </div>
               <div class="relative group">
                 <lucide-icon [img]="LockIcon" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors"></lucide-icon>
@@ -86,7 +86,7 @@ import { AuthService } from '../../services/auth.service';
               class="w-full py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 focus:ring-4 focus:ring-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 shadow-lg shadow-primary/20"
             >
               <lucide-icon *ngIf="loading" [img]="Loader2Icon" class="w-4 h-4 animate-spin"></lucide-icon>
-              {{ loading ? 'Connexion...' : 'Se connecter' }}
+              {{ loading ? 'Connecting...' : 'Login' }}
             </button>
           </form>
 
@@ -95,7 +95,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="absolute inset-0 flex items-center">
               <div class="w-full border-t border-border"></div>
             </div>
-            <span class="relative bg-card px-4 text-xs text-muted-foreground uppercase font-medium">Ou avec</span>
+            <span class="relative bg-card px-4 text-xs text-muted-foreground uppercase font-medium">Or with</span>
           </div>
 
           <!-- Social Login (Mock) -->
@@ -143,7 +143,7 @@ export class LoginPageComponent {
       error: (err) => {
         this.loading = false;
         console.error('Login error', err);
-        this.error = 'Identifiants incorrects ou erreur serveur.';
+        this.error = 'Incorrect credentials or server error.';
       }
     });
   }

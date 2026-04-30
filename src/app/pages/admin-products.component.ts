@@ -20,21 +20,21 @@ import { Router, RouterModule } from '@angular/router';
                 <lucide-icon [name]="ArrowLeftIcon" [size]="24"></lucide-icon>
              </button>
              <div>
-               <h1 class="text-3xl font-bold">Inventaire & Produits</h1>
-               <p class="text-muted-foreground">Gérez votre catalogue de vente</p>
+               <h1 class="text-3xl font-bold">Inventory & Products</h1>
+               <p class="text-muted-foreground">Manage your sales catalog</p>
              </div>
           </div>
           <div class="flex gap-3">
              <button (click)="exportInventory()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl font-medium hover:bg-muted transition-colors">
-                <lucide-icon [name]="DownloadCloudIcon" [size]="18"></lucide-icon> Exporter CSV
+                <lucide-icon [name]="DownloadCloudIcon" [size]="18"></lucide-icon> Export CSV
              </button>
              <button (click)="fileInput.click()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-xl font-medium hover:bg-muted transition-colors">
-                <lucide-icon [name]="UploadCloudIcon" [size]="18"></lucide-icon> ImporterCSV
+                <lucide-icon [name]="UploadCloudIcon" [size]="18"></lucide-icon> Import CSV
              </button>
              <input type="file" #fileInput (change)="importInventory($event)" accept=".csv" class="hidden">
              
              <button (click)="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 hover:shadow-lg transition-all">
-                <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon> Nouveau Produit
+                <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon> New Product
              </button>
           </div>
         </div>
@@ -43,11 +43,11 @@ import { Router, RouterModule } from '@angular/router';
         <div *ngIf="lowStockProducts.length > 0" class="mb-8 p-4 bg-destructive/10 border-l-4 border-destructive rounded-r-xl flex items-start gap-4">
            <lucide-icon [name]="AlertTriangleIcon" [size]="24" class="text-destructive shrink-0 mt-1"></lucide-icon>
            <div>
-              <h3 class="font-bold text-destructive">Attention ! {{ lowStockProducts.length }} produit(s) en stock faible</h3>
-              <p class="text-sm text-destructive/80 mb-2">Pensez à réapprovisionner ces articles.</p>
+              <h3 class="font-bold text-destructive">Attention! {{ lowStockProducts.length }} product(s) low in stock</h3>
+              <p class="text-sm text-destructive/80 mb-2">Consider restocking these items.</p>
               <div class="flex flex-wrap gap-2">
                  <span *ngFor="let p of lowStockProducts" class="text-xs bg-background/50 px-2 py-1 rounded-md text-destructive font-medium border border-destructive/20">
-                    {{ p.nom }} (Reste: {{ p.stock }})
+                    {{ p.nom }} (Left: {{ p.stock }})
                  </span>
               </div>
            </div>
@@ -55,8 +55,8 @@ import { Router, RouterModule } from '@angular/router';
 
         <!-- Filter & Search -->
         <div class="bg-card border border-border rounded-2xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-           <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="loadProducts()" placeholder="Chercher un produit..." class="w-full md:w-96 h-11 px-4 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
-           <button (click)="loadProducts()" class="w-full md:w-auto px-6 h-11 bg-muted font-bold rounded-xl hover:bg-muted/70">Rechercher</button>
+           <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="loadProducts()" placeholder="Search product..." class="w-full md:w-96 h-11 px-4 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+           <button (click)="loadProducts()" class="w-full md:w-auto px-6 h-11 bg-muted font-bold rounded-xl hover:bg-muted/70">Search</button>
         </div>
 
         <!-- Product Table -->
@@ -66,19 +66,19 @@ import { Router, RouterModule } from '@angular/router';
                  <thead class="bg-muted/50 border-b border-border">
                     <tr>
                        <th class="px-6 py-4 font-semibold text-muted-foreground w-16">ID</th>
-                       <th class="px-6 py-4 font-semibold text-muted-foreground">Produit</th>
-                       <th class="px-6 py-4 font-semibold text-muted-foreground">Catégorie</th>
-                       <th class="px-6 py-4 font-semibold text-muted-foreground">Prix</th>
+                       <th class="px-6 py-4 font-semibold text-muted-foreground">Product</th>
+                       <th class="px-6 py-4 font-semibold text-muted-foreground">Category</th>
+                       <th class="px-6 py-4 font-semibold text-muted-foreground">Price</th>
                        <th class="px-6 py-4 font-semibold text-muted-foreground">Stock</th>
                        <th class="px-6 py-4 font-semibold text-muted-foreground text-right">Actions</th>
                     </tr>
                  </thead>
                  <tbody class="divide-y divide-border/50">
                     <tr *ngIf="loading" class="bg-background">
-                       <td colspan="6" class="px-6 py-12 text-center text-muted-foreground">Chargement des données...</td>
+                       <td colspan="6" class="px-6 py-12 text-center text-muted-foreground">Loading data...</td>
                     </tr>
                     <tr *ngIf="!loading && products.length === 0" class="bg-background">
-                       <td colspan="6" class="px-6 py-12 text-center text-muted-foreground">Aucun produit trouvé.</td>
+                       <td colspan="6" class="px-6 py-12 text-center text-muted-foreground">No products found.</td>
                     </tr>
                     <tr *ngFor="let p of products" class="bg-background hover:bg-muted/20 transition-colors">
                        <td class="px-6 py-4 font-mono text-muted-foreground">{{ p.id }}</td>
@@ -92,7 +92,7 @@ import { Router, RouterModule } from '@angular/router';
                           </div>
                        </td>
                        <td class="px-6 py-4 text-muted-foreground">{{ p.category?.nom || p.category?.name || 'N/A' }}</td>
-                       <td class="px-6 py-4 font-bold">{{ p.prix }} €</td>
+                       <td class="px-6 py-4 font-bold">{{ p.prix }} $</td>
                        <td class="px-6 py-4">
                           <span [class.text-destructive]="p.stock < 10" [class.font-bold]="p.stock < 10">{{ p.stock }}</span>
                        </td>
@@ -106,10 +106,10 @@ import { Router, RouterModule } from '@angular/router';
            </div>
            <!-- Pagination -->
            <div class="px-6 py-4 border-t border-border bg-muted/20 flex items-center justify-between">
-              <span class="text-sm text-muted-foreground">Page {{ currentPage + 1 }} sur {{ totalPages }} ({{ totalElements }} produits)</span>
+              <span class="text-sm text-muted-foreground">Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} products)</span>
               <div class="flex gap-2">
-                 <button (click)="prevPage()" [disabled]="currentPage === 0" class="px-3 py-1.5 bg-card border border-border rounded-lg text-sm hover:bg-background disabled:opacity-50 font-medium">Précédent</button>
-                 <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1" class="px-3 py-1.5 bg-card border border-border rounded-lg text-sm hover:bg-background disabled:opacity-50 font-medium">Suivant</button>
+                 <button (click)="prevPage()" [disabled]="currentPage === 0" class="px-3 py-1.5 bg-card border border-border rounded-lg text-sm hover:bg-background disabled:opacity-50 font-medium">Previous</button>
+                 <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1" class="px-3 py-1.5 bg-card border border-border rounded-lg text-sm hover:bg-background disabled:opacity-50 font-medium">Next</button>
               </div>
            </div>
         </div>
@@ -124,7 +124,7 @@ import { Router, RouterModule } from '@angular/router';
          
          <!-- Modal Header -->
          <div class="px-6 py-4 border-b border-border flex items-center justify-between sticky top-0 bg-card rounded-t-2xl z-10">
-            <h2 class="text-xl font-bold">{{ isEditing ? 'Modifier' : 'Ajouter' }} un Produit</h2>
+            <h2 class="text-xl font-bold">{{ isEditing ? 'Edit' : 'Add' }} a Product</h2>
             <button (click)="closeModal()" class="p-2 hover:bg-muted rounded-full transition-colors"><lucide-icon [name]="XIcon" [size]="20"></lucide-icon></button>
          </div>
 
@@ -133,13 +133,13 @@ import { Router, RouterModule } from '@angular/router';
             <form class="space-y-6">
                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-2">
-                     <label class="text-sm font-semibold">Nom du produit <span class="text-destructive">*</span></label>
+                     <label class="text-sm font-semibold">Product name <span class="text-destructive">*</span></label>
                      <input type="text" [(ngModel)]="currentFormData.nom" name="nom" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
                   <div class="space-y-2">
-                     <label class="text-sm font-semibold">Catégorie <span class="text-destructive">*</span></label>
+                     <label class="text-sm font-semibold">Category <span class="text-destructive">*</span></label>
                      <select [(ngModel)]="currentFormData.categoryId" name="cat" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
-                        <option [ngValue]="null">Sélectionner...</option>
+                        <option [ngValue]="null">Select...</option>
                         <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.nom || c.name }}</option>
                      </select>
                   </div>
@@ -152,28 +152,28 @@ import { Router, RouterModule } from '@angular/router';
 
                <div class="grid grid-cols-2 gap-4">
                   <div class="space-y-2">
-                     <label class="text-sm font-semibold">Prix (€) <span class="text-destructive">*</span></label>
+                     <label class="text-sm font-semibold">Price ($) <span class="text-destructive">*</span></label>
                      <input type="number" [(ngModel)]="currentFormData.prix" name="prix" step="0.01" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
                   <div class="space-y-2">
-                     <label class="text-sm font-semibold">Stock Initial <span class="text-destructive">*</span></label>
+                     <label class="text-sm font-semibold">Initial Stock <span class="text-destructive">*</span></label>
                      <input type="number" [(ngModel)]="currentFormData.stock" name="stock" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
                </div>
 
                <div class="space-y-2">
-                  <label class="text-sm font-semibold">Image URL principale</label>
+                  <label class="text-sm font-semibold">Primary Image URL</label>
                   <input type="text" [(ngModel)]="currentFormImageUrl" name="imgUrl" placeholder="https://..." class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
-                  <p class="text-xs text-muted-foreground">Fournissez une adresse web (URL) d'image pour représenter l'article.</p>
+                  <p class="text-xs text-muted-foreground">Provide a web address (URL) of an image to represent the item.</p>
                </div>
             </form>
          </div>
 
          <!-- Modal Footer -->
          <div class="px-6 py-4 border-t border-border bg-muted/20 flex justify-end gap-3 rounded-b-2xl">
-            <button (click)="closeModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Annuler</button>
+            <button (click)="closeModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Cancel</button>
             <button (click)="saveProduct()" [disabled]="saving" class="px-5 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all flex items-center gap-2">
-               <lucide-icon [name]="SaveIcon" [size]="18"></lucide-icon> {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+               <lucide-icon [name]="SaveIcon" [size]="18"></lucide-icon> {{ saving ? 'Saving...' : 'Save' }}
             </button>
          </div>
 
@@ -310,7 +310,7 @@ export class AdminProductsComponent implements OnInit {
 
   saveProduct() {
     if (!this.currentFormData.nom || this.currentFormData.prix <= 0) {
-       alert("Le nom et le prix sont obligatoires !");
+       alert("Name and price are required!");
        return;
     }
 
@@ -325,16 +325,14 @@ export class AdminProductsComponent implements OnInit {
     if (this.isEditing && this.editingId) {
        this.productService.updateProduct(this.editingId, this.currentFormData).subscribe({
           next: () => {
-             this.showToast('Produit modifié avec succès !');
+             this.showToast('Product updated successfully!');
              this.finishSave();
           },
-          error: () => { this.saving = false; alert("Erreur serveur lors de la modification"); }
+          error: () => { this.saving = false; alert("Server error during update"); }
        });
     } else {
        this.productService.createProduct(this.currentFormData).subscribe({
           next: () => {
-             this.showToast('Produit créé avec succès !');
-             this.finishSave();
           },
           error: () => { this.saving = false; alert("Erreur serveur lors de la création"); }
        });
@@ -349,13 +347,13 @@ export class AdminProductsComponent implements OnInit {
   }
 
   deleteProduct(id: number) {
-    if (confirm("Êtes-vous sûr de vouloir supprimer définitivement ce produit ?")) {
+    if (confirm("Are you sure you want to permanently delete this product?")) {
        this.productService.deleteProduct(id).subscribe({
           next: () => {
-             this.showToast('Produit supprimé.');
+             this.showToast('Product deleted.');
              this.loadProducts();
           },
-          error: () => alert("Erreur lors de la suppression.")
+          error: () => alert("Error during deletion.")
        });
     }
   }
@@ -365,10 +363,10 @@ export class AdminProductsComponent implements OnInit {
     if (file) {
        this.productService.bulkImportProducts(file).subscribe({
           next: () => {
-             this.showToast("Importation réussie !");
+             this.showToast("Import successful!");
              this.loadProducts();
           },
-          error: () => alert("Erreur lors de l'import. Assurez-vous que le CSV est au bon format.")
+          error: () => alert("Error during import. Ensure the CSV is in the correct format.")
        });
     }
     // reset input

@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
     imports: [CommonModule, LucideAngularModule],
     template: `
     <div class="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 class="text-2xl font-bold text-foreground">Mon Profil</h1>
+      <h1 class="text-2xl font-bold text-foreground">My Profile</h1>
 
       <!-- Avatar and basic info -->
       <div class="bg-card rounded-xl border border-border p-6">
@@ -34,25 +34,25 @@ import { Router } from '@angular/router';
               </div>
               <button (click)="editing = true" class="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm">
                 <lucide-icon [name]="editIcon" [size]="14"></lucide-icon>
-                Modifier
+                Edit
               </button>
             </div>
 
             <div *ngIf="editing" class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-xs text-muted-foreground mb-1">Prénom</label>
+                  <label class="block text-xs text-muted-foreground mb-1">First Name</label>
                   <input type="text" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm" value="Fehmi">
                 </div>
                 <div>
-                  <label class="block text-xs text-muted-foreground mb-1">Nom</label>
+                  <label class="block text-xs text-muted-foreground mb-1">Last Name</label>
                   <input type="text" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm" value="Katar">
                 </div>
               </div>
               <input type="email" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm" value="fehmi2013katar@gmail.com">
               <div class="flex gap-2">
-                <button (click)="editing = false" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors">Enregistrer</button>
-                <button (click)="editing = false" class="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors">Annuler</button>
+                <button (click)="editing = false" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors">Save</button>
+                <button (click)="editing = false" class="px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors">Cancel</button>
               </div>
             </div>
           </div>
@@ -101,27 +101,27 @@ export class UserProfileComponent {
 
     editing = false;
 
-    profile = { name: 'Fehmi Katar', role: 'Joueur • Admin', email: 'fehmi2013katar@gmail.com', phone: '+33 6 12 34 56 78' };
+    profile = { name: 'Fehmi Katar', role: 'Player • Admin', email: 'fehmi2013katar@gmail.com', phone: '+33 6 12 34 56 78' };
 
     stats = [
-        { label: 'Matchs Joués', value: '47' },
-        { label: 'Buts Marqués', value: '23' },
-        { label: 'Équipes', value: '3' },
+        { label: 'Matches Played', value: '47' },
+        { label: 'Goals Scored', value: '23' },
+        { label: 'Teams', value: '3' },
     ];
 
     sections = [
         {
             title: 'Notifications', icon: Bell, items: [
-                { label: 'Nouveaux matchs', value: true },
-                { label: 'Messages équipe', value: true },
-                { label: 'Rappels réservation', value: true },
+                { label: 'New matches', value: true },
+                { label: 'Team messages', value: true },
+                { label: 'Booking reminders', value: true },
                 { label: 'Newsletters', value: false },
             ]
         },
         {
-            title: 'Confidentialité', icon: Shield, items: [
-                { label: 'Profil visible publiquement', value: true },
-                { label: 'Partager les statistiques', value: false },
+            title: 'Privacy', icon: Shield, items: [
+                { label: 'Public profile', value: true },
+                { label: 'Share statistics', value: false },
             ]
         }
     ];

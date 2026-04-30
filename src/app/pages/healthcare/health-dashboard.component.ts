@@ -10,8 +10,8 @@ import { LucideAngularModule, Activity, Heart, Calendar, Utensils, TrendingUp, B
     template: `
     <div class="p-6 space-y-6">
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Tableau de Bord Santé</h1>
-        <p class="text-muted-foreground">Suivez votre état de santé et vos performances sportives</p>
+        <h1 class="text-2xl font-bold text-foreground">Health Dashboard</h1>
+        <p class="text-muted-foreground">Track your health status and sports performance</p>
       </div>
 
       <!-- Health Summary Cards -->
@@ -51,18 +51,18 @@ export class HealthDashboardComponent {
     readonly chevronRight = ChevronRight;
 
     healthStats = [
-        { icon: Heart, label: 'Fréquence Cardiaque', value: '72 bpm', trend: 1, trendLabel: '3% vs hier' },
-        { icon: Activity, label: 'Calories Brûlées', value: '2,340', trend: 1, trendLabel: '8% vs moy.' },
-        { icon: TrendingUp, label: 'Niveau Forme', value: '83%', trend: 1, trendLabel: '5% ce mois' },
-        { icon: ClipboardList, label: 'Objectifs', value: '4/6', trend: -1, trendLabel: '2 restants' },
+        { icon: Heart, label: 'Heart Rate', value: '72 bpm', trend: 1, trendLabel: '3% vs yesterday' },
+        { icon: Activity, label: 'Calories Burned', value: '2,340', trend: 1, trendLabel: '8% vs avg.' },
+        { icon: TrendingUp, label: 'Fitness Level', value: '83%', trend: 1, trendLabel: '5% this month' },
+        { icon: ClipboardList, label: 'Goals', value: '4/6', trend: -1, trendLabel: '2 remaining' },
     ];
 
     navItems = [
-        { path: '/app/healthcare/profile', icon: Heart, title: 'Profil Santé', desc: 'Informations médicales' },
-        { path: '/app/healthcare/records', icon: ClipboardList, title: 'Dossiers Médicaux', desc: 'Historique santé' },
-        { path: '/app/healthcare/appointments', icon: Calendar, title: 'Rendez-vous', desc: 'Consultations à venir' },
-        { path: '/app/healthcare/diet', icon: Utensils, title: 'Régime Alimentaire', desc: 'Plans nutritionnels' },
-        { path: '/app/healthcare/trends', icon: TrendingUp, title: 'Tendances', desc: 'Évolution santé' },
-        { path: '/app/healthcare/alerts', icon: Bell, title: 'Alertes', desc: 'Notifications santé' },
+        { path: '/app/healthcare/profile', icon: Heart, title: 'Health Profile', desc: 'Medical information' },
+        { path: '/app/healthcare/records', icon: ClipboardList, title: 'Medical Records', desc: 'Health history' },
+        { path: '/app/healthcare/appointments', icon: Calendar, title: 'Appointments', desc: 'Upcoming consultations' },
+        { path: '/app/healthcare/diet', icon: Utensils, title: 'Diet Plans', desc: 'Nutritional plans' },
+        { path: '/app/healthcare/trends', icon: TrendingUp, title: 'Trends', desc: 'Health evolution' },
+        { path: '/app/healthcare/alerts', icon: Bell, title: 'Alerts', desc: 'Health notifications' },
     ];
 }

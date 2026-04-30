@@ -39,21 +39,21 @@ export class AppLayoutComponent implements OnInit {
     readonly SwordsIcon = Swords;
 
     navItems = [
-        { path: '/app', icon: this.HomeIcon, label: 'Dashboard Admin', roles: ['ROLE_ADMIN'] },
+        { path: '/app', icon: this.HomeIcon, label: 'Admin Dashboard', roles: ['ROLE_ADMIN'] },
         { path: '/app/admin', icon: this.SettingsIcon, label: 'Admin', roles: ['ROLE_ADMIN'] },
-        { path: '/app/home', icon: this.HomeIcon, label: 'Accueil' },
-        { path: '/app/fields/add', icon: this.MapPinIcon, label: 'Ajouter un Terrain', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
-        { path: '/app/team', icon: this.UsersIcon, label: 'Équipes' },
-        { path: '/app/competitions', icon: this.TrophyIcon, label: 'Compétitions' },
-        { path: '/app/matches', icon: this.SwordsIcon, label: 'Matchs' },
-        { path: '/app/booking', icon: this.MapPinIcon, label: 'Réservation' },
-        { path: '/app/fields', icon: this.MapIcon, label: 'Terrains', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
-        { path: '/app/community', icon: this.MessageSquareIcon, label: 'Communauté' },
+        { path: '/app/home', icon: this.HomeIcon, label: 'Home' },
+        { path: '/app/fields/add', icon: this.MapPinIcon, label: 'Add a Field', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
+        { path: '/app/team', icon: this.UsersIcon, label: 'Teams' },
+        { path: '/app/competitions', icon: this.TrophyIcon, label: 'Competitions' },
+        { path: '/app/matches', icon: this.SwordsIcon, label: 'Matches' },
+        { path: '/app/booking', icon: this.MapPinIcon, label: 'Booking' },
+        { path: '/app/fields', icon: this.MapIcon, label: 'Fields', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
+        { path: '/app/community', icon: this.MessageSquareIcon, label: 'Community' },
         { path: '/app/performance', icon: this.ActivityIcon, label: 'Performance' },
-        { path: '/app/healthcare', icon: this.HeartIcon, label: 'Santé' },
-        { path: '/app/sponsors', icon: this.GiftIcon, label: 'Sponsors (Boutique)' },
-        { path: '/app/favorites', icon: this.HeartIcon, label: 'Mes Favoris' },
-        { path: '/app/user-profile', icon: this.UserIcon, label: 'Mon Profil' },
+        { path: '/app/healthcare', icon: this.HeartIcon, label: 'Health' },
+        { path: '/app/sponsors', icon: this.GiftIcon, label: 'Sponsors (Store)' },
+        { path: '/app/favorites', icon: this.HeartIcon, label: 'My Favorites' },
+        { path: '/app/user-profile', icon: this.UserIcon, label: 'My Profile' },
         { path: '/app/notifications', icon: this.BellIcon, label: 'Notifications' },
     ];
 
@@ -73,9 +73,9 @@ export class AppLayoutComponent implements OnInit {
 
     get roleLabel(): string {
         const r = this.userType;
-        if (r === 'ROLE_ADMIN') return 'Administrateur';
-        if (r === 'ROLE_FIELD_OWNER') return 'Gérant de terrain';
-        return 'Joueur';
+        if (r === 'ROLE_ADMIN') return 'Administrator';
+        if (r === 'ROLE_FIELD_OWNER') return 'Field Manager';
+        return 'Player';
     }
 
     ngOnInit() {
@@ -84,7 +84,7 @@ export class AppLayoutComponent implements OnInit {
             this.router.navigate(['/auth/login']);
             return;
         }
-        this.userName = localStorage.getItem('user_name') || 'Utilisateur';
+        this.userName = localStorage.getItem('user_name') || 'User';
         this.userEmail = localStorage.getItem('user_email') || '';
         this.userType = localStorage.getItem('user_type') || 'ROLE_PLAYER';
     }

@@ -16,13 +16,13 @@ import { BookingService, Field } from '../services/booking.service';
           <lucide-icon [name]="backIcon" [size]="20" class="text-muted-foreground"></lucide-icon>
         </a>
         <div>
-          <h1 class="text-2xl font-bold text-foreground">Réserver un Terrain</h1>
-          <p class="text-muted-foreground">Complétez les détails de votre réservation</p>
+          <h1 class="text-2xl font-bold text-foreground">Book a Field</h1>
+          <p class="text-muted-foreground">Complete your booking details</p>
         </div>
       </div>
 
       <div *ngIf="!field" class="p-4 bg-muted text-center rounded-xl">
-        Chargement du terrain...
+        Loading field...
       </div>
 
       <ng-container *ngIf="field">
@@ -36,16 +36,16 @@ import { BookingService, Field } from '../services/booking.service';
               <h2 class="font-semibold text-foreground text-lg">{{ field.name }}</h2>
               <p class="text-muted-foreground flex items-center gap-1 text-sm">
                 <lucide-icon [name]="locationIcon" [size]="14"></lucide-icon>
-                {{ field.location || 'Localisation inconnue' }}
+                {{ field.location || 'Location unknown' }}
               </p>
-              <p class="text-primary font-semibold mt-1">{{ field.price }} €/heure</p>
+              <p class="text-primary font-semibold mt-1">{{ field.price }} $/hour</p>
             </div>
           </div>
         </div>
 
         <!-- Booking Form -->
         <div class="bg-card rounded-xl border border-border p-6 space-y-5">
-          <h3 class="font-semibold text-foreground">Détails de la réservation</h3>
+          <h3 class="font-semibold text-foreground">Booking Details</h3>
 
           <!-- Date -->
           <div>
@@ -61,28 +61,28 @@ import { BookingService, Field } from '../services/booking.service';
             <div>
               <label class="block text-sm font-medium text-foreground mb-2">
                 <lucide-icon [name]="clockIcon" [size]="14" class="inline mr-1"></lucide-icon>
-                Début
+                Start
               </label>
               <select [(ngModel)]="bookingTime" class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground">
                 <option *ngFor="let slot of timeSlots" [value]="slot" [disabled]="!isSlotAvailable(slot)">
-                  {{slot}} {{ !isSlotAvailable(slot) ? '(Indisponible)' : '' }}
+                  {{slot}} {{ !isSlotAvailable(slot) ? '(Unavailable)' : '' }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-foreground mb-2">Durée</label>
+              <label class="block text-sm font-medium text-foreground mb-2">Duration</label>
               <select [(ngModel)]="bookingDuration" class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground">
-                <option [ngValue]="1">1 heure</option>
+                <option [ngValue]="1">1 hour</option>
                 <option [ngValue]="1.5">1h30</option>
-                <option [ngValue]="2">2 heures</option>
-                <option [ngValue]="3">3 heures</option>
+                <option [ngValue]="2">2 hours</option>
+                <option [ngValue]="3">3 hours</option>
               </select>
             </div>
           </div>
 
           <!-- Players count -->
           <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Nombre de joueurs</label>
+            <label class="block text-sm font-medium text-foreground mb-2">Number of players</label>
             <div class="flex items-center gap-3">
               <button (click)="players = players > 2 ? players - 1 : 2" class="w-10 h-10 bg-muted border border-border rounded-lg hover:bg-primary/10 font-bold">-</button>
               <span class="text-xl font-bold text-foreground w-8 text-center">{{players}}</span>
@@ -92,19 +92,19 @@ import { BookingService, Field } from '../services/booking.service';
 
           <!-- Note -->
           <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Note (optionnel)</label>
-            <textarea rows="3" placeholder="Instructions pour le gérant..." class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none"></textarea>
+            <label class="block text-sm font-medium text-foreground mb-2">Note (optional)</label>
+            <textarea rows="3" placeholder="Instructions for the manager..." class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none"></textarea>
           </div>
         </div>
 
         <!-- Price breakdown -->
         <div class="bg-card rounded-xl border border-border p-5">
-          <h3 class="font-semibold text-foreground mb-3">Récapitulatif</h3>
+          <h3 class="font-semibold text-foreground mb-3">Summary</h3>
           <div class="space-y-2 text-sm">
-            <div class="flex justify-between"><span class="text-muted-foreground">Location ({{bookingDuration}}h)</span><span>{{ field.price * bookingDuration }} €</span></div>
-            <div class="flex justify-between"><span class="text-muted-foreground">Frais de service</span><span>5 €</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Rental ({{bookingDuration}}h)</span><span>{{ field.price * bookingDuration }} $</span></div>
+            <div class="flex justify-between"><span class="text-muted-foreground">Service fee</span><span>5 $</span></div>
             <div class="flex justify-between font-bold text-lg border-t border-border pt-2 mt-2">
-              <span>Total</span><span class="text-primary">{{ (field.price * bookingDuration) + 5 }} €</span>
+              <span>Total</span><span class="text-primary">{{ (field.price * bookingDuration) + 5 }} $</span>
             </div>
           </div>
         </div>
@@ -118,7 +118,7 @@ import { BookingService, Field } from '../services/booking.service';
           class="w-full text-primary-foreground py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           [ngClass]="paid ? 'bg-green-500 cursor-default' : 'bg-primary hover:bg-primary/90'">
           <lucide-icon [name]="paid ? checkIcon : creditCardIcon" [size]="20"></lucide-icon>
-          {{ paid ? 'Réservation Confirmée !' : 'Confirmer et Payer' }}
+          {{ paid ? 'Booking Confirmed!' : 'Confirm and Pay' }}
         </button>
       </ng-container>
     </div>
@@ -179,7 +179,7 @@ export class BookingFormComponent implements OnInit {
 
     if (!this.isSlotAvailable(this.bookingTime)) {
       this.notificationType = 'error';
-      this.notification = '❌ Ce créneau horaire est déjà réservé pour cette date.';
+      this.notification = '❌ This time slot is already booked for this date.';
       setTimeout(() => { this.notification = ''; }, 3000);
       return;
     }
@@ -187,7 +187,7 @@ export class BookingFormComponent implements OnInit {
     this.bookingService.reserveField({
       fieldId: this.field.id,
       fieldName: this.field.name,
-      title: 'Match sur ' + this.field.name,
+      title: 'Match on ' + this.field.name,
       location: this.field.location,
       date: this.bookingDate,
       time: this.bookingTime,
@@ -198,7 +198,7 @@ export class BookingFormComponent implements OnInit {
       next: (result) => {
         this.paid = true;
         this.notificationType = 'success';
-        this.notification = '✅ Réservation confirmée ! Redirection vers vos matchs...';
+        this.notification = '✅ Booking confirmed! Redirecting to your matches...';
         setTimeout(() => {
           this.notification = '';
           this.router.navigate(['/app/matches']);
@@ -206,7 +206,7 @@ export class BookingFormComponent implements OnInit {
       },
       error: (err) => {
         this.notificationType = 'error';
-        this.notification = '❌ Erreur de réservation: Ce terrain est peut-être déjà pris.';
+        this.notification = '❌ Booking error: This field might already be taken.';
         setTimeout(() => { this.notification = ''; }, 3000);
       }
     });

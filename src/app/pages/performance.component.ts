@@ -13,14 +13,14 @@ import { PerformanceService } from '../services/performance.service';
         <div class="flex items-center justify-between mb-8">
           <div>
             <h1 class="mb-2">Performance & Stats</h1>
-            <p class="text-muted-foreground">Suivez votre évolution et atteignez vos objectifs</p>
+            <p class="text-muted-foreground">Track your progress and reach your goals</p>
           </div>
         </div>
 
         <!-- Loading -->
         <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
           <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-          Chargement des performances...
+          Loading performance data...
         </div>
 
         <div *ngIf="!loading">
@@ -28,11 +28,11 @@ import { PerformanceService } from '../services/performance.service';
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-card rounded-2xl p-6 border border-border text-center">
               <div class="text-3xl font-bold text-primary mb-1">{{ totalMatches }}</div>
-              <div class="text-sm text-muted-foreground">Total matchs</div>
+              <div class="text-sm text-muted-foreground">Total Matches</div>
             </div>
             <div class="bg-card rounded-2xl p-6 border border-border text-center">
               <div class="text-3xl font-bold text-accent mb-1">{{ totalWins }}</div>
-              <div class="text-sm text-muted-foreground">Victoires</div>
+              <div class="text-sm text-muted-foreground">Wins</div>
             </div>
             <div class="bg-card rounded-2xl p-6 border border-border text-center">
               <div class="text-3xl font-bold mb-1" style="color:#06D6A0">{{ winRate }}%</div>
@@ -48,7 +48,7 @@ import { PerformanceService } from '../services/performance.service';
           <div *ngIf="performances.length > 0" class="bg-card rounded-2xl p-6 border border-border mb-6">
             <h3 class="mb-6 flex items-center gap-2">
               <lucide-icon [img]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
-              Historique des performances
+              Performance History
             </h3>
             <div class="space-y-4">
               <div *ngFor="let perf of performances" class="flex items-center justify-between p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-all">
@@ -59,7 +59,7 @@ import { PerformanceService } from '../services/performance.service';
                 <div class="flex gap-4 text-sm">
                   <span class="text-primary font-semibold">{{ perf.score || perf.result }}</span>
                   <span [ngClass]="(perf.won || perf.result === 'WIN') ? 'text-green-500' : 'text-destructive'" class="font-semibold">
-                    {{ (perf.won || perf.result === 'WIN') ? 'Victoire ✓' : 'Défaite' }}
+                    {{ (perf.won || perf.result === 'WIN') ? 'Victory ✓' : 'Defeat' }}
                   </span>
                 </div>
               </div>
@@ -69,8 +69,8 @@ import { PerformanceService } from '../services/performance.service';
           <!-- Empty state -->
           <div *ngIf="performances.length === 0" class="text-center py-20 text-muted-foreground bg-card rounded-2xl border border-border">
             <lucide-icon [img]="ActivityIcon" class="w-12 h-12 mx-auto mb-4 opacity-30"></lucide-icon>
-            <p class="font-semibold mb-2">Aucune performance enregistrée</p>
-            <p class="text-sm">Vos statistiques de matchs apparaîtront ici</p>
+            <p class="font-semibold mb-2">No performance recorded</p>
+            <p class="text-sm">Your match statistics will appear here</p>
           </div>
 
           <!-- Static metrics (always shown) -->
@@ -78,7 +78,7 @@ import { PerformanceService } from '../services/performance.service';
             <div class="bg-card rounded-2xl p-6 border border-border">
               <h3 class="mb-6 flex items-center gap-2">
                 <lucide-icon [img]="TargetIcon" class="w-5 h-5 text-accent"></lucide-icon>
-                Objectifs du mois
+                Monthly Goals
               </h3>
               <div class="space-y-4">
                 <div *ngFor="let obj of objectives">
@@ -96,7 +96,7 @@ import { PerformanceService } from '../services/performance.service';
             <div class="bg-card rounded-2xl p-6 border border-border">
               <h3 class="mb-4 flex items-center gap-2">
                 <lucide-icon [img]="AwardIcon" class="w-5 h-5 text-primary"></lucide-icon>
-                Achievements récents
+                Recent Achievements
               </h3>
               <div class="space-y-3">
                 <div *ngFor="let ach of achievements" class="flex items-center gap-3 p-3 bg-muted/30 rounded-xl">
@@ -125,15 +125,15 @@ export class PerformanceComponent implements OnInit {
     performances: any[] = [];
 
     objectives = [
-        { label: 'Matchs joués', current: 0, target: 10 },
-        { label: 'Victoires', current: 0, target: 8 },
-        { label: 'Heures d\'entraînement', current: 0, target: 16 },
+        { label: 'Matches played', current: 0, target: 10 },
+        { label: 'Wins', current: 0, target: 8 },
+        { label: 'Training hours', current: 0, target: 16 },
     ];
 
     achievements = [
-        { icon: '🏆', title: 'Bienvenue sur StreetLeague', date: 'Aujourd\'hui' },
-        { icon: '⭐', title: 'Premier match réservé', date: 'À venir' },
-        { icon: '🔥', title: 'Série de victoires', date: 'À venir' },
+        { icon: '🏆', title: 'Welcome to StreetLeague', date: 'Today' },
+        { icon: '⭐', title: 'First match booked', date: 'Coming soon' },
+        { icon: '🔥', title: 'Win streak', date: 'Coming soon' },
     ];
 
     constructor(private perfService: PerformanceService) {}
@@ -163,6 +163,6 @@ export class PerformanceComponent implements OnInit {
 
     formatDate(d: string): string {
         if (!d) return '';
-        return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+        return new Date(d).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
     }
 }

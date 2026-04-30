@@ -21,10 +21,10 @@ import { TeamService } from '../services/team.service';
                 <lucide-icon [name]="ShieldIcon" [size]="48" class="text-white"></lucide-icon>
               </div>
               <div>
-                <h1 class="mb-2">Mes Équipes</h1>
+                <h1 class="mb-2">My Teams</h1>
                 <div class="flex items-center gap-4 text-sm text-muted-foreground">
                   <span class="flex items-center gap-1">
-                    <lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon> {{ teams.length }} Équipe(s)
+                    <lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon> {{ teams.length }} Team(s)
                   </span>
                 </div>
               </div>
@@ -37,7 +37,7 @@ import { TeamService } from '../services/team.service';
         <div class="flex justify-end mb-6">
           <button (click)="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
             <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>
-            Créer une équipe
+            Create a team
           </button>
         </div>
 
@@ -45,7 +45,7 @@ import { TeamService } from '../services/team.service';
         <div *ngIf="showCreateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-xl font-bold text-foreground">Créer une équipe</h3>
+              <h3 class="text-xl font-bold text-foreground">Create a team</h3>
               <button (click)="showCreateModal = false" class="p-2 hover:bg-muted rounded-lg transition-colors">
                 <lucide-icon [name]="XIcon" [size]="20" class="text-muted-foreground"></lucide-icon>
               </button>
@@ -53,8 +53,8 @@ import { TeamService } from '../services/team.service';
             
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium mb-1">Nom de l'équipe *</label>
-                <input [(ngModel)]="newTeam.name" placeholder="Ex: Les Aigles"
+                <label class="block text-sm font-medium mb-1">Team name *</label>
+                <input [(ngModel)]="newTeam.name" placeholder="Ex: The Eagles"
                   class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
               </div>
               
@@ -68,28 +68,28 @@ import { TeamService } from '../services/team.service';
                     class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
                 </div>
                 <div>
-                  <label class="block text-sm font-medium mb-1">Niveau</label>
+                  <label class="block text-sm font-medium mb-1">Level</label>
                   <select [(ngModel)]="newTeam.level" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="Amateur">Amateur</option>
-                    <option value="Intermédiaire">Intermédiaire</option>
-                    <option value="Avancé">Avancé</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-1">Ville</label>
+                <label class="block text-sm font-medium mb-1">City</label>
                 <input [(ngModel)]="newTeam.city" placeholder="Ex: Paris"
                   class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
               </div>
             </div>
 
             <div class="flex gap-3 justify-end mt-6">
-              <button (click)="showCreateModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="showCreateModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Cancel</button>
               <button (click)="submitTeam()" [disabled]="creating || !newTeam.name || !newTeam.sport" 
                 class="px-5 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2">
                 <lucide-icon *ngIf="creating" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
-                {{ creating ? 'Création...' : 'Créer' }}
+                {{ creating ? 'Creating...' : 'Create' }}
               </button>
             </div>
           </div>
@@ -98,16 +98,16 @@ import { TeamService } from '../services/team.service';
         <!-- Loading -->
         <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
           <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-          Chargement des équipes...
+          Loading teams...
         </div>
 
         <!-- Empty -->
         <div *ngIf="!loading && teams.length === 0" class="text-center py-20 text-muted-foreground">
           <div class="text-6xl mb-4">⚽</div>
-          <p class="font-semibold mb-2 text-lg">Aucune équipe trouvée</p>
-          <p class="text-sm mb-6">Rejoignez ou créez une équipe pour commencer !</p>
+          <p class="font-semibold mb-2 text-lg">No teams found</p>
+          <p class="text-sm mb-6">Join or create a team to start!</p>
           <button (click)="openCreateModal()" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
-            Créer une équipe
+            Create a team
           </button>
         </div>
 
@@ -124,11 +124,11 @@ import { TeamService } from '../services/team.service';
               <p class="text-sm text-muted-foreground mb-3">{{ team.sport || team.sportType }} • {{ team.city || team.location || '' }}</p>
               <div class="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
                 <lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon>
-                {{ team.memberCount || team.members?.length || 0 }} membres
+                {{ team.memberCount || team.members?.length || 0 }} members
               </div>
               <div class="flex gap-2">
-                <button (click)="viewTeam(team)" class="flex-1 py-2 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">Voir l'équipe</button>
-                <button (click)="router.navigate(['/app/booking'])" class="flex-1 py-2 text-sm bg-muted rounded-lg hover:bg-muted/70 transition-all">Réserver</button>
+                <button (click)="viewTeam(team)" class="flex-1 py-2 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">View Team</button>
+                <button (click)="router.navigate(['/app/booking'])" class="flex-1 py-2 text-sm bg-muted rounded-lg hover:bg-muted/70 transition-all">Book</button>
               </div>
             </div>
           </div>
@@ -136,13 +136,13 @@ import { TeamService } from '../services/team.service';
 
         <!-- Quick Actions -->
         <div class="mt-8 bg-card rounded-2xl p-6 border border-border">
-          <h3 class="mb-4">Actions Rapides</h3>
+          <h3 class="mb-4">Quick Actions</h3>
           <div class="flex flex-wrap gap-3">
             <button (click)="router.navigate(['/app/booking'])" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
-              📅 Planifier un entraînement
+              📅 Schedule training
             </button>
             <button (click)="router.navigate(['/app/matches'])" class="px-4 py-2 bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all">
-              🏆 Voir les matchs
+              🏆 View matches
             </button>
           </div>
         </div>
@@ -196,7 +196,7 @@ export class TeamComponent implements OnInit {
   }
 
   viewTeam(team: any) {
-    this.showToast(`Équipe: ${team.name}`);
+    this.showToast(`Team: ${team.name}`);
   }
 
   openCreateModal() {
@@ -235,12 +235,12 @@ export class TeamComponent implements OnInit {
         this.teams.unshift(res); // Add the new team to the beginning of the list
         this.creating = false;
         this.showCreateModal = false;
-        this.showToast('✅ Équipe créée avec succès !');
+        this.showToast('✅ Team created successfully!');
       },
       error: (err) => {
         console.error('SERVER ERROR DETAIL:', err);
         this.creating = false;
-        let msg = '❌ Erreur serveur complète : \n';
+        let msg = '❌ Complete server error: \n';
         if (err.error) {
           msg += JSON.stringify(err.error);
         } else {
@@ -248,8 +248,8 @@ export class TeamComponent implements OnInit {
         }
         
         // Use an alert to be absolutely sure the user sees it in case UI freezes
-        alert("Erreur lors de la création d'équipe:\n" + msg);
-        this.showToast('Erreur: ' + msg.substring(0, 50));
+        alert("Error during team creation:\n" + msg);
+        this.showToast('Error: ' + msg.substring(0, 50));
       }
     });
   }

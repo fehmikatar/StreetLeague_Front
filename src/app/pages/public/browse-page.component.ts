@@ -14,13 +14,13 @@ import { LucideAngularModule, MapPin, Star, Clock, DollarSign, Search, Filter, A
       <section class="bg-gradient-to-br from-background via-primary/5 to-accent/5 py-20">
         <div class="max-w-7xl mx-auto px-4">
           <div class="text-center max-w-3xl mx-auto">
-            <div class="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">Explorer les terrains</div>
-            <h1 class="mb-6">Trouvez le terrain <span class="text-primary">parfait</span></h1>
-            <p class="text-xl text-muted-foreground mb-8">Parcourez notre sélection de terrains sportifs disponibles près de chez vous</p>
+            <div class="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">Explore fields</div>
+            <h1 class="mb-6">Find the <span class="text-primary">perfect</span> field</h1>
+            <p class="text-xl text-muted-foreground mb-8">Browse our selection of sports fields available near you</p>
             <div class="max-w-2xl mx-auto">
               <div class="relative">
                 <lucide-icon [img]="SearchIcon" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"></lucide-icon>
-                <input type="text" [(ngModel)]="searchQuery" placeholder="Rechercher par nom ou localisation..."
+                <input type="text" [(ngModel)]="searchQuery" placeholder="Search by name or location..."
                   class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border focus:border-primary transition-colors bg-card focus:outline-none" />
               </div>
             </div>
@@ -35,21 +35,21 @@ import { LucideAngularModule, MapPin, Star, Clock, DollarSign, Search, Filter, A
             <div class="flex items-center gap-4 flex-wrap">
               <div class="flex items-center gap-2">
                 <lucide-icon [img]="FilterIcon" class="w-5 h-5 text-muted-foreground"></lucide-icon>
-                <span class="font-semibold">Type de sport :</span>
+                <span class="font-semibold">Sport type:</span>
               </div>
               <div class="flex gap-2 flex-wrap">
                 <button *ngFor="let type of sportTypes" (click)="selectedType = type"
                   class="px-4 py-2 rounded-xl font-semibold transition-all"
                   [class.bg-primary]="selectedType === type" [class.text-primary-foreground]="selectedType === type"
                   [class.bg-muted]="selectedType !== type" [class.hover:bg-muted/80]="selectedType !== type">
-                  {{ type === 'all' ? 'Tous' : type }}
+                  {{ type === 'all' ? 'All' : type }}
                 </button>
               </div>
             </div>
           </div>
           <div class="mb-6">
             <p class="text-muted-foreground">
-              <span class="font-semibold text-foreground">{{ filteredFields.length }}</span> terrains disponibles
+              <span class="font-semibold text-foreground">{{ filteredFields.length }}</span> fields available
             </p>
           </div>
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -72,21 +72,21 @@ import { LucideAngularModule, MapPin, Star, Clock, DollarSign, Search, Filter, A
                   <div class="flex items-center gap-1">
                     <lucide-icon [img]="StarIcon" class="w-4 h-4 text-primary"></lucide-icon>
                     <span class="font-semibold">{{ field.rating }}</span>
-                    <span class="text-sm text-muted-foreground">({{ field.reviews }} avis)</span>
+                    <span class="text-sm text-muted-foreground">({{ field.reviews }} reviews)</span>
                   </div>
                   <div class="flex items-center gap-1 text-primary font-semibold">
-                    <span>{{ field.price }}€</span>
-                    <span class="text-xs text-muted-foreground">/heure</span>
+                    <span>\${{ field.price }}</span>
+                    <span class="text-xs text-muted-foreground">/hour</span>
                   </div>
                 </div>
                 <div class="pt-4 border-t border-border">
                   <div class="bg-muted/50 rounded-xl p-4 text-center">
                     <div class="flex items-center justify-center gap-2 text-muted-foreground mb-2">
                       <lucide-icon [img]="LockIcon" class="w-4 h-4"></lucide-icon>
-                      <span class="text-sm font-medium">Connectez-vous pour réserver</span>
+                      <span class="text-sm font-medium">Log in to book</span>
                     </div>
                     <a routerLink="/auth/login" class="text-primary font-semibold hover:underline text-sm inline-flex items-center gap-1">
-                      Se connecter
+                      Log in
                       <lucide-icon [img]="ArrowRightIcon" class="w-3 h-3"></lucide-icon>
                     </a>
                   </div>
@@ -98,9 +98,9 @@ import { LucideAngularModule, MapPin, Star, Clock, DollarSign, Search, Filter, A
             <div class="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <lucide-icon [img]="SearchIcon" class="w-8 h-8 text-muted-foreground"></lucide-icon>
             </div>
-            <h3 class="mb-2">Aucun terrain trouvé</h3>
-            <p class="text-muted-foreground mb-6">Essayez de modifier vos critères de recherche</p>
-            <button (click)="resetFilters()" class="px-6 py-2 border border-border rounded-xl hover:bg-muted transition-all">Réinitialiser</button>
+            <h3 class="mb-2">No fields found</h3>
+            <p class="text-muted-foreground mb-6">Try changing your search criteria</p>
+            <button (click)="resetFilters()" class="px-6 py-2 border border-border rounded-xl hover:bg-muted transition-all">Reset</button>
           </div>
         </div>
       </section>
@@ -109,16 +109,16 @@ import { LucideAngularModule, MapPin, Star, Clock, DollarSign, Search, Filter, A
       <section class="py-20 bg-gradient-to-br from-primary/10 to-accent/10">
         <div class="max-w-4xl mx-auto px-4 text-center">
           <div class="bg-card border-2 border-primary/20 rounded-3xl p-12">
-            <h2 class="mb-6">Envie d'aller plus loin ?</h2>
-            <p class="text-xl text-muted-foreground mb-8">Créez votre compte pour réserver des terrains, organiser des matchs et suivre vos performances</p>
+            <h2 class="mb-6">Want to go further?</h2>
+            <p class="text-xl text-muted-foreground mb-8">Create your account to book fields, organize matches and track your performances</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <a routerLink="/auth/signup" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg">
-                Créer un compte gratuit
+                Create a free account
                 <lucide-icon [img]="ArrowRightIcon" class="w-5 h-5"></lucide-icon>
               </a>
-              <a routerLink="/auth/login" class="inline-flex items-center justify-center px-8 py-4 border-2 border-border rounded-xl font-semibold hover:bg-muted transition-all">Se connecter</a>
+              <a routerLink="/auth/login" class="inline-flex items-center justify-center px-8 py-4 border-2 border-border rounded-xl font-semibold hover:bg-muted transition-all">Log in</a>
             </div>
-            <p class="text-sm text-muted-foreground mt-6">Aucune carte bancaire requise • Inscription en 30 secondes</p>
+            <p class="text-sm text-muted-foreground mt-6">No credit card required • Sign up in 30 seconds</p>
           </div>
         </div>
       </section>
@@ -138,12 +138,12 @@ export class BrowsePageComponent {
     sportTypes = ['all', 'Football', 'Basketball', 'Tennis', 'Multisport', 'Volleyball'];
 
     fields = [
-        { id: '1', name: 'Terrain de foot Parc Central', location: 'Paris 15ème', type: 'Football', price: '50', rating: 4.8, reviews: 124 },
-        { id: '2', name: 'Court de Basketball Premium', location: 'Lyon 3ème', type: 'Basketball', price: '40', rating: 4.9, reviews: 89 },
-        { id: '3', name: 'Terrain de Tennis Club Elite', location: 'Marseille 8ème', type: 'Tennis', price: '35', rating: 4.7, reviews: 156 },
-        { id: '4', name: 'Terrain Multisport City', location: 'Paris 12ème', type: 'Multisport', price: '45', rating: 4.6, reviews: 92 },
-        { id: '5', name: 'Stade de Football Urban', location: 'Toulouse 1er', type: 'Football', price: '60', rating: 4.9, reviews: 201 },
-        { id: '6', name: 'Court de Volley Beach', location: 'Nice 6ème', type: 'Volleyball', price: '30', rating: 4.5, reviews: 67 },
+        { id: '1', name: 'Central Park Football Field', location: 'Paris 15th', type: 'Football', price: '50', rating: 4.8, reviews: 124 },
+        { id: '2', name: 'Premium Basketball Court', location: 'Lyon 3rd', type: 'Basketball', price: '40', rating: 4.9, reviews: 89 },
+        { id: '3', name: 'Elite Club Tennis Court', location: 'Marseille 8th', type: 'Tennis', price: '35', rating: 4.7, reviews: 156 },
+        { id: '4', name: 'City Multisport Field', location: 'Paris 12th', type: 'Multisport', price: '45', rating: 4.6, reviews: 92 },
+        { id: '5', name: 'Urban Football Stadium', location: 'Toulouse 1st', type: 'Football', price: '60', rating: 4.9, reviews: 201 },
+        { id: '6', name: 'Beach Volleyball Court', location: 'Nice 6th', type: 'Volleyball', price: '30', rating: 4.5, reviews: 67 },
     ];
 
     get filteredFields() {

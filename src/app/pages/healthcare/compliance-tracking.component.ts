@@ -13,11 +13,11 @@ import { LucideAngularModule, ClipboardList, CheckCircle, Circle, TrendingUp, Ar
         <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
           <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
         </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
+        <span class="text-sm text-muted-foreground">Health</span>
       </div>
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Suivi de Conformité</h1>
-        <p class="text-muted-foreground">Respect de vos programmes de santé et recommandations médicales</p>
+        <h1 class="text-2xl font-bold text-foreground">Compliance Tracking</h1>
+        <p class="text-muted-foreground">Compliance with your health programs and medical recommendations</p>
       </div>
 
       <!-- Overall Score -->
@@ -33,11 +33,11 @@ import { LucideAngularModule, ClipboardList, CheckCircle, Circle, TrendingUp, Ar
             </div>
           </div>
           <div>
-            <h2 class="text-xl font-semibold text-foreground">Score de Conformité Global</h2>
-            <p class="text-muted-foreground">Bon niveau • Quelques améliorations possibles</p>
+            <h2 class="text-xl font-semibold text-foreground">Global Compliance Score</h2>
+            <p class="text-muted-foreground">Good level • Some improvements possible</p>
             <div class="flex items-center gap-2 mt-2">
               <lucide-icon [name]="trendIcon" [size]="16" class="text-green-500"></lucide-icon>
-              <span class="text-sm text-green-500">+12% ce mois</span>
+              <span class="text-sm text-green-500">+12% this month</span>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@ import { LucideAngularModule, ClipboardList, CheckCircle, Circle, TrendingUp, Ar
 
       <!-- Programs -->
       <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-foreground">Programmes en Cours</h2>
+        <h2 class="text-lg font-semibold text-foreground">Current Programs</h2>
         <div *ngFor="let program of programs" class="bg-card rounded-xl border border-border p-5">
           <div class="flex items-center justify-between mb-3">
             <h3 class="font-semibold text-foreground">{{program.title}}</h3>
@@ -75,32 +75,32 @@ export class ComplianceTrackingComponent {
 
   programs = [
     {
-      title: 'Programme Cardio',
+      title: 'Cardio Program',
       completion: 85,
       tasks: [
-        { label: '30 min cardio 3x/semaine', done: true },
-        { label: 'Fréquence cardiaque max < 160 bpm', done: true },
-        { label: 'Mesure tension hebdomadaire', done: false },
+        { label: '30 min cardio 3x/week', done: true },
+        { label: 'Max heart rate < 160 bpm', done: true },
+        { label: 'Weekly blood pressure measurement', done: false },
       ]
     },
     {
       title: 'Nutrition',
       completion: 70,
       tasks: [
-        { label: '2000-2400 kcal/jour', done: true },
-        { label: 'Protéines > 100g/jour', done: true },
-        { label: 'Limiter sodium < 2g/jour', done: false },
-        { label: 'Hydratation > 2.5L/jour', done: false },
+        { label: '2000-2400 kcal/day', done: true },
+        { label: 'Proteins > 100g/day', done: true },
+        { label: 'Limit sodium < 2g/day', done: false },
+        { label: 'Hydration > 2.5L/day', done: false },
       ]
     },
     {
-      title: 'Suivi Médical',
+      title: 'Medical Tracking',
       completion: 60,
       tasks: [
-        { label: 'Contrôle tension mensuel', done: true },
-        { label: 'Prise de médicament quotidienne', done: true },
-        { label: 'Rendez-vous kiné (3x/sem)', done: false },
-        { label: 'Bilan sanguin trimestriel', done: false },
+        { label: 'Monthly blood pressure check', done: true },
+        { label: 'Daily medication intake', done: true },
+        { label: 'Physio appointment (3x/week)', done: false },
+        { label: 'Quarterly blood test', done: false },
       ]
     }
   ];

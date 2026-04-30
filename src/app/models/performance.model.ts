@@ -387,7 +387,7 @@ export function validatePerformanceData(performance: PerformanceRequest): { vali
   const errors: string[] = [];
 
   if (!performance.playerId) {
-    errors.push("L'ID du joueur est obligatoire");
+    errors.push('Player ID is required');
   }
 
   if (!performance.matchId) {

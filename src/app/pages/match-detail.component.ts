@@ -2,14 +2,10 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { 
-  LucideAngularModule, Trophy, MapPin, Users, Clock, Calendar, 
-  ArrowLeft, Circle, AlertOctagon, Square, RefreshCw, Info,
-  Loader2, PlayCircle, CheckCircle, XCircle 
-} from 'lucide-angular';
+import { LucideAngularModule, Trophy, MapPin, Calendar, ArrowLeft, RefreshCw, Info, Loader2, PlayCircle, CheckCircle, XCircle, Award, BarChart2, Star, ChevronRight } from 'lucide-angular';
 
-import { MatchService, MatchResponse, MatchStatus } from '../services/match.service';
-import { MatchEventService, MatchEventResponse, MatchEventRequest, MatchEventType } from '../services/match-event.service';
+import { MatchService, MatchResponse, MatchStatus, MatchRatingDto } from '../services/match.service';
+import { MatchEventService, MatchEventRequest, MatchEventType, TimelineEventDto, PlayerStatsDto } from '../services/match-event.service';
 import { TeamService } from '../services/team.service';
 
 @Component({
@@ -17,512 +13,808 @@ import { TeamService } from '../services/team.service';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule, LucideAngularModule],
   template: `
-    <div class="min-h-screen bg-background p-4 md:p-6 lg:p-8">
-      <div class="max-w-6xl mx-auto">
-        
-        <!-- Header / Back -->
-        <div class="flex items-center gap-4 mb-6">
-          <button (click)="goBack()" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
-            <lucide-icon [name]="ArrowLeftIcon" [size]="20"></lucide-icon>
-          </button>
-          <div *ngIf="match" class="flex flex-col">
-            <span class="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <lucide-icon [name]="TrophyIcon" [size]="14"></lucide-icon> {{ match.competitionName }}
-            </span>
-          </div>
-        </div>
+    <div class="fs-wrap">
 
-        <div *ngIf="loading && !match" class="flex flex-col items-center justify-center py-20">
-          <lucide-icon [name]="Loader2Icon" [size]="48" class="animate-spin text-primary/50 mb-4"></lucide-icon>
-          <p class="font-medium text-muted-foreground">Chargement du match...</p>
-        </div>
+      <!-- Breadcrumb -->
+      <div class="fs-breadcrumb">
+        <span (click)="goBack()">⚽ StreetLeague</span>
+        <span class="sep">›</span>
+        <span>Matches</span>
+        <span class="sep">›</span>
+        <span *ngIf="match">{{ match.competitionName }}</span>
+      </div>
 
-        <div *ngIf="!loading && errorMsg" class="bg-destructive/10 text-destructive border border-destructive/20 p-8 rounded-2xl text-center font-bold">
-          {{ errorMsg }}
-        </div>
+      <!-- Loading -->
+      <div *ngIf="loading && !match" class="fs-loading">
+        <lucide-icon [name]="Loader2Icon" [size]="36" class="animate-spin"></lucide-icon>
+        Loading match...
+      </div>
 
-        <!-- Dashboard Layout -->
-        <div *ngIf="match" class="flex flex-col gap-6">
+      <ng-container *ngIf="!loading && match">
 
-          <!-- TOP: Scoreboard -->
-          <div class="bg-card rounded-3xl p-8 border border-border shadow-sm flex flex-col relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1" [ngClass]="getStatusColor(match.status)"></div>
-            
-            <div class="flex justify-between items-start mb-6 w-full">
-              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider" [ngClass]="getStatusBadge(match.status)">
-                <span *ngIf="match.status === 'LIVE'" class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                {{ getStatusLabel(match.status) }}
-              </span>
-              
-              <div class="flex flex-col items-end text-sm text-muted-foreground font-medium">
-                <div class="flex items-center gap-1"><lucide-icon [name]="CalendarIcon" [size]="14"></lucide-icon> {{ formatDate(match.scheduledAt) }}</div>
-                <div class="flex items-center gap-1"><lucide-icon [name]="MapPinIcon" [size]="14"></lucide-icon> {{ match.venue }}</div>
-              </div>
-            </div>
+        <!-- ===== SCOREBOARD ===== -->
+        <div class="fs-scoreboard">
+          <div class="fs-scoreboard-inner">
+            <div class="fs-teams-row">
 
-            <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full py-4">
               <!-- Home Team -->
-              <div class="flex-1 text-center md:text-right flex flex-col items-center md:items-end w-full">
-                <div class="text-3xl md:text-5xl font-black mb-2 line-clamp-2 md:leading-tight">{{ match.homeTeamName }}</div>
-                <div class="text-sm font-bold text-muted-foreground uppercase tracking-wider">Domicile</div>
+              <div class="fs-team">
+                <div class="fs-team-logo">{{ teamInitials(match.homeTeamName) }}</div>
+                <div class="fs-team-name">{{ match.homeTeamName }}</div>
               </div>
-              
+
               <!-- Score Center -->
-              <div class="flex flex-col items-center shrink-0">
-                <div class="bg-background border border-border rounded-3xl px-8 py-4 shadow-inner flex items-center justify-center gap-4">
-                  <div class="text-6xl md:text-7xl font-black tabular-nums tracking-tighter" [ngClass]="{'text-red-500': match.status === 'LIVE'}">
-                    <ng-container *ngIf="match.status !== 'SCHEDULED' && match.status !== 'CANCELED'">
-                      {{ match.homeScore || 0 }} <span class="text-muted-foreground opacity-30 text-5xl">-</span> {{ match.awayScore || 0 }}
-                    </ng-container>
-                    <ng-container *ngIf="match.status === 'SCHEDULED' || match.status === 'CANCELED'">
-                      <span class="text-4xl text-muted-foreground">VS</span>
-                    </ng-container>
-                  </div>
+              <div class="fs-score-center">
+                <div class="fs-score-datetime">{{ formatDate(match.scheduledAt) }}</div>
+
+                <div *ngIf="match.status !== 'SCHEDULED' && match.status !== 'CANCELED'"
+                     class="fs-score-value">
+                  {{ computedHomeScore }} - {{ computedAwayScore }}
                 </div>
-                <div *ngIf="match.status === 'LIVE'" class="mt-4 px-4 py-1.5 bg-red-500/10 text-red-500 text-sm font-bold rounded-full animate-pulse border border-red-500/20">
-                  Temps Écoulé : {{ calculateElapsedMinutes() }} min
+                <div *ngIf="match.status === 'SCHEDULED' || match.status === 'CANCELED'"
+                     class="fs-score-value scheduled">VS</div>
+
+                <div class="fs-score-status"
+                     [class.finished]="match.status === 'FINISHED'"
+                     [class.scheduled]="match.status === 'SCHEDULED'"
+                     [class.canceled]="match.status === 'CANCELED'">
+                  <span *ngIf="match.status === 'LIVE'" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e03d3d;animation:pulse 1s infinite;margin-right:5px;vertical-align:middle;"></span>
+                  {{ getStatusLabel(match.status) }}
+                  <span *ngIf="match.status === 'LIVE'" style="font-weight:900; margin-left:8px; color:#222; font-size:16px;">{{ formatChrono(chronoSeconds) }}</span>
                 </div>
+                <div class="fs-venue">📍 {{ match.venue }}</div>
               </div>
 
               <!-- Away Team -->
-              <div class="flex-1 text-center md:text-left flex flex-col items-center md:items-start w-full">
-                <div class="text-3xl md:text-5xl font-black mb-2 line-clamp-2 md:leading-tight">{{ match.awayTeamName }}</div>
-                <div class="text-sm font-bold text-muted-foreground uppercase tracking-wider">Visiteur</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- BOTTOM TWO COLUMNS -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- COLUMN 1: Timeline -->
-            <div class="lg:col-span-2 bg-card rounded-3xl border border-border shadow-sm overflow-hidden flex flex-col">
-              <div class="p-6 border-b border-border flex items-center justify-between bg-muted/20">
-                <h3 class="text-xl font-bold">Timeline du Match</h3>
-                <button (click)="fetchMatchData()" class="p-2 hover:bg-muted text-muted-foreground rounded-full transition-colors hidden md:block">
-                  <lucide-icon [name]="RefreshCwIcon" [size]="18" [class.animate-spin]="isRefreshing"></lucide-icon>
-                </button>
-              </div>
-              
-              <div class="p-6 flex-1 bg-gradient-to-b from-background to-card relative min-h-[400px]">
-                <div *ngIf="events.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                  <lucide-icon [name]="InfoIcon" [size]="48" class="mb-4 opacity-30"></lucide-icon>
-                  <p class="font-medium text-lg">Aucun événement enregistré.</p>
-                  <p class="text-sm opacity-70">Les événements apparaîtront ici pendant le match.</p>
-                </div>
-
-                <!-- Vertical Line -->
-                <div *ngIf="events.length > 0" class="absolute left-1/2 top-4 bottom-4 w-px bg-border -translate-x-1/2 z-0 hidden md:block"></div>
-
-                <div class="space-y-6 relative z-10 w-full">
-                  <div *ngFor="let ev of events" class="flex flex-col md:flex-row items-center w-full justify-center group">
-                    
-                    <!-- Left Side (Home Team events) -->
-                    <div class="flex-1 md:text-right md:pr-8 w-full order-3 md:order-1 mt-2 md:mt-0 flex justify-center md:justify-end">
-                      <div *ngIf="ev.teamId === match.homeTeamId" class="bg-background border border-border p-4 rounded-2xl w-[90%] md:w-auto md:max-w-md shadow-sm">
-                        <div class="font-bold mb-1">{{ ev.playerName || 'Équipe' }}</div>
-                        <div class="text-sm text-muted-foreground">{{ ev.description || getEventTypeLabel(ev.type) }}</div>
-                      </div>
-                    </div>
-
-                    <!-- Center Marker -->
-                    <div class="shrink-0 flex items-center justify-center w-12 h-12 rounded-full border-4 border-background bg-muted text-muted-foreground z-10 order-1 md:order-2 shadow-sm font-bold text-sm"
-                         [ngClass]="getEventIconColor(ev.type)">
-                      <lucide-icon [name]="getEventIcon(ev.type)" [size]="18" class="absolute"></lucide-icon>
-                      <span class="-top-6 absolute text-xs text-muted-foreground font-black">{{ ev.minute }}'</span>
-                    </div>
-
-                    <!-- Right Side (Away Team events) -->
-                    <div class="flex-1 md:pl-8 w-full order-2 md:order-3 mb-2 md:mb-0 flex justify-center md:justify-start">
-                      <div *ngIf="ev.teamId === match.awayTeamId" class="bg-background border border-border p-4 rounded-2xl w-[90%] md:w-auto md:max-w-md shadow-sm">
-                         <div class="font-bold mb-1">{{ ev.playerName || 'Équipe' }}</div>
-                         <div class="text-sm text-muted-foreground">{{ ev.description || getEventTypeLabel(ev.type) }}</div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
+              <div class="fs-team">
+                <div class="fs-team-logo">{{ teamInitials(match.awayTeamName) }}</div>
+                <div class="fs-team-name">{{ match.awayTeamName }}</div>
               </div>
             </div>
 
-            <!-- COLUMN 2: Organizer Panel OR Match Stats -->
-            <div class="flex flex-col gap-6">
-              
-              <!-- Organizer Controls -->
-              <div *ngIf="isOrganizer" class="bg-card rounded-3xl border border-border shadow-sm overflow-hidden border-t-4 border-t-primary">
-                <div class="p-5 border-b border-border bg-muted/20">
-                  <h3 class="font-bold flex items-center gap-2">
-                    <lucide-icon [name]="SettingsIcon" [size]="18"></lucide-icon> Panneau Organisateur
-                  </h3>
-                </div>
-                
-                <div class="p-5 space-y-4">
-                  <!-- Lifecycle Buttons -->
-                  <div class="grid grid-cols-1 gap-2 border-b border-border pb-4">
-                    <button *ngIf="match.status === 'SCHEDULED'" (click)="updateStatus('LIVE')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all">
-                      <lucide-icon [name]="PlayCircleIcon" [size]="18"></lucide-icon> Démarrer le match (LIVE)
-                    </button>
-                    
-                    <button *ngIf="match.status === 'LIVE'" (click)="updateStatus('FINISHED')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all">
-                      <lucide-icon [name]="CheckCircleIcon" [size]="18"></lucide-icon> Terminer le match
-                    </button>
-
-                    <button *ngIf="match.status !== 'FINISHED' && match.status !== 'CANCELED'" (click)="updateStatus('CANCELED')" class="bg-background border border-border hover:bg-destructive hover:text-destructive-foreground font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all mt-2">
-                      <lucide-icon [name]="XCircleIcon" [size]="18"></lucide-icon> Annuler
-                    </button>
-                  </div>
-
-                  <!-- Quick Logging Form (Only if LIVE) -->
-                  <form *ngIf="match.status === 'LIVE'" [formGroup]="eventForm" (ngSubmit)="submitEvent()" class="flex flex-col gap-4 pt-2">
-                    <h4 class="font-bold text-sm text-muted-foreground uppercase tracking-widest">Ajouter un évènement</h4>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                       <button type="button" (click)="setEventType('GOAL')" class="p-2 border border-border bg-background rounded-lg font-bold text-xs hover:border-emerald-500 hover:text-emerald-500 transition-colors flex flex-col items-center gap-1" [class.border-emerald-500]="eventForm.value.type==='GOAL'">
-                         <lucide-icon [name]="CircleIcon" [size]="16"></lucide-icon> BUT
-                       </button>
-                       <button type="button" (click)="setEventType('YELLOW_CARD')" class="p-2 border border-border bg-background rounded-lg font-bold text-xs hover:border-yellow-500 hover:text-yellow-600 transition-colors flex flex-col items-center gap-1" [class.border-yellow-500]="eventForm.value.type==='YELLOW_CARD'">
-                         <lucide-icon [name]="SquareIcon" [size]="16"></lucide-icon> JAUNE
-                       </button>
-                       <button type="button" (click)="setEventType('RED_CARD')" class="p-2 border border-border bg-background rounded-lg font-bold text-xs hover:border-red-500 hover:text-red-500 transition-colors flex flex-col items-center gap-1" [class.border-red-500]="eventForm.value.type==='RED_CARD'">
-                         <lucide-icon [name]="SquareIcon" [size]="16"></lucide-icon> ROUGE
-                       </button>
-                       <button type="button" (click)="setEventType('SUBSTITUTION')" class="p-2 border border-border bg-background rounded-lg font-bold text-xs hover:border-primary hover:text-primary transition-colors flex flex-col items-center gap-1" [class.border-primary]="eventForm.value.type==='SUBSTITUTION'">
-                         <lucide-icon [name]="RefreshCwIcon" [size]="16"></lucide-icon> REMPLACEM.
-                       </button>
-                    </div>
-
-                    <select formControlName="teamId" class="w-full h-10 px-3 bg-background border border-border rounded-xl font-medium text-sm">
-                      <option value="" disabled selected>Choisir l'équipe</option>
-                      <option [value]="match.homeTeamId">{{ match.homeTeamName }} (Dom.)</option>
-                      <option [value]="match.awayTeamId">{{ match.awayTeamName }} (Ext.)</option>
-                    </select>
-
-                    <div class="flex gap-2">
-                      <input type="number" formControlName="minute" placeholder="Min" class="w-16 h-10 px-2 bg-background border border-border rounded-xl font-medium text-center text-sm">
-                      <input type="text" formControlName="playerName" placeholder="Nom joueur (optionnel)" class="flex-1 h-10 px-3 bg-background border border-border rounded-xl font-medium text-sm">
-                    </div>
-
-                    <input type="text" formControlName="description" placeholder="Description courte (optionnelle)" class="w-full h-10 px-3 bg-background border border-border rounded-xl font-medium text-sm">
-                    
-                    <button type="submit" [disabled]="eventForm.invalid || submittingEvent" class="w-full bg-primary text-primary-foreground font-bold py-3 rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50 flex justify-center items-center gap-2">
-                      <lucide-icon *ngIf="submittingEvent" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
-                      Enregistrer
-                    </button>
-                  </form>
-                  <p *ngIf="match.status !== 'LIVE'" class="text-xs text-muted-foreground text-center py-4">Le match doit être EN DIRECT (LIVE) pour enregistrer des événements.</p>
-                </div>
-              </div>
-
-              <!-- Match Stats summary -->
-              <div class="bg-card rounded-3xl border border-border shadow-sm p-6 overflow-hidden">
-                <h3 class="font-bold text-lg mb-4">Statistiques du match</h3>
-                <div class="space-y-4">
-                   <div class="flex justify-between items-center text-sm font-bold">
-                     <span class="text-muted-foreground truncate w-1/3">{{ match.homeTeamName }}</span>
-                     <span class="w-1/3 text-center bg-muted/50 rounded-full py-1 text-xs">BUTS</span>
-                     <span class="text-muted-foreground text-right truncate w-1/3">{{ match.awayTeamName }}</span>
-                   </div>
-                   <div class="flex justify-between items-center font-black text-2xl">
-                     <span>{{ counterByTeam(match.homeTeamId, 'GOAL') }}</span>
-                     <span class="text-muted-foreground opacity-30">-</span>
-                     <span>{{ counterByTeam(match.awayTeamId, 'GOAL') }}</span>
-                   </div>
-
-                   <hr class="border-border">
-
-                   <div class="flex justify-between items-center font-bold">
-                     <span class="w-8 h-8 rounded-lg bg-yellow-500/10 text-yellow-600 flex items-center justify-center">{{ counterByTeam(match.homeTeamId, 'YELLOW_CARD') }}</span>
-                     <span class="text-xs text-muted-foreground uppercase tracking-widest">Cartons Jaunes</span>
-                     <span class="w-8 h-8 rounded-lg bg-yellow-500/10 text-yellow-600 flex items-center justify-center">{{ counterByTeam(match.awayTeamId, 'YELLOW_CARD') }}</span>
-                   </div>
-
-                   <div class="flex justify-between items-center font-bold">
-                     <span class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center">{{ counterByTeam(match.homeTeamId, 'RED_CARD') }}</span>
-                     <span class="text-xs text-muted-foreground uppercase tracking-widest">Cartons Rouges</span>
-                     <span class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center">{{ counterByTeam(match.awayTeamId, 'RED_CARD') }}</span>
-                   </div>
-                </div>
-              </div>
-
+            <!-- Top Nav -->
+            <div class="fs-nav">
+              <div class="fs-nav-item" [class.active]="activeNav==='resume'" (click)="setNav('resume')">Match</div>
+              <div class="fs-nav-item" [class.active]="activeNav==='ratings'" (click)="setNav('ratings')">Ratings & MVP</div>
             </div>
-
           </div>
         </div>
 
-      </div>
+        <!-- ===== LIVE AI PREDICTION BAR ===== -->
+        <div *ngIf="prediction && match.status !== 'CANCELED'" class="fs-content" style="margin-top:0; padding-top:12px;">
+          <div class="fs-stats-card" style="margin-bottom:0; background: linear-gradient(to right, #f8fafc, #eff6ff, #f8fafc); border-color:#bfdbfe;">
+            <div style="padding:12px 16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:800; color:#1e40af; display:flex; align-items:center; gap:6px;">
+                  <span *ngIf="match.status === 'LIVE'" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e03d3d;animation:pulse 1s infinite;"></span>
+                  <span *ngIf="match.status === 'FINISHED'" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;"></span>
+                  <span *ngIf="match.status === 'SCHEDULED'" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3b82f6;"></span>
+                  🤖 AI - 
+                  <ng-container *ngIf="match.status === 'LIVE'">Real-Time Prediction</ng-container>
+                  <ng-container *ngIf="match.status === 'FINISHED'">Final Prediction</ng-container>
+                  <ng-container *ngIf="match.status === 'SCHEDULED'">Pre-match Prediction</ng-container>
+                </span>
+                <span style="font-size:11px; font-weight:700; color:#3b82f6;">Confidence: {{ prediction.confidence | number:'1.0-0' }}%</span>
+              </div>
+              
+              <div style="font-size:12px; font-style:italic; color:#475569; margin-bottom:10px; border-left:2px solid #93c5fd; padding-left:8px;">
+                {{ prediction.interpretation }}
+              </div>
+
+              <div style="display:flex; height:6px; border-radius:3px; overflow:hidden; background:#e2e8f0; width:100%;">
+                <div [style.width.%]="prediction.probabilities.HOME_WIN" style="background:#10b981; transition:width 1s;"></div>
+                <div [style.width.%]="prediction.probabilities.DRAW" style="background:#fbbf24; transition:width 1s;"></div>
+                <div [style.width.%]="prediction.probabilities.AWAY_WIN" style="background:#3b82f6; transition:width 1s;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; margin-top:4px; color:#64748b;">
+                <span style="color:#059669; width:33%; text-align:left;">{{ match.homeTeamName }} {{ prediction.probabilities.HOME_WIN | number:'1.0-0' }}%</span>
+                <span style="color:#d97706; width:33%; text-align:center;">Draw {{ prediction.probabilities.DRAW | number:'1.0-0' }}%</span>
+                <span style="color:#2563eb; width:33%; text-align:right;">{{ match.awayTeamName }} {{ prediction.probabilities.AWAY_WIN | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== CONTENT ===== -->
+        <div class="fs-content">
+
+          <!-- Admin Panel -->
+          <div *ngIf="isOrganizer" class="fs-admin">
+            <div class="fs-admin-title">🛠 Organizer Actions</div>
+            <div class="fs-admin-actions">
+              <button *ngIf="match.status === 'SCHEDULED'" (click)="updateStatus('LIVE')" class="fs-btn fs-btn-red">▶ Start LIVE</button>
+              <button *ngIf="match.status === 'LIVE'" (click)="updateStatus('FINISHED')" class="fs-btn fs-btn-green">✔ Finish</button>
+              <button *ngIf="match.status !== 'FINISHED' && match.status !== 'CANCELED'" (click)="updateStatus('CANCELED')" class="fs-btn fs-btn-gray">✕ Cancel</button>
+            </div>
+            <form *ngIf="match.status === 'LIVE'" [formGroup]="eventForm" (ngSubmit)="submitEvent()" class="fs-event-form">
+              <select formControlName="type">
+                <option value="SCORE">⚽ Goal</option>
+                <option value="ASSIST" *ngIf="!isIndividualSport">🅰️ Assist</option>
+                <option value="WARNING">🟨 Yellow card</option>
+                <option value="EJECTION">🟥 Red card</option>
+                <option value="FOUL">🛑 Foul</option>
+                <option value="SUBSTITUTION" *ngIf="!isIndividualSport">🔄 substitution</option>
+                <option value="TIMEOUT">⏱️ Timeout</option>
+              </select>
+              <select formControlName="teamId">
+                <option [value]="match.homeTeamId">{{ match.homeTeamName }}</option>
+                <option [value]="match.awayTeamId">{{ match.awayTeamName }}</option>
+              </select>
+              <input type="number" formControlName="minute" placeholder="Min'" style="width:58px;">
+              <input type="number" formControlName="playerId" placeholder="Player ID" style="width:90px;">
+              <button type="submit" [disabled]="eventForm.invalid || submittingEvent" class="fs-btn fs-btn-red">Add</button>
+            </form>
+            <div *ngIf="errorMsg" class="fs-error">{{ errorMsg }}</div>
+          </div>
+
+          <!-- ===== NAV: CORRESPONDRE ===== -->
+          <ng-container *ngIf="activeNav === 'resume'">
+            <!-- Sub-tabs -->
+            <div class="fs-subtabs">
+              <div class="fs-subtab" [class.active]="activeSubTab==='timeline'" (click)="setSubTab('timeline')">Summary</div>
+              <div class="fs-subtab" [class.active]="activeSubTab==='stats'" (click)="setSubTab('stats')">Player Stats</div>
+              <div class="fs-subtab" [class.active]="activeSubTab==='ratings'" (click)="setSubTab('ratings')">Ratings & MVP</div>
+            </div>
+
+            <!-- TIMELINE -->
+            <ng-container *ngIf="activeSubTab === 'timeline'">
+              <div *ngIf="timeline.length === 0 && !loadingTab" class="fs-stats-card">
+                <div class="fs-empty">No events recorded for this match.</div>
+              </div>
+
+              <!-- Group by half -->
+              <ng-container *ngIf="timeline.length > 0">
+                <!-- 1st Half -->
+                <ng-container *ngIf="firstHalf.length > 0">
+                  <div class="fs-section-header">
+                    <span>1st Half</span>
+                    <span>{{ firstHalfScore }}</span>
+                  </div>
+                  <div class="fs-timeline-card">
+                    <div *ngFor="let ev of firstHalf" class="fs-event-row">
+                      <!-- Home side -->
+                      <div class="fs-event-home">
+                        <ng-container *ngIf="isHomeTeam(ev)">
+                          <div>
+                            <div class="fs-player-name">
+                              <span *ngIf="ev.description" class="fs-assist-name">({{ ev.description }}) </span>
+                              Player #{{ ev.playerId }}
+                              <span *ngIf="ev.type === 'SCORE'" class="fs-score-snap"> {{ ev.homeScoreSnapshot }} - {{ ev.awayScoreSnapshot }}</span>
+                            </div>
+                            <div class="fs-event-desc">{{ getEventDesc(ev.type) }}</div>
+                          </div>
+                          <span [innerHTML]="getEventIcon(ev.type)"></span>
+                        </ng-container>
+                      </div>
+                      <!-- Minute -->
+                      <div class="fs-event-minute">{{ ev.minute }}'</div>
+                      <!-- Away side -->
+                      <div class="fs-event-away">
+                        <ng-container *ngIf="!isHomeTeam(ev)">
+                          <span [innerHTML]="getEventIcon(ev.type)"></span>
+                          <div>
+                            <div class="fs-player-name">
+                              Player #{{ ev.playerId }}
+                              <span *ngIf="ev.type === 'SCORE'" class="fs-score-snap"> {{ ev.homeScoreSnapshot }} - {{ ev.awayScoreSnapshot }}</span>
+                            </div>
+                            <div class="fs-event-desc">
+                              <span *ngIf="ev.description" class="fs-assist-name">({{ ev.description }}) </span>
+                              {{ getEventDesc(ev.type) }}
+                            </div>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+
+                <!-- 2nd Half -->
+                <ng-container *ngIf="secondHalf.length > 0">
+                  <div class="fs-section-header">
+                    <span>2nd Half</span>
+                    <span>{{ secondHalfScore }}</span>
+                  </div>
+                  <div class="fs-timeline-card">
+                    <div *ngFor="let ev of secondHalf" class="fs-event-row">
+                      <div class="fs-event-home">
+                        <ng-container *ngIf="isHomeTeam(ev)">
+                          <div>
+                            <div class="fs-player-name">
+                              <span *ngIf="ev.description" class="fs-assist-name">({{ ev.description }}) </span>
+                              Player #{{ ev.playerId }}
+                              <span *ngIf="ev.type === 'SCORE'" class="fs-score-snap"> {{ ev.homeScoreSnapshot }} - {{ ev.awayScoreSnapshot }}</span>
+                            </div>
+                            <div class="fs-event-desc">{{ getEventDesc(ev.type) }}</div>
+                          </div>
+                          <span [innerHTML]="getEventIcon(ev.type)"></span>
+                        </ng-container>
+                      </div>
+                      <div class="fs-event-minute">{{ ev.minute }}'</div>
+                      <div class="fs-event-away">
+                        <ng-container *ngIf="!isHomeTeam(ev)">
+                          <span [innerHTML]="getEventIcon(ev.type)"></span>
+                          <div>
+                            <div class="fs-player-name">
+                              Player #{{ ev.playerId }}
+                              <span *ngIf="ev.type === 'SCORE'" class="fs-score-snap"> {{ ev.homeScoreSnapshot }} - {{ ev.awayScoreSnapshot }}</span>
+                            </div>
+                            <div class="fs-event-desc">
+                              <span *ngIf="ev.description" class="fs-assist-name">({{ ev.description }}) </span>
+                              {{ getEventDesc(ev.type) }}
+                            </div>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+
+                <!-- Commentaire footer -->
+                <div class="fs-section-header" style="border-radius:6px; border-bottom:1px solid #e0e0e0;">
+                  <span>Commentary</span>
+                </div>
+              </ng-container>
+            </ng-container>
+
+            <!-- STATS JOUEURS -->
+            <ng-container *ngIf="activeSubTab === 'stats'">
+              <div *ngIf="!playerStats && !loadingTab" class="fs-stats-card">
+                <div class="fs-empty">No statistics available for this match.</div>
+              </div>
+              <div *ngIf="playerStats" class="fs-stats-card">
+                <table class="fs-stats-table">
+                  <thead>
+                    <tr>
+                      <th>Player</th>
+                      <th>Rating</th>
+                      <th>⚽</th>
+                      <th>🅰️</th>
+                      <th>🟨</th>
+                      <th>🟥</th>
+                      <th>Fouls</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let p of playerStats.allPlayers">
+                      <td>{{ p.teamName }} — #{{ p.playerId }}</td>
+                      <td [style.color]="p.ejected ? '#e03d3d' : '#333'" style="font-weight:700;">{{ p.rating }}/5</td>
+                      <td>{{ p.goals }}</td>
+                      <td>{{ p.assists }}</td>
+                      <td style="color:#f1c40f;font-weight:700;">{{ p.yellowCards }}</td>
+                      <td style="color:#e03d3d;font-weight:700;">{{ p.redCards }}</td>
+                      <td>{{ p.fouls }}</td>
+                    </tr>
+                    <tr *ngIf="playerStats.allPlayers.length === 0">
+                      <td colspan="7" style="text-align:center;color:#aaa;">No players.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </ng-container>
+
+            <!-- RATINGS -->
+            <ng-container *ngIf="activeSubTab === 'ratings'">
+              <div *ngIf="!rating && !loadingTab" class="fs-rating-card">
+                <div class="fs-empty">Finish the match to see final ratings.</div>
+              </div>
+              <div *ngIf="rating" class="fs-rating-card">
+                <div class="fs-mvp-banner">
+                  <div>
+                    <div class="fs-mvp-label">🏆 MVP Team</div>
+                    <div class="fs-mvp-name">{{ rating.mvpTeamName }}</div>
+                  </div>
+                  <span style="font-size:36px;">🥇</span>
+                </div>
+                <div class="fs-grade-grid">
+                  <div class="fs-grade-box">
+                    <div class="fs-grade-team">{{ rating.homeRating.teamName }}</div>
+                    <div class="fs-grade-score" [ngClass]="getGradeClass(rating.homeRating.grade)">{{ rating.homeRating.grade }}</div>
+                    <div style="font-size:12px;color:#888;margin-bottom:10px;">{{ rating.homeRating.score }}/10</div>
+                    <div class="fs-grade-row"><span>Offensive (35%)</span><span>{{ rating.homeRating.breakdown.offensive }}/10</span></div>
+                    <div class="fs-grade-row"><span>Defensive (25%)</span><span>{{ rating.homeRating.breakdown.defensive }}/10</span></div>
+                    <div class="fs-grade-row"><span>Shooting (20%)</span><span>{{ rating.homeRating.breakdown.shooting }}/10</span></div>
+                    <div class="fs-grade-row"><span>Discipline (10%)</span><span>{{ rating.homeRating.breakdown.discipline }}/10</span></div>
+                    <div class="fs-grade-row"><span>Momentum (10%)</span><span>{{ rating.homeRating.breakdown.momentum }}/10</span></div>
+                  </div>
+                  <div class="fs-grade-box">
+                    <div class="fs-grade-team">{{ rating.awayRating.teamName }}</div>
+                    <div class="fs-grade-score" [ngClass]="getGradeClass(rating.awayRating.grade)">{{ rating.awayRating.grade }}</div>
+                    <div style="font-size:12px;color:#888;margin-bottom:10px;">{{ rating.awayRating.score }}/10</div>
+                    <div class="fs-grade-row"><span>Offensive (35%)</span><span>{{ rating.awayRating.breakdown.offensive }}/10</span></div>
+                    <div class="fs-grade-row"><span>Defensive (25%)</span><span>{{ rating.awayRating.breakdown.defensive }}/10</span></div>
+                    <div class="fs-grade-row"><span>Shooting (20%)</span><span>{{ rating.awayRating.breakdown.shooting }}/10</span></div>
+                    <div class="fs-grade-row"><span>Discipline (10%)</span><span>{{ rating.awayRating.breakdown.discipline }}/10</span></div>
+                    <div class="fs-grade-row"><span>Momentum (10%)</span><span>{{ rating.awayRating.breakdown.momentum }}/10</span></div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <!-- ===== NAV: STATISTIQUES ===== -->
+          <ng-container *ngIf="activeNav === 'stats'">
+            <div class="fs-stats-card" style="margin-top:12px;">
+              <div class="fs-empty">Team statistics — coming soon.</div>
+            </div>
+          </ng-container>
+
+          <!-- ===== NAV: RATINGS ===== -->
+          <ng-container *ngIf="activeNav === 'ratings'">
+            <div style="margin-top:12px;">
+              <div *ngIf="!rating" class="fs-rating-card">
+                <div class="fs-empty">Finish the match to see ratings.</div>
+              </div>
+              <div *ngIf="rating" class="fs-rating-card">
+                <div class="fs-mvp-banner">
+                  <div>
+                    <div class="fs-mvp-label">🏆 MVP Team</div>
+                    <div class="fs-mvp-name">{{ rating.mvpTeamName }}</div>
+                  </div>
+                  <span style="font-size:36px;">🥇</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Toast -->
+          <div *ngIf="toastMessage" class="fs-toast">
+            <lucide-icon [name]="InfoIcon" [size]="18"></lucide-icon>
+            <span>{{ toastMessage }}</span>
+          </div>
+
+        </div><!-- /fs-content -->
+      </ng-container>
     </div>
-  `
+  `,
+  styles: [`
+    :host { display: block; font-family: 'Inter', sans-serif; }
+
+    .fs-wrap { background: #f5f5f5; min-height: 100vh; }
+
+    /* Breadcrumb */
+    .fs-breadcrumb { background:#fff; border-bottom:1px solid #e5e5e5; padding:8px 16px; display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#666; text-transform:uppercase; letter-spacing:.5px; }
+    .fs-breadcrumb span { cursor:pointer; }
+    .fs-breadcrumb span:hover { color:#e03d3d; }
+    .fs-breadcrumb .sep { color:#bbb; }
+
+    /* Scoreboard */
+    .fs-scoreboard { background:#fff; border-bottom:1px solid #e5e5e5; padding:20px 24px 0; }
+    .fs-scoreboard-inner { max-width:900px; margin:0 auto; }
+    .fs-teams-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:20px; }
+    .fs-team { display:flex; flex-direction:column; align-items:center; gap:10px; flex:1; }
+    .fs-team-logo { width:72px; height:72px; background:#f0f0f0; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900; color:#555; border:2px solid #e8e8e8; }
+    .fs-team-name { font-size:15px; font-weight:700; color:#222; text-align:center; }
+    .fs-score-center { display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .fs-score-datetime { font-size:12px; color:#888; font-weight:500; }
+    .fs-score-value { font-size:52px; font-weight:900; color:#e03d3d; letter-spacing:-2px; line-height:1; }
+    .fs-score-value.scheduled { font-size:32px; color:#aaa; }
+    .fs-score-status { font-size:13px; font-weight:700; color:#e03d3d; text-transform:uppercase; letter-spacing:.5px; }
+    .fs-score-status.finished { color:#27ae60; }
+    .fs-score-status.scheduled { color:#888; }
+    .fs-score-status.canceled { color:#c0392b; }
+    .fs-venue { font-size:11px; color:#aaa; text-align:center; margin-top:2px; }
+
+    /* Nav tabs (top level) */
+    .fs-nav { border-bottom:2px solid #e5e5e5; display:flex; gap:0; overflow-x:auto; background:#fff; }
+    .fs-nav-item { padding:12px 18px; font-size:12px; font-weight:700; color:#666; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; white-space:nowrap; text-transform:uppercase; letter-spacing:.4px; transition:color .15s; }
+    .fs-nav-item:hover { color:#e03d3d; }
+    .fs-nav-item.active { color:#e03d3d; border-bottom-color:#e03d3d; }
+
+    /* Sub tabs */
+    .fs-subtabs { background:#fff; border-bottom:1px solid #e5e5e5; display:flex; gap:0; overflow-x:auto; padding:0 8px; }
+    .fs-subtab { padding:10px 14px; font-size:11px; font-weight:700; color:#777; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; text-transform:uppercase; letter-spacing:.4px; transition:all .15s; }
+    .fs-subtab:hover { color:#333; }
+    .fs-subtab.active { background:#e03d3d; color:#fff; border-radius:6px 6px 0 0; }
+
+    /* Content area */
+    .fs-content { max-width:900px; margin:16px auto; padding:0 12px; }
+
+    /* Admin panel */
+    .fs-admin { background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:14px 18px; margin-bottom:12px; }
+    .fs-admin-title { font-size:12px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+    .fs-admin-actions { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .fs-btn { padding:7px 16px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; border:none; transition:opacity .15s; }
+    .fs-btn:hover { opacity:.85; }
+    .fs-btn-red { background:#e03d3d; color:#fff; }
+    .fs-btn-green { background:#27ae60; color:#fff; }
+    .fs-btn-gray { background:#eee; color:#555; }
+    .fs-event-form { display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:#f8f8f8; padding:12px; border-radius:8px; border:1px solid #eee; }
+    .fs-event-form select, .fs-event-form input { height:34px; padding:0 10px; border:1px solid #ddd; border-radius:6px; font-size:12px; font-weight:600; background:#fff; }
+    .fs-error { color:#e03d3d; font-size:12px; font-weight:600; margin-top:6px; }
+
+    /* Timeline section */
+    .fs-section-header { background:#f0f0f0; padding:10px 16px; font-size:11px; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:.5px; display:flex; justify-content:space-between; border-radius:6px 6px 0 0; border:1px solid #e0e0e0; border-bottom:none; }
+    .fs-timeline-card { background:#fff; border:1px solid #e0e0e0; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:12px; }
+
+    /* Each event row — home left, away right */
+    .fs-event-row { display:grid; grid-template-columns:1fr 48px 1fr; align-items:center; padding:10px 16px; border-bottom:1px solid #f0f0f0; min-height:44px; }
+    .fs-event-row:last-child { border-bottom:none; }
+    .fs-event-home { display:flex; align-items:center; justify-content:flex-end; gap:8px; text-align:right; font-size:13px; }
+    .fs-event-away { display:flex; align-items:center; justify-content:flex-start; gap:8px; text-align:left; font-size:13px; }
+    .fs-event-minute { font-size:12px; font-weight:700; color:#888; text-align:center; }
+    .fs-player-name { font-weight:700; color:#222; }
+    .fs-event-desc { font-size:12px; color:#888; }
+    .fs-card-yellow { display:inline-block; width:12px; height:16px; background:#f1c40f; border-radius:2px; }
+    .fs-card-red { display:inline-block; width:12px; height:16px; background:#e03d3d; border-radius:2px; }
+    .fs-goal-icon { font-size:16px; }
+    .fs-score-snap { font-size:13px; font-weight:900; color:#222; }
+    .fs-assist-name { font-size:11px; color:#888; }
+
+    /* Stats table */
+    .fs-stats-card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; overflow:hidden; margin-bottom:12px; }
+    .fs-stats-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .fs-stats-table th { background:#f5f5f5; padding:10px 14px; font-size:11px; font-weight:700; color:#777; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid #e5e5e5; text-align:center; }
+    .fs-stats-table th:first-child { text-align:left; }
+    .fs-stats-table td { padding:10px 14px; border-bottom:1px solid #f5f5f5; color:#333; text-align:center; }
+    .fs-stats-table td:first-child { text-align:left; font-weight:600; }
+    .fs-stats-table tr:last-child td { border-bottom:none; }
+
+    /* Ratings */
+    .fs-rating-card { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:18px; margin-bottom:12px; }
+    .fs-mvp-banner { background:linear-gradient(135deg,#f39c12,#e67e22); border-radius:8px; padding:14px 18px; color:#fff; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .fs-mvp-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; opacity:.8; }
+    .fs-mvp-name { font-size:18px; font-weight:900; }
+    .fs-grade-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .fs-grade-box { border:1px solid #e5e5e5; border-radius:8px; padding:14px; }
+    .fs-grade-team { font-size:14px; font-weight:700; margin-bottom:10px; color:#333; }
+    .fs-grade-score { font-size:32px; font-weight:900; }
+    .fs-grade-A { color:#27ae60; }
+    .fs-grade-B { color:#2980b9; }
+    .fs-grade-C { color:#f39c12; }
+    .fs-grade-D { color:#e03d3d; }
+    .fs-grade-row { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:1px solid #f5f5f5; }
+    .fs-grade-row:last-child { border-bottom:none; }
+    .fs-grade-row span:first-child { color:#888; }
+    .fs-grade-row span:last-child { font-weight:700; }
+
+    /* Empty state */
+    .fs-empty { text-align:center; padding:32px; color:#aaa; font-size:13px; font-weight:600; }
+
+    /* Loading */
+    .fs-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:12px; color:#aaa; font-weight:600; font-size:14px; }
+
+    /* Toast */
+    .fs-toast { position:fixed; bottom:24px; right:24px; background:#333; color:#fff; padding:12px 20px; border-radius:12px; display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; box-shadow:0 10px 25px rgba(0,0,0,0.2); z-index:1000; animation:slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+  `]
 })
 export class MatchDetailComponent implements OnInit, OnDestroy {
-  readonly ArrowLeftIcon = ArrowLeft;
-  readonly TrophyIcon = Trophy;
-  readonly CalendarIcon = Calendar;
-  readonly MapPinIcon = MapPin;
-  readonly Loader2Icon = Loader2;
-  readonly PlayCircleIcon = PlayCircle;
-  readonly CheckCircleIcon = CheckCircle;
-  readonly XCircleIcon = XCircle;
-  readonly SettingsIcon = Info; // Using Info as substitute for Settings
-  
-  // Event Icons
-  readonly CircleIcon = Circle; 
-  readonly AlertOctagonIcon = AlertOctagon;
-  readonly SquareIcon = Square;
-  readonly RefreshCwIcon = RefreshCw;
-  readonly InfoIcon = Info;
+  readonly ArrowLeftIcon = ArrowLeft; readonly TrophyIcon = Trophy; readonly MapPinIcon = MapPin; readonly CalendarIcon = Calendar;
+  readonly Loader2Icon = Loader2; readonly PlayCircleIcon = PlayCircle; readonly CheckCircleIcon = CheckCircle; readonly XCircleIcon = XCircle;
+  readonly InfoIcon = Info; readonly RefreshCwIcon = RefreshCw; readonly UsersIcon = BarChart2;
+  readonly StarIcon = Star; readonly AwardIcon = Award; readonly ChevronRightIcon = ChevronRight;
 
   matchId!: number;
   match: MatchResponse | null = null;
-  events: MatchEventResponse[] = [];
-  
-  loading = true;
-  isRefreshing = false;
-  submittingEvent = false;
-  errorMsg = '';
-  
-  userType = '';
-  pollTimer: any;
+  loading = true; errorMsg = ''; userType = ''; pollTimer: any; toastMessage = '';
 
-  eventForm: FormGroup;
+  eventForm: FormGroup; submittingEvent = false;
+
+  activeNav = 'resume';
+  activeSubTab = 'timeline';
+  loadingTab = false;
+
+  timeline: TimelineEventDto[] = [];
+  playerStats: PlayerStatsDto | null = null;
+  rating: MatchRatingDto | null = null;
+
+  teams: any[] = [];
+  computedHomeScore = 0;
+  computedAwayScore = 0;
+  chronoSeconds = 0;
+  chronoTimer: any = null;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private matchService: MatchService,
-    private matchEventService: MatchEventService,
-    private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private route: ActivatedRoute, private router: Router, private fb: FormBuilder,
+    private matchService: MatchService, private matchEventService: MatchEventService,
+    private teamService: TeamService, private cdr: ChangeDetectorRef
   ) {
     this.eventForm = this.fb.group({
-      type: ['GOAL', Validators.required],
-      minute: ['', [Validators.required, Validators.min(0), Validators.max(120)]],
-      teamId: ['', Validators.required],
-      playerName: [''],
-      description: ['']
+      type: ['SCORE', Validators.required], minute: ['', [Validators.required, Validators.min(0)]],
+      teamId: ['', Validators.required], playerId: ['']
     });
   }
 
   ngOnInit() {
     this.userType = localStorage.getItem('user_type') || 'ROLE_PLAYER';
-    
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('id');
-      if (id) {
-        this.matchId = +id;
-        this.fetchMatchData();
-      }
+    this.route.paramMap.subscribe(p => {
+      const id = p.get('id');
+      if (id) { this.matchId = +id; this.fetchMatchData(); }
     });
-
-    // Start polling automatically
     this.pollTimer = setInterval(() => {
-      if (this.match && this.match.status === MatchStatus.LIVE) {
-        this.fetchMatchData(true);
-      }
-    }, 10000); // 10 seconds
+      if (this.match?.status === 'LIVE') this.fetchMatchData(true);
+    }, 10000);
   }
 
-  ngOnDestroy() {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
+  ngOnDestroy() { 
+    if (this.pollTimer) clearInterval(this.pollTimer); 
+    if (this.chronoTimer) clearInterval(this.chronoTimer);
+  }
+
+  startChrono() {
+    if (this.chronoTimer) return;
+    this.chronoTimer = setInterval(() => {
+      if (this.match?.status === MatchStatus.LIVE) {
+        if (this.chronoSeconds < 60) {
+          this.chronoSeconds++;
+          const currentMin = Math.floor(this.chronoSeconds / 60) + 1;
+          this.eventForm.patchValue({ minute: currentMin });
+          this.cdr.detectChanges();
+        } else {
+          this.stopChrono();
+          this.autoFinish();
+        }
+      } else {
+        // If match is no longer LIVE (e.g. manually finished or canceled), stop the chrono
+        this.stopChrono();
+      }
+    }, 1000);
+  }
+
+  autoFinish() {
+    if (!this.match || this.match.status !== MatchStatus.LIVE) return;
+    const req: any = { ...this.match, status: MatchStatus.FINISHED };
+    this.matchService.updateMatch(this.matchId, req).subscribe({
+      next: res => { 
+        this.match = res; 
+        this.fetchMatchData(); 
+        this.showToast('Match finished automatically.');
+      }
+    });
+  }
+
+  formatChrono(totalSeconds: number): string {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  stopChrono() {
+    if (this.chronoTimer) {
+      clearInterval(this.chronoTimer);
+      this.chronoTimer = null;
     }
   }
 
-  get isOrganizer(): boolean {
-    return ['ROLE_ADMIN', 'ROLE_FIELD_OWNER', 'admin', 'owner'].includes(this.userType);
+  get isOrganizer() { return ['ROLE_ADMIN', 'ROLE_FIELD_OWNER', 'admin', 'owner'].includes(this.userType); }
+  get isIndividualSport(): boolean { return false; }
+
+  get firstHalf(): TimelineEventDto[] { return this.timeline.filter(e => e.minute <= 45); }
+  get secondHalf(): TimelineEventDto[] { return this.timeline.filter(e => e.minute > 45); }
+
+  get firstHalfScore(): string {
+    const last = [...this.firstHalf].reverse().find(e => e.homeScoreSnapshot !== undefined);
+    return last ? `${last.homeScoreSnapshot} - ${last.awayScoreSnapshot}` : '0 - 0';
+  }
+  get secondHalfScore(): string {
+    const last = [...this.secondHalf].reverse().find(e => e.homeScoreSnapshot !== undefined);
+    return last ? `${last.homeScoreSnapshot} - ${last.awayScoreSnapshot}` : this.firstHalfScore;
   }
 
   fetchMatchData(isPoll = false) {
     if (!isPoll) this.loading = true;
-    this.isRefreshing = true;
-    this.errorMsg = '';
-
-    // fetch match
     this.matchService.getMatchById(this.matchId).subscribe({
-      next: (res) => {
+      next: res => {
         this.match = res;
-        this.fetchEvents();
-      },
-      error: (err) => {
+        this.loadTeamNames();
+        this.loadCurrentTab();
         this.loading = false;
-        this.isRefreshing = false;
-        this.errorMsg = 'Impossible de charger les données du match.';
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  fetchEvents() {
-    this.matchEventService.getEventsByMatch(this.matchId).subscribe({
-      next: (evs: any) => {
-        let eventsArray: any[] = [];
-        if (evs && evs.content) eventsArray = evs.content;
-        else if (evs && evs._embedded) {
-          const key = Object.keys(evs._embedded)[0];
-          eventsArray = evs._embedded[key] || [];
-        } else if (evs && evs.data && Array.isArray(evs.data)) {
-          eventsArray = evs.data;
-        } else if (Array.isArray(evs)) {
-          eventsArray = evs;
+        if (this.match.status === MatchStatus.LIVE) {
+          // Initialize chrono from the latest event if any
+          if (this.chronoSeconds === 0 && this.timeline.length > 0) {
+             const lastMin = Math.max(...this.timeline.map(e => e.minute));
+             this.chronoSeconds = Math.max(0, (lastMin - 1) * 60);
+             this.eventForm.patchValue({ minute: lastMin });
+          }
+          this.startChrono();
+        } else {
+          this.stopChrono();
         }
-
-        this.events = eventsArray.sort((a, b) => b.minute - a.minute); // Descending timeline
-        this.loading = false;
-        this.isRefreshing = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        this.loading = false;
-        this.isRefreshing = false;
+      error: () => { this.errorMsg = 'Match not found'; this.loading = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  loadTeamNames() {
+    this.teamService.getAll().subscribe(teams => {
+      this.teams = teams;
+      if (this.match) {
+        const h = teams.find(t => t.id == this.match!.homeTeamId);
+        const a = teams.find(t => t.id == this.match!.awayTeamId);
+        if (h) this.match.homeTeamName = h.name;
+        if (a) this.match.awayTeamName = a.name;
         this.cdr.detectChanges();
       }
     });
   }
 
-  updateStatus(newStatus: 'LIVE' | 'FINISHED' | 'CANCELED') {
-    if (!this.match || !confirm(`Confirmer le passage au statut ${newStatus} ?`)) return;
+  setNav(nav: string) { this.activeNav = nav; }
 
-    // The backend uses a PUT request for the full DTO, or we can send required fields.
+  setSubTab(tab: string) {
+    this.activeSubTab = tab;
+    this.loadCurrentTab();
+  }
+
+  loadCurrentTab() {
+    this.loadingTab = true;
+    if (this.activeSubTab === 'timeline') this.loadTimeline();
+    else if (this.activeSubTab === 'stats') this.loadStats();
+    else if (this.activeSubTab === 'ratings') this.loadRatings();
+    else this.loadingTab = false;
+  }
+
+  loadTimeline() {
+    this.matchEventService.getTimeline(this.matchId).subscribe({
+      next: res => {
+        this.timeline = res.sort((a, b) => a.minute - b.minute);
+        if (this.match) {
+          const isGoal = (type: string) => type === 'SCORE' || type === 'GOAL';
+          this.computedHomeScore = this.timeline.filter(e => isGoal(e.type) && e.teamId === this.match!.homeTeamId).length;
+          this.computedAwayScore = this.timeline.filter(e => isGoal(e.type) && e.teamId === this.match!.awayTeamId).length;
+        }
+        this.loadingTab = false;
+        this.cdr.detectChanges();
+        
+        // Prédire peu importe le statut du match pour toujours afficher le composant IA
+        if (this.match?.status !== 'CANCELED') {
+          this.predictMatchForDashboard();
+        }
+      },
+      error: () => { this.loadingTab = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  prediction: any = null;
+  isPredictingLive = false;
+
+  predictMatchForDashboard() {
+    if (!this.match || this.isPredictingLive) return;
+    this.isPredictingLive = true;
+
+    const isLive = this.match.status === 'LIVE';
+    const isFinished = this.match.status === 'FINISHED';
+
+    // Calculer les cartons rouges pour l'IA
+    const isRedCard = (type: string) => type === 'EJECTION' || type === 'RED_CARD';
+    const homeReds = this.timeline.filter(e => isRedCard(e.type) && e.teamId === this.match!.homeTeamId).length;
+    const awayReds = this.timeline.filter(e => isRedCard(e.type) && e.teamId === this.match!.awayTeamId).length;
+    
+    let currentMin = 0;
+    if (isLive) currentMin = Math.floor(this.chronoSeconds / 60) || 1;
+    if (isFinished) currentMin = 90;
+
+    // Requete manuelle pour envoyer nos données calculées en temps réel
     const req: any = {
-      competitionId: this.match.competitionId,
-      homeTeamId: this.match.homeTeamId,
-      awayTeamId: this.match.awayTeamId,
-      scheduledAt: this.match.scheduledAt,
-      venue: this.match.venue,
-      status: newStatus as MatchStatus
+      homeRank: 10, awayRank: 10,
+      homeGoalsAvg: 1.5, awayGoalsAvg: 1.5,
+      homeConcededAvg: 1.2, awayConcededAvg: 1.2,
+      homeWinsLast5: 2, awayWinsLast5: 2,
+      homeRatingAvg: 3.0, awayRatingAvg: 3.0,
+      isNeutralVenue: 0, competitionFormat: 0,
+      
+      // Variables Live qui changent tout !
+      is_live: isLive || isFinished,
+      live_home_goals: this.computedHomeScore,
+      live_away_goals: this.computedAwayScore,
+      live_home_red_cards: homeReds,
+      live_away_red_cards: awayReds,
+      live_minute: currentMin
     };
 
-    this.matchService.updateMatch(this.matchId, req).subscribe({
+    // On essaie d'abord avec l'ID pour la "vraie" data, et on retombe sur manuelle sinon
+    this.matchService.predictManual(req).subscribe({
       next: (res) => {
-        this.match = res;
-        this.fetchEvents(); // in case scores updated
+        this.prediction = res;
+        this.isPredictingLive = false;
+        this.cdr.detectChanges();
       },
-      error: (err) => {
-        alert("Erreur lors de la mise à jour du statut.");
+      error: () => {
+        this.isPredictingLive = false;
       }
     });
   }
 
-  setEventType(type: MatchEventType | string) {
-    this.eventForm.patchValue({ type });
+  loadStats() {
+    this.matchEventService.getPlayerStats(this.matchId).subscribe({
+      next: res => { this.playerStats = res; this.loadingTab = false; this.cdr.detectChanges(); },
+      error: () => { this.loadingTab = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  loadRatings() {
+    if (this.match?.status === 'SCHEDULED' || this.match?.status === 'CANCELED') { this.loadingTab = false; return; }
+    this.matchService.getMatchRating(this.matchId).subscribe({
+      next: res => { this.rating = res; this.loadingTab = false; this.cdr.detectChanges(); },
+      error: () => { this.loadingTab = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  updateStatus(status: 'LIVE' | 'FINISHED' | 'CANCELED') {
+    if (!this.match || !confirm(`Switch to ${status}?`)) return;
+    const req: any = { ...this.match, status };
+    this.matchService.updateMatch(this.matchId, req).subscribe({
+      next: res => { this.match = res; this.fetchMatchData(); }
+    });
   }
 
   submitEvent() {
-    if (this.eventForm.invalid || !this.match) return;
-    this.submittingEvent = true;
-
-    const val = this.eventForm.value;
+    if (this.eventForm.invalid) return;
+    this.submittingEvent = true; this.errorMsg = '';
+    const v = this.eventForm.value;
     const req: MatchEventRequest = {
-      matchId: this.matchId,
-      type: val.type as MatchEventType,
-      minute: +val.minute,
-      teamId: +val.teamId,
-      description: val.description || undefined
+      matchId: this.matchId, type: v.type, minute: +v.minute,
+      teamId: +v.teamId, playerId: v.playerId ? +v.playerId : undefined
     };
-
-    // If we wanted to link to real playerIds, we'd add picker. We simulate string for now in description.
-    if (val.playerName) {
-       req.description = req.description ? `${val.playerName} : ${req.description}` : val.playerName;
-    }
-
     this.matchEventService.logEvent(req).subscribe({
-      next: (res) => {
-        this.submittingEvent = false;
-        this.eventForm.patchValue({ playerName: '', description: '' }); // reset some fields
-        this.fetchMatchData(); // Reload everything to update score inside match details if backend does it automatically.
-      },
+      next: () => { this.submittingEvent = false; this.eventForm.patchValue({ playerId: '' }); this.fetchMatchData(); },
       error: (err) => {
         this.submittingEvent = false;
-        alert("Erreur lors de l'enregistrement de l'événement.");
+        this.errorMsg = typeof err.error === 'string' ? err.error : (err.message || 'Error during recording.');
         this.cdr.detectChanges();
       }
     });
   }
 
-  counterByTeam(teamId: number, type: string): number {
-    return this.events.filter(e => e.teamId === teamId && e.type === type).length;
+  isHomeTeam(ev: TimelineEventDto): boolean { return !!this.match && ev.teamId === this.match.homeTeamId; }
+
+  getStatusLabel(s: MatchStatus | string) {
+    if (s === MatchStatus.LIVE || s === 'LIVE') return 'LIVE';
+    if (s === MatchStatus.FINISHED || s === 'FINISHED') return 'FINISHED';
+    if (s === MatchStatus.CANCELED || s === 'CANCELED') return 'CANCELED';
+    return 'SCHEDULED';
   }
 
-  calculateElapsedMinutes(): number | string {
-    if (!this.match) return 0;
-    // VERY rough approximation: difference between now and scheduled time IF LIVE.
-    // Ideally backend gives us a start time offset. 
-    const start = new Date(this.match.scheduledAt).getTime();
-    const now = Date.now();
-    let mins = Math.floor((now - start) / 60000);
-    if (mins < 0) mins = 0;
-    if (mins > 120) return '90+';
-    return mins;
-  }
-
-  getStatusColor(status: MatchStatus | string): string {
-    switch (status) {
-      case 'LIVE': return 'bg-red-500';
-      case 'FINISHED': return 'bg-emerald-500';
-      case 'CANCELED': return 'bg-red-900';
-      default: return 'bg-blue-500';
-    }
-  }
-
-  getStatusBadge(status: MatchStatus | string): string {
-    switch (status) {
-      case 'SCHEDULED': return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-200';
-      case 'LIVE': return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border border-red-200 shadow-sm shadow-red-500/20';
-      case 'FINISHED': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200';
-      case 'CANCELED': return 'bg-slate-100 text-slate-700 dark:bg-slate-800 line-through opacity-80';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  }
-
-  getStatusLabel(status: MatchStatus | string): string {
-    switch (status) {
-      case 'SCHEDULED': return 'PLANIFIÉ';
-      case 'LIVE': return 'EN DIRECT';
-      case 'FINISHED': return 'TERMINÉ';
-      case 'CANCELED': return 'ANNULÉ';
-      default: return status;
-    }
-  }
-
-  getEventIcon(type: string): any {
+  getEventIcon(type: string): string {
     switch (type) {
-      case 'GOAL': return this.CircleIcon;
-      case 'YELLOW_CARD': return this.SquareIcon;
-      case 'RED_CARD': return this.SquareIcon;
-      case 'SUBSTITUTION': return this.RefreshCwIcon;
-      case 'FOUL': return this.AlertOctagonIcon;
-      default: return this.InfoIcon;
+      case 'SCORE': case 'GOAL': return '⚽';
+      case 'WARNING': case 'YELLOW_CARD': return '🟨';
+      case 'EJECTION': case 'RED_CARD': return '🟥';
+      case 'FOUL': return '🛑';
+      case 'ASSIST': return '🅰️';
+      case 'SUBSTITUTION': return '🔄';
+      case 'TIMEOUT': return '⏱️';
+      default: return '•';
     }
   }
 
-  getEventIconColor(type: string): string {
-    switch (type) {
-      case 'GOAL': return 'text-background bg-emerald-500'; // Fill style
-      case 'YELLOW_CARD': return 'bg-yellow-500 text-yellow-500';
-      case 'RED_CARD': return 'bg-red-500 text-red-500';
-      case 'SUBSTITUTION': return 'text-primary bg-background border-primary';
-      case 'FOUL': return 'text-amber-600 bg-background border-amber-600';
-      default: return 'text-muted-foreground';
-    }
+  isGoalType(type: string): boolean { return type === 'SCORE' || type === 'GOAL'; }
+
+  getEventDesc(type: string): string {
+    const map: any = {
+      SCORE: 'Goal', GOAL: 'Goal',
+      ASSIST: 'Assist',
+      WARNING: 'Yellow card', YELLOW_CARD: 'Yellow card',
+      EJECTION: 'Red card', RED_CARD: 'Red card',
+      FOUL: 'Foul',
+      SUBSTITUTION: 'Substitution',
+      TIMEOUT: 'Timeout',
+      OTHER: 'Other'
+    };
+    return map[type] || type;
   }
 
-  getEventTypeLabel(type: string): string {
-    switch (type) {
-      case 'GOAL': return 'But';
-      case 'YELLOW_CARD': return 'Carton Jaune';
-      case 'RED_CARD': return 'Carton Rouge';
-      case 'SUBSTITUTION': return 'Remplacement';
-      case 'FOUL': return 'Faute';
-      default: return 'Événement';
-    }
+  getGradeClass(g: string) {
+    if (g?.includes('A')) return 'fs-grade-A';
+    if (g?.includes('B')) return 'fs-grade-B';
+    if (g?.includes('C')) return 'fs-grade-C';
+    return 'fs-grade-D';
   }
 
-  formatDate(dateStr: string): string {
-    try {
-      return new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' }).format(new Date(dateStr));
-    } catch { return dateStr; }
+  formatDate(d: string) {
+    try { return new Intl.DateTimeFormat('en-US', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(d)); } catch { return d; }
   }
 
-  goBack() {
-    this.router.navigate(['/app/matches']);
+  teamInitials(name: string): string {
+    if (!name) return '?';
+    return name.split(' ').map(w => w[0]).join('').substring(0, 3).toUpperCase();
+  }
+
+  goBack() { this.router.navigate(['/app/matches']); }
+
+  showToast(msg: string) {
+    this.toastMessage = msg;
+    setTimeout(() => { this.toastMessage = ''; this.cdr.detectChanges(); }, 3000);
+    this.cdr.detectChanges();
   }
 }

@@ -13,20 +13,20 @@ import { LucideAngularModule, User, Heart, AlertTriangle, Edit, ArrowLeft } from
         <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
           <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
         </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
+        <span class="text-sm text-muted-foreground">Health</span>
       </div>
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-foreground">Profil Santé</h1>
-          <p class="text-muted-foreground">Informations médicales et conditions de santé</p>
+          <h1 class="text-2xl font-bold text-foreground">Health Profile</h1>
+          <p class="text-muted-foreground">Medical information and health conditions</p>
         </div>
         <button (click)="toggleEdit()" class="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
           <lucide-icon [name]="editIcon" [size]="16"></lucide-icon>
-          {{ editing ? 'Sauvegarder' : 'Modifier' }}
+          {{ editing ? 'Save' : 'Edit' }}
         </button>
       </div>
       <div *ngIf="editing" class="bg-primary/10 border border-primary/20 rounded-xl p-3 text-primary text-sm font-medium">
-        ✏️ Mode édition activé — Les modifications seraient sauvegardées.
+        ✏️ Editing mode activated — Changes would be saved.
       </div>
 
       <!-- Personal Info -->
@@ -37,7 +37,7 @@ import { LucideAngularModule, User, Heart, AlertTriangle, Edit, ArrowLeft } from
           </div>
           <div>
             <h2 class="text-xl font-semibold text-foreground">Fehmi Katar</h2>
-            <p class="text-muted-foreground">Joueur • 28 ans</p>
+            <p class="text-muted-foreground">Player • 28 years old</p>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ import { LucideAngularModule, User, Heart, AlertTriangle, Edit, ArrowLeft } from
       <div class="bg-card rounded-xl border border-border p-6">
         <div class="flex items-center gap-2 mb-4">
           <lucide-icon [name]="alertIcon" [size]="20" class="text-accent"></lucide-icon>
-          <h3 class="font-semibold text-foreground">Conditions Médicales</h3>
+          <h3 class="font-semibold text-foreground">Medical Conditions</h3>
         </div>
         <div class="space-y-2">
           <div *ngFor="let condition of conditions" class="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -71,7 +71,7 @@ import { LucideAngularModule, User, Heart, AlertTriangle, Edit, ArrowLeft } from
         <div class="bg-card rounded-xl border border-border p-6">
           <div class="flex items-center gap-2 mb-3">
             <lucide-icon [name]="heartIcon" [size]="20" class="text-red-500"></lucide-icon>
-            <h3 class="font-semibold text-foreground">Groupe Sanguin</h3>
+            <h3 class="font-semibold text-foreground">Blood Type</h3>
           </div>
           <p class="text-4xl font-bold text-primary">A+</p>
         </div>
@@ -97,16 +97,16 @@ export class HealthProfileComponent {
   toggleEdit() { this.editing = !this.editing; }
 
   personalInfo = [
-    { label: 'Taille', value: '178 cm' },
-    { label: 'Poids', value: '75 kg' },
-    { label: 'IMC', value: '23.7' },
-    { label: 'Sport Principal', value: 'Football' },
+    { label: 'Height', value: '178 cm' },
+    { label: 'Weight', value: '75 kg' },
+    { label: 'BMI', value: '23.7' },
+    { label: 'Primary Sport', value: 'Football' },
   ];
 
   conditions = [
-    { name: 'Légère hypertension', severity: 'medium', severityLabel: 'Modéré' },
-    { name: 'Légère myopie', severity: 'low', severityLabel: 'Léger' },
+    { name: 'Mild hypertension', severity: 'medium', severityLabel: 'Moderate' },
+    { name: 'Mild myopia', severity: 'low', severityLabel: 'Mild' },
   ];
 
-  allergies = ['Arachides', 'Pénicilline'];
+  allergies = ['Peanuts', 'Penicillin'];
 }

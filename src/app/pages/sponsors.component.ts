@@ -17,11 +17,11 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
         <div class="container mx-auto px-4 py-12 max-w-7xl relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-4">
-              <lucide-icon [name]="TagIcon" [size]="16"></lucide-icon> Boutique Officielle
+              <lucide-icon [name]="TagIcon" [size]="16"></lucide-icon> Official Store
             </div>
             <h1 class="text-4xl font-bold mb-3">StreetLeague Store</h1>
             <p class="text-muted-foreground max-w-xl text-lg">
-              Équipez-vous comme un pro avec nos équipements sportifs officiels. Des ballons aux maillots de qualité.
+              Gear up like a pro with our official sports equipment. From balls to high-quality jerseys.
             </p>
           </div>
           <button (click)="isCartOpen = true" class="relative hidden md:flex h-24 w-24 rounded-3xl bg-gradient-to-br from-primary to-accent items-center justify-center shadow-2xl flex-shrink-0 hover:scale-105 transition-all cursor-pointer group">
@@ -37,7 +37,7 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
         
         <!-- Loading Categories -->
         <div *ngIf="loadingCategories" class="flex items-center gap-2 mb-8 text-muted-foreground text-sm">
-           <lucide-icon [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon> Chargement des catégories...
+           <lucide-icon [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon> Loading categories...
         </div>
 
         <!-- Categories Filter Row -->
@@ -49,7 +49,7 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
               [class.text-primary-foreground]="selectedCategoryId === null"
               [class.bg-card]="selectedCategoryId !== null"
               class="whitespace-nowrap px-5 py-2.5 rounded-xl text-sm font-medium border border-border shadow-sm hover:border-primary/50 transition-all">
-              Toutes les catégories
+              All Categories
             </button>
             <button 
               *ngFor="let cat of categories"
@@ -75,16 +75,16 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
                  <lucide-icon [name]="TagIcon" [size]="36"></lucide-icon>
                </div>
                <h3 class="text-2xl font-bold group-hover:text-primary transition-colors">{{ cat.nom || cat.name }}</h3>
-               <p class="text-muted-foreground mt-3">{{ cat.description || 'Découvrez nos équipements pour cette discipline.' }}</p>
+               <p class="text-muted-foreground mt-3">{{ cat.description || 'Discover our equipment for this discipline.' }}</p>
                
                <div class="mt-8 flex items-center gap-2 text-sm font-bold text-primary bg-primary/5 px-4 py-2 rounded-lg">
-                 Voir les articles <lucide-icon [name]="ArrowRightIcon" [size]="16" class="group-hover:translate-x-2 transition-transform"></lucide-icon>
+                 View items <lucide-icon [name]="ArrowRightIcon" [size]="16" class="group-hover:translate-x-2 transition-transform"></lucide-icon>
                </div>
             </div>
 
             <!-- Empty Categories state -->
             <div *ngIf="categories.length === 0" class="col-span-full py-12 text-center text-muted-foreground">
-               Aucune catégorie disponible.
+               No categories available.
             </div>
           </div>
 
@@ -95,14 +95,14 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
             <div class="bg-card border border-border rounded-2xl p-4 mb-6 flex flex-col sm:flex-row gap-4">
               <div class="flex-1 relative">
                 <lucide-icon [name]="SearchIcon" [size]="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></lucide-icon>
-                <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="applyFilters()" placeholder="Rechercher un produit..." class="w-full h-11 pl-10 pr-4 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors">
+                <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="applyFilters()" placeholder="Search a product..." class="w-full h-11 pl-10 pr-4 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors">
               </div>
               <div class="flex gap-4">
-                <input type="number" [(ngModel)]="minPrice" (keyup.enter)="applyFilters()" placeholder="Prix min (€)" class="w-28 h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
-                <input type="number" [(ngModel)]="maxPrice" (keyup.enter)="applyFilters()" placeholder="Prix max (€)" class="w-28 h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
-                <button (click)="applyFilters()" class="h-11 px-6 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors">Filtrer</button>
+                <input type="number" [(ngModel)]="minPrice" (keyup.enter)="applyFilters()" placeholder="Min price ($)" class="w-28 h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                <input type="number" [(ngModel)]="maxPrice" (keyup.enter)="applyFilters()" placeholder="Max price ($)" class="w-28 h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                <button (click)="applyFilters()" class="h-11 px-6 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors">Filter</button>
                 <button *ngIf="isAdmin" (click)="openAddModal()" class="h-11 px-4 bg-accent text-accent-foreground font-bold rounded-xl hover:bg-accent/90 transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
-                   <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon> <span class="hidden sm:inline">Ajouter</span>
+                   <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon> <span class="hidden sm:inline">Add</span>
                 </button>
               </div>
             </div>
@@ -110,7 +110,7 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
             <!-- Loading Products -->
             <div *ngIf="loadingProducts" class="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
                <lucide-icon [name]="Loader2Icon" [size]="40" class="animate-spin text-primary/50"></lucide-icon>
-               <p>Recherche des articles...</p>
+               <p>Searching for items...</p>
             </div>
 
           <!-- Empty Products -->
@@ -118,8 +118,8 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
              <div class="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
                 <lucide-icon [name]="SearchIcon" [size]="32" class="text-muted-foreground"></lucide-icon>
              </div>
-             <h3 class="text-xl font-bold mb-2">Aucun produit trouvé</h3>
-             <p class="text-muted-foreground max-w-md">Nous n'avons pas encore de produits disponibles dans cette catégorie pour le moment.</p>
+             <h3 class="text-xl font-bold mb-2">No products found</h3>
+             <p class="text-muted-foreground max-w-md">We don't have any products available in this category at the moment.</p>
           </div>
 
           <!-- Product Grid -->
@@ -143,10 +143,10 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
                 </div>
                 
                 <div *ngIf="prod.stock < 5 && prod.stock > 0" class="absolute top-3 left-3 bg-destructive/10 text-destructive text-xs font-bold px-2.5 py-1 rounded-lg backdrop-blur-sm">
-                  Plus que {{ prod.stock }} !
+                  Only {{ prod.stock }} left!
                 </div>
                 <div *ngIf="prod.stock === 0" class="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-                  <span class="bg-card text-foreground font-bold px-4 py-2 rounded-xl shadow-lg border border-border">Rupture de stock</span>
+                  <span class="bg-card text-foreground font-bold px-4 py-2 rounded-xl shadow-lg border border-border">Out of stock</span>
                 </div>
               </div>
 
@@ -157,7 +157,7 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
                 </div>
                 
                 <div class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-                  {{ prod.category?.nom || prod.category?.name || 'Général' }}
+                  {{ prod.category?.nom || prod.category?.name || 'General' }}
                 </div>
                 
                 <div class="mt-auto pt-4 flex items-center justify-between border-t border-border">
@@ -179,9 +179,9 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
 
           <!-- Pagination -->
           <div *ngIf="selectedCategoryId !== null && totalPages > 1" class="flex items-center justify-center gap-4 mt-12 mb-8">
-             <button (click)="prevPage()" [disabled]="currentPage === 0" class="px-5 py-2.5 bg-card border border-border rounded-xl font-bold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Précédent</button>
-             <span class="text-sm font-semibold text-muted-foreground">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
-             <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1" class="px-5 py-2.5 bg-card border border-border rounded-xl font-bold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Suivant</button>
+             <button (click)="prevPage()" [disabled]="currentPage === 0" class="px-5 py-2.5 bg-card border border-border rounded-xl font-bold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Previous</button>
+             <span class="text-sm font-semibold text-muted-foreground">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+             <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1" class="px-5 py-2.5 bg-card border border-border rounded-xl font-bold hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Next</button>
           </div>
           
         </div>
@@ -192,12 +192,12 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
          <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="closeAddModal()"></div>
          <div class="relative bg-card border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 animate-in fade-in zoom-in-95 duration-200">
             <div class="flex items-center justify-between mb-6">
-               <h2 class="text-xl font-bold">Ajouter un produit</h2>
+               <h2 class="text-xl font-bold">Add a Product</h2>
                <button (click)="closeAddModal()" class="p-2 hover:bg-muted rounded-full transition-colors"><lucide-icon [name]="XIcon" [size]="20"></lucide-icon></button>
             </div>
             <form class="space-y-4">
                <div>
-                  <label class="text-sm font-semibold">Nom</label>
+                  <label class="text-sm font-semibold">Name</label>
                   <input type="text" [(ngModel)]="newProduct.nom" name="nom" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                </div>
                <div>
@@ -206,30 +206,30 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
                </div>
                <div class="grid grid-cols-2 gap-4">
                   <div>
-                     <label class="text-sm font-semibold">Prix (€)</label>
+                     <label class="text-sm font-semibold">Price ($)</label>
                      <input type="number" [(ngModel)]="newProduct.prix" name="prix" step="0.01" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
                   <div>
-                     <label class="text-sm font-semibold">Stock Initial</label>
+                     <label class="text-sm font-semibold">Initial Stock</label>
                      <input type="number" [(ngModel)]="newProduct.stock" name="stock" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
                </div>
                <div>
-                  <label class="text-sm font-semibold">Catégorie</label>
+                  <label class="text-sm font-semibold">Category</label>
                   <select [(ngModel)]="newProduct.categoryId" name="catId" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                      <option *ngFor="let cat of categories" [ngValue]="cat.id">{{ cat.nom || cat.name }}</option>
                   </select>
                </div>
                <div>
-                  <label class="text-sm font-semibold">URL de l'image (Optionnel)</label>
+                  <label class="text-sm font-semibold">Image URL (Optional)</label>
                   <input type="text" [(ngModel)]="newImageUrl" name="img" placeholder="https://..." class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                </div>
             </form>
             <div class="mt-6 flex justify-end gap-3 border-t border-border pt-4">
-               <button (click)="closeAddModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Annuler</button>
+               <button (click)="closeAddModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Cancel</button>
                <button (click)="submitNewProduct()" [disabled]="addingProduct" class="px-5 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 flex items-center gap-2">
                   <lucide-icon *ngIf="addingProduct" [name]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
-                  Ajouter le produit
+                  Add Product
                </button>
             </div>
          </div>
@@ -269,7 +269,7 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
               <div class="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
                  <lucide-icon [name]="ShoppingCartIcon" [size]="20"></lucide-icon>
               </div>
-              <h2 class="text-xl font-bold">Mon Panier</h2>
+              <h2 class="text-xl font-bold">My Cart</h2>
               <span class="bg-muted text-muted-foreground px-2 py-0.5 rounded-full text-xs font-bold">{{ cartItemCount }}</span>
            </div>
            <button (click)="isCartOpen = false" class="h-10 w-10 bg-muted/50 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
@@ -281,9 +281,9 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
         <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
            <div *ngIf="!cart || !cart.items || cart.items.length === 0" class="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-4">
               <lucide-icon [name]="ShoppingBagIcon" [size]="48" class="opacity-20"></lucide-icon>
-              <p>Votre panier est vide.</p>
+              <p>Your cart is empty.</p>
               <button (click)="isCartOpen = false" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl mt-2 font-medium">
-                 Reprendre mes achats
+                 Resume shopping
               </button>
            </div>
            
@@ -294,8 +294,8 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
                   <span *ngIf="!item.productImage">🛒</span>
                 </div>
                 <div class="flex flex-col flex-1 py-1">
-                  <h4 class="font-bold text-sm line-clamp-2 leading-tight pr-6">{{ item.productName || 'Article' }}</h4>
-                  <div class="text-xs text-muted-foreground mt-1 mb-auto">Quantité: {{ item.quantity }}</div>
+                  <h4 class="font-bold text-sm line-clamp-2 leading-tight pr-6">{{ item.productName || 'Item' }}</h4>
+                  <div class="text-xs text-muted-foreground mt-1 mb-auto">Quantity: {{ item.quantity }}</div>
                   <div class="font-black text-primary">{{ formatPrice(item.price * item.quantity) }}</div>
                 </div>
                 <!-- Remove item button -->
@@ -309,11 +309,11 @@ import { ProductService, Product, Category, ProductRequest } from '../services/p
         <!-- Drawer Footer (Total & Checkout) -->
         <div *ngIf="cart && cart.items && cart.items.length > 0" class="p-6 border-t border-border bg-card">
            <div class="flex items-center justify-between mb-4">
-              <span class="text-muted-foreground">Total à payer</span>
+              <span class="text-muted-foreground">Total to pay</span>
               <span class="text-2xl font-black">{{ formatPrice(cartTotal) }}</span>
            </div>
            <button class="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all hover:shadow-lg shadow-primary/25 hover:-translate-y-1">
-              Commander maintenant <lucide-icon [name]="ArrowRightIcon" [size]="20"></lucide-icon>
+              Checkout now <lucide-icon [name]="ArrowRightIcon" [size]="20"></lucide-icon>
            </button>
         </div>
       </div>
@@ -396,7 +396,7 @@ export class SponsorsComponent implements OnInit {
         this.cart = res;
         this.cartItemCount = res?.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0;
       },
-      error: (err) => console.error('Erreur chargement panier', err)
+      error: (err) => console.error('Error loading cart', err)
     });
   }
 
@@ -410,7 +410,7 @@ export class SponsorsComponent implements OnInit {
           }
         });
       },
-      error: (err) => console.error('Erreur chargement favoris', err)
+      error: (err) => console.error('Error loading favorites', err)
     });
   }
 
@@ -422,7 +422,7 @@ export class SponsorsComponent implements OnInit {
         this.loadingCategories = false;
       },
       error: (err: any) => {
-        console.error('Erreur chargement catégories', err);
+        console.error('Error loading categories', err);
         this.loadingCategories = false;
       }
     });
@@ -458,7 +458,7 @@ export class SponsorsComponent implements OnInit {
         this.loadingProducts = false;
       },
       error: (err: any) => {
-        console.error('Erreur chargement produits', err);
+        console.error('Error loading products', err);
         this.loadingProducts = false;
         this.products = [];
       }
@@ -501,13 +501,13 @@ export class SponsorsComponent implements OnInit {
     this.productService.addToCart(product.id, 1).subscribe({
       next: () => {
         this.addingToCartId = null;
-        this.showToast(`${product.nom} ajouté au panier !`);
+        this.showToast(`${product.nom} added to cart!`);
         this.loadCart(); // reload immediately
       },
       error: (err: any) => {
         console.error(err);
         this.addingToCartId = null;
-        this.showToast("❌ Erreur lors de l'ajout au panier");
+        this.showToast("❌ Error adding to cart");
       }
     });
   }
@@ -515,10 +515,10 @@ export class SponsorsComponent implements OnInit {
   removeFromCart(itemId: number) {
     this.productService.removeFromCart(itemId).subscribe({
        next: () => {
-          this.showToast('Article retiré du panier');
+          this.showToast('Item removed from cart');
           this.loadCart();
        },
-       error: () => this.showToast('Erreur lors du retrait')
+       error: () => this.showToast('Error during removal')
     });
   }
 
@@ -530,10 +530,10 @@ export class SponsorsComponent implements OnInit {
     if (this.isFavorite(product.id)) {
       this.favoriteProductIds.delete(product.id);
       this.productService.removeFromFavorites(product.id).subscribe({
-        next: () => this.showToast(`${product.nom} retiré des favoris`),
+        next: () => this.showToast(`${product.nom} removed from favorites`),
         error: () => {
            this.favoriteProductIds.add(product.id);
-           this.showToast('Erreur lors du retrait des favoris');
+           this.showToast('Error removing from favorites');
         }
       });
     } else {
@@ -541,12 +541,12 @@ export class SponsorsComponent implements OnInit {
       this.productService.addToFavorites(product.id).subscribe({
          next: (res) => {
             if (res !== null) {
-               this.showToast(`${product.nom} ajouté aux listes de souhaits ❤️`);
+               this.showToast(`${product.nom} added to wishlist ❤️`);
             }
          },
          error: () => {
             this.favoriteProductIds.delete(product.id);
-            this.showToast('Erreur lors de l\'ajout aux favoris');
+            this.showToast('Error adding to favorites');
          }
       });
     }
@@ -558,7 +558,7 @@ export class SponsorsComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
   }
 
   // --- Admin Methods ---
@@ -581,7 +581,7 @@ export class SponsorsComponent implements OnInit {
 
   submitNewProduct() {
      if (!this.newProduct.nom || this.newProduct.prix <= 0) {
-        alert("Le nom et le prix (supérieur à 0) sont obligatoires.");
+        alert("Name and price (greater than 0) are required.");
         return;
      }
 
@@ -597,13 +597,13 @@ export class SponsorsComponent implements OnInit {
         next: () => {
            this.addingProduct = false;
            this.closeAddModal();
-           this.showToast('Produit ajouté avec succès !');
+           this.showToast('Product added successfully!');
            this.loadProducts(); // Refresh list to show the new product immediately
         },
         error: (err) => {
            console.error("Error creating product:", err);
            this.addingProduct = false;
-           alert("Une erreur est survenue lors de l'ajout du produit.");
+           alert("An error occurred while adding the product.");
         }
      });
   }

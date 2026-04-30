@@ -13,12 +13,12 @@ import { CommunityService } from '../services/community.service';
       <div class="max-w-7xl mx-auto">
         <div class="flex items-center justify-between mb-8">
           <div>
-            <h1 class="mb-2">Communauté</h1>
-            <p class="text-muted-foreground">Connectez-vous avec d'autres joueurs</p>
+            <h1 class="mb-2">Community</h1>
+            <p class="text-muted-foreground">Connect with other players</p>
           </div>
           <button (click)="openNewPost()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
             <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>
-            Nouveau post
+            New post
           </button>
         </div>
 
@@ -26,17 +26,17 @@ import { CommunityService } from '../services/community.service';
         <div *ngIf="showNewPostModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold text-foreground">Nouveau Post</h3>
+              <h3 class="font-semibold text-foreground">New Post</h3>
               <button (click)="showNewPostModal = false" class="p-2 hover:bg-muted rounded-lg transition-colors">
                 <lucide-icon [name]="XIcon" [size]="18" class="text-muted-foreground"></lucide-icon>
               </button>
             </div>
-            <textarea [(ngModel)]="newPostContent" rows="4" placeholder="Partagez quelque chose avec la communauté..."
+            <textarea [(ngModel)]="newPostContent" rows="4" placeholder="Share something with the community..."
               class="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none mb-4"></textarea>
             <div class="flex gap-3 justify-end">
-              <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Cancel</button>
               <button (click)="submitPost()" [disabled]="posting" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
-                {{ posting ? 'Publication...' : 'Publier' }}
+                {{ posting ? 'Publishing...' : 'Publish' }}
               </button>
             </div>
           </div>
@@ -47,12 +47,12 @@ import { CommunityService } from '../services/community.service';
           <div class="lg:col-span-2 space-y-6">
             <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
               <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-              Chargement des posts...
+              Loading posts...
             </div>
 
             <div *ngIf="!loading && posts.length === 0" class="text-center py-20 text-muted-foreground">
               <div class="text-5xl mb-4">💬</div>
-              <p>Aucun post pour le moment. Soyez le premier !</p>
+              <p>No posts yet. Be the first!</p>
             </div>
 
             <div *ngFor="let post of posts" class="bg-card rounded-2xl p-6 border border-border">
@@ -61,7 +61,7 @@ import { CommunityService } from '../services/community.service';
                   {{ getInitials(post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author)) }}
                 </div>
                 <div class="flex-1">
-                  <div class="font-semibold">{{ post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author || 'Utilisateur') }}</div>
+                  <div class="font-semibold">{{ post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author || 'User') }}</div>
                   <div class="text-sm text-muted-foreground">{{ formatDate(post.createdAt || post.time) }}</div>
                 </div>
               </div>
@@ -91,7 +91,7 @@ import { CommunityService } from '../services/community.service';
                 <div *ngIf="!post.loadingComments" class="space-y-3 mb-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   <div *ngFor="let comment of post.commentList" class="flex items-start gap-2">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold shrink-0 text-xs mt-1">
-                      {{ getInitials(comment.authorFirstName ? (comment.authorFirstName + ' ' + comment.authorLastName) : 'Utilisateur') }}
+                      {{ getInitials(comment.authorFirstName ? (comment.authorFirstName + ' ' + comment.authorLastName) : 'User') }}
                     </div>
                     <div class="flex-1">
                       <div class="bg-muted px-4 py-2.5 rounded-2xl inline-block max-w-full">
@@ -102,7 +102,7 @@ import { CommunityService } from '../services/community.service';
                     </div>
                   </div>
                   <div *ngIf="post.commentList && post.commentList.length === 0" class="text-sm text-center text-muted-foreground py-2">
-                    Soyez le premier à commenter !
+                    Be the first to comment!
                   </div>
                 </div>
 
@@ -112,7 +112,7 @@ import { CommunityService } from '../services/community.service';
                     {{ currentUserInitials }}
                   </div>
                   <div class="flex-1 flex gap-2">
-                    <input [(ngModel)]="post.commentInput" placeholder="Écrire un commentaire..."
+                    <input [(ngModel)]="post.commentInput" placeholder="Write a comment..."
                       (keyup.enter)="addComment(post)"
                       class="flex-1 px-4 py-2 bg-muted border border-border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-primary">
                     <button (click)="addComment(post)" 
@@ -180,14 +180,14 @@ export class CommunityComponent implements OnInit {
     trending = [
         { tag: '#football', posts: 234 },
         { tag: '#basketball', posts: 128 },
-        { tag: '#recrutement', posts: 89 },
+        { tag: '#recruitment', posts: 89 },
         { tag: '#tournoi2026', posts: 76 },
     ];
 
     constructor(private communityService: CommunityService) {}
 
     ngOnInit() {
-        this.currentUserInitials = this.getInitials(localStorage.getItem('user_name') || 'Moi');
+        this.currentUserInitials = this.getInitials(localStorage.getItem('user_name') || 'Me');
         this.loadPosts();
     }
 
@@ -223,7 +223,7 @@ export class CommunityComponent implements OnInit {
                 // Revert UI on error
                 post.liked = !post.liked;
                 post.likesCount = (post.likesCount ?? 0) + (post.liked ? 1 : -1);
-                this.showToast('Erreur lors de l\'ajout du like');
+                this.showToast('Error adding like');
             }
         });
     }
@@ -240,7 +240,7 @@ export class CommunityComponent implements OnInit {
                 },
                 error: () => {
                     post.loadingComments = false;
-                    this.showToast('Impossible de charger les commentaires');
+                    this.showToast('Impossible to load comments');
                 }
             });
         }
@@ -262,7 +262,7 @@ export class CommunityComponent implements OnInit {
             },
             error: () => {
                 post.addingComment = false;
-                this.showToast('Erreur lors de l\'envoi du commentaire');
+                this.showToast('Error sending comment');
             }
         });
     }
@@ -292,11 +292,11 @@ export class CommunityComponent implements OnInit {
                 this.showNewPostModal = false;
                 this.newPostContent = '';
                 this.posting = false;
-                this.showToast('Post publié ! 🎉');
+                this.showToast('Post published! 🎉');
             },
             error: () => {
                 this.posting = false;
-                this.showToast('Erreur lors de la publication');
+                this.showToast('Error during publishing');
             }
         });
     }
@@ -313,9 +313,9 @@ export class CommunityComponent implements OnInit {
         const date = new Date(d);
         const diffMs = Date.now() - date.getTime();
         const diffH = Math.floor(diffMs / 3600000);
-        if (diffH < 1) return 'À l\'instant';
-        if (diffH < 24) return `Il y a ${diffH}h`;
-        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        if (diffH < 1) return 'Just now';
+        if (diffH < 24) return `${diffH}h ago`;
+        return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
     showToast(msg: string) {

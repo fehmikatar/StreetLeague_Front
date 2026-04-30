@@ -13,7 +13,7 @@ import { ProductService } from '../services/product.service';
       <div class="container mx-auto px-4 py-8 max-w-5xl">
         <h1 class="text-3xl font-bold mb-8 flex items-center gap-3">
            <lucide-icon [name]="ShoppingCartIcon" [size]="32" class="text-primary"></lucide-icon>
-           Mon Panier
+           My Cart
         </h1>
 
         <div *ngIf="loading" class="flex justify-center p-12">
@@ -22,10 +22,10 @@ import { ProductService } from '../services/product.service';
 
         <div *ngIf="!loading && (!cart || !cart.items || cart.items.length === 0)" class="bg-card rounded-3xl p-12 text-center border border-border shadow-sm flex flex-col items-center justify-center">
            <lucide-icon [name]="ShoppingBagIcon" [size]="64" class="text-muted/50 mb-6"></lucide-icon>
-           <h2 class="text-2xl font-bold mb-2">Votre panier est bien vide !</h2>
-           <p class="text-muted-foreground mb-8 text-lg">Il est temps de s'équiper ! Découvrez notre boutique officielle.</p>
+           <h2 class="text-2xl font-bold mb-2">Your cart is empty!</h2>
+           <p class="text-muted-foreground mb-8 text-lg">Time to gear up! Discover our official shop.</p>
            <a routerLink="/app/sponsors" class="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-1 inline-flex">
-              Visiter la boutique
+              Visit Shop
            </a>
         </div>
 
@@ -41,7 +41,7 @@ import { ProductService } from '../services/product.service';
                  
                  <div class="flex-1">
                     <h3 class="font-bold text-lg mb-1 pr-8">{{ item.product?.nom }}</h3>
-                    <div class="text-sm text-muted-foreground mb-3 uppercase tracking-wide">{{ item.product?.category?.nom || item.product?.category?.name || 'Équipement' }}</div>
+                    <div class="text-sm text-muted-foreground mb-3 uppercase tracking-wide">{{ item.product?.category?.nom || item.product?.category?.name || 'Equipment' }}</div>
                     
                     <div class="flex flex-wrap items-center gap-4">
                        <span class="font-black text-xl text-primary">{{ formatPrice(item.price ? item.price : item.product?.prix) }}</span>
@@ -64,37 +64,37 @@ import { ProductService } from '../services/product.service';
               </div>
 
               <button (click)="clearCart()" class="text-sm font-medium text-destructive hover:underline flex items-center gap-2 mt-6 px-2">
-                 <lucide-icon [name]="Trash2Icon" [size]="16"></lucide-icon> Vider tout le panier
+                 <lucide-icon [name]="Trash2Icon" [size]="16"></lucide-icon> Clear all cart
               </button>
            </div>
 
            <!-- Summary Sidebar -->
            <div class="lg:col-span-1">
              <div class="bg-card border border-border rounded-3xl p-6 shadow-xl sticky top-24">
-               <h3 class="text-xl font-bold mb-6">Récapitulatif</h3>
+               <h3 class="text-xl font-bold mb-6">Summary</h3>
                
                <div class="space-y-4 mb-6">
                  <div class="flex justify-between items-center text-muted-foreground">
-                   <span>Sous-total ({{ cartItemCount }} articles)</span>
+                   <span>Subtotal ({{ cartItemCount }} items)</span>
                    <span class="font-semibold text-foreground">{{ formatPrice(cartTotal) }}</span>
                  </div>
                  <div class="flex justify-between items-center text-muted-foreground">
-                   <span>Frais de livraison</span>
-                   <span class="font-semibold text-green-500">Offert</span>
+                   <span>Shipping fees</span>
+                   <span class="font-semibold text-green-500">Free</span>
                  </div>
                  <div class="h-px bg-border w-full my-4"></div>
                  <div class="flex justify-between items-center">
-                   <span class="text-lg font-bold">Total TTC</span>
+                   <span class="text-lg font-bold">Total</span>
                    <span class="text-3xl font-black text-primary">{{ formatPrice(cartTotal) }}</span>
                  </div>
                </div>
 
                <button class="w-full h-14 bg-primary text-primary-foreground rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:shadow-lg shadow-primary/30 hover:-translate-y-1 transition-all">
-                  Passer la commande <lucide-icon [name]="ArrowRightIcon" [size]="20"></lucide-icon>
+                  Checkout <lucide-icon [name]="ArrowRightIcon" [size]="20"></lucide-icon>
                </button>
                
                <div class="mt-4 text-center text-xs text-muted-foreground opacity-60">
-                 Paiement 100% sécurisé via Payplug / Stripe
+                 100% Secure Payment via Payplug / Stripe
                </div>
              </div>
            </div>
@@ -148,7 +148,7 @@ export class CartComponent implements OnInit {
       next: () => {
         this.loadCart();
       },
-      error: () => this.showToast('Erreur de mise à jour')
+      error: () => this.showToast('Update error')
     });
   }
 
@@ -156,21 +156,21 @@ export class CartComponent implements OnInit {
     this.productService.removeFromCart(itemId).subscribe({
       next: () => {
         this.loadCart();
-        this.showToast('Article supprimé');
+        this.showToast('Item removed');
       },
-      error: () => this.showToast('Erreur lors de la suppression')
+      error: () => this.showToast('Error removing item')
     });
   }
 
   clearCart() {
-    if(!confirm("Êtes-vous sûr de vouloir vider le panier ?")) return;
+    if(!confirm("Are you sure you want to clear the cart?")) return;
     this.productService.clearCart().subscribe({
       next: () => {
         this.cart = null;
-        this.showToast('Panier vidé');
+        this.showToast('Cart cleared');
         this.loadCart();
       },
-      error: () => this.showToast('Erreur lors du vidage')
+      error: () => this.showToast('Error clearing cart')
     });
   }
 
@@ -188,7 +188,7 @@ export class CartComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(price);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
   }
 
   showToast(msg: string) {

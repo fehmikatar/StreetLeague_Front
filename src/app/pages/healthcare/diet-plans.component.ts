@@ -13,16 +13,15 @@ import { LucideAngularModule, Utensils, Coffee, Apple, ShoppingCart, ArrowLeft }
         <a routerLink="/app/healthcare" class="p-2 bg-card border border-border rounded-xl hover:bg-muted transition-all">
           <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
         </a>
-        <span class="text-sm text-muted-foreground">Santé</span>
+        <span class="text-sm text-muted-foreground">Health</span>
       </div>
       <div>
-        <h1 class="text-2xl font-bold text-foreground">Régime Alimentaire</h1>
-        <p class="text-muted-foreground">Plans nutritionnels adaptés à vos objectifs sportifs</p>
+        <h1 class="text-2xl font-bold text-foreground">Diet Plans</h1>
+        <p class="text-muted-foreground">Nutritional plans adapted to your sports goals</p>
       </div>
 
-      <!-- Daily Calories -->
       <div class="bg-card rounded-xl border border-border p-6">
-        <h2 class="font-semibold text-foreground mb-4">Bilan Calorique du Jour</h2>
+        <h2 class="font-semibold text-foreground mb-4">Daily Calorie Summary</h2>
         <div class="flex items-center gap-6">
           <div class="relative w-24 h-24">
             <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
@@ -35,14 +34,14 @@ import { LucideAngularModule, Utensils, Coffee, Apple, ShoppingCart, ArrowLeft }
           </div>
           <div class="space-y-2">
             <div class="flex gap-8">
-              <div><p class="text-xs text-muted-foreground">Consommé</p><p class="font-bold text-foreground">1,640 kcal</p></div>
-              <div><p class="text-xs text-muted-foreground">Objectif</p><p class="font-bold text-foreground">2,340 kcal</p></div>
-              <div><p class="text-xs text-muted-foreground">Restant</p><p class="font-bold text-primary">700 kcal</p></div>
+              <div><p class="text-xs text-muted-foreground">Consumed</p><p class="font-bold text-foreground">1,640 kcal</p></div>
+              <div><p class="text-xs text-muted-foreground">Goal</p><p class="font-bold text-foreground">2,340 kcal</p></div>
+              <div><p class="text-xs text-muted-foreground">Remaining</p><p class="font-bold text-primary">700 kcal</p></div>
             </div>
             <div class="flex gap-4 text-sm">
-              <span class="text-blue-500">Protéines: 120g</span>
-              <span class="text-yellow-500">Glucides: 210g</span>
-              <span class="text-red-500">Lipides: 65g</span>
+              <span class="text-blue-500">Proteins: 120g</span>
+              <span class="text-yellow-500">Carbs: 210g</span>
+              <span class="text-red-500">Fats: 65g</span>
             </div>
           </div>
         </div>
@@ -50,7 +49,7 @@ import { LucideAngularModule, Utensils, Coffee, Apple, ShoppingCart, ArrowLeft }
 
       <!-- Today's Meals -->
       <div>
-        <h2 class="text-lg font-semibold text-foreground mb-3">Repas du Jour</h2>
+        <h2 class="text-lg font-semibold text-foreground mb-3">Daily Meals</h2>
         <div class="space-y-3">
           <div *ngFor="let meal of meals" class="bg-card rounded-xl border border-border p-4">
             <div class="flex items-center justify-between mb-3">
@@ -79,9 +78,9 @@ import { LucideAngularModule, Utensils, Coffee, Apple, ShoppingCart, ArrowLeft }
 export class DietPlansComponent {
   readonly arrowLeftIcon = ArrowLeft;
   meals = [
-    { name: 'Petit-déjeuner', time: '07:30', calories: 520, icon: Coffee, foods: [{ name: 'Flocons d\'avoine', portion: '80g' }, { name: 'Banane', portion: '1 pc' }, { name: 'Lait d\'amande', portion: '200ml' }] },
-    { name: 'Déjeuner', time: '12:30', calories: 720, icon: Utensils, foods: [{ name: 'Poulet grillé', portion: '180g' }, { name: 'Riz complet', portion: '150g' }, { name: 'Légumes vapeur', portion: '200g' }] },
-    { name: 'Collation', time: '16:00', calories: 200, icon: Apple, foods: [{ name: 'Pomme', portion: '1 pc' }, { name: 'Amandes', portion: '30g' }] },
-    { name: 'Dîner', time: '19:30', calories: 200, icon: ShoppingCart, foods: [{ name: 'À planifier', portion: '—' }] },
+    { name: 'Breakfast', time: '07:30', calories: 520, icon: Coffee, foods: [{ name: 'Oatmeal', portion: '80g' }, { name: 'Banana', portion: '1 pc' }, { name: 'Almond milk', portion: '200ml' }] },
+    { name: 'Lunch', time: '12:30', calories: 720, icon: Utensils, foods: [{ name: 'Grilled chicken', portion: '180g' }, { name: 'Brown rice', portion: '150g' }, { name: 'Steamed vegetables', portion: '200g' }] },
+    { name: 'Snack', time: '16:00', calories: 200, icon: Apple, foods: [{ name: 'Apple', portion: '1 pc' }, { name: 'Almonds', portion: '30g' }] },
+    { name: 'Dinner', time: '19:30', calories: 200, icon: ShoppingCart, foods: [{ name: 'To be planned', portion: '—' }] },
   ];
 }
