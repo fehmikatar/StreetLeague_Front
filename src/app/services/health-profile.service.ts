@@ -19,6 +19,21 @@ export interface HealthProfileResponse {
   bmi: number;
   bmiCategory: string;
   gender?: string;               // MALE / FEMALE
+  bmr?: number;
+  maintenanceCalories?: number;
+  weightLossCalories?: number;
+  weightGainCalories?: number;
+  healthScore?: number;
+  healthScoreMessage?: string;
+  personalizedAdvice?: string;
+}
+
+export interface ActivityRecommendation {
+  dayOfWeek: string;
+  activityName: string;
+  durationMinutes: number;
+  intensity: string;
+  description: string;
 }
 
 export interface HealthProfileRequest {
@@ -40,7 +55,7 @@ export interface HealthProfileRequest {
 export class HealthProfileService {
   private apiUrl = 'http://localhost:8085/api/health-profiles';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<HealthProfileResponse[]> {
     return this.http.get<HealthProfileResponse[]>(this.apiUrl);
@@ -54,6 +69,12 @@ export class HealthProfileService {
     return this.http.get<HealthProfileResponse>(`${this.apiUrl}/user/${userId}`);
   }
 
+  getActivityPlan(userId: number): Observable<ActivityRecommendation[]> {
+    return this.http.get<ActivityRecommendation[]>(`${this.apiUrl}/user/${userId}/activities`);
+  }
+
+
+
   create(data: HealthProfileRequest): Observable<HealthProfileResponse> {
     return this.http.post<HealthProfileResponse>(this.apiUrl, data);
   }
@@ -64,5 +85,8 @@ export class HealthProfileService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+  getActivityPlanByWeek(userId: number, week: number): Observable<ActivityRecommendation[]> {
+    return this.http.get<ActivityRecommendation[]>(`${this.apiUrl}/user/${userId}/activities/${week}`);
   }
 }

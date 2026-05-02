@@ -19,6 +19,7 @@ export interface AppointmentResponse {
   reason: string;
   status: string;
   notes: string;
+  patientFeedback: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +55,22 @@ export class AppointmentService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
   updateStatus(id: number, status: string): Observable<AppointmentResponse> {
-    return this.http.patch<AppointmentResponse>(`${this.apiUrl}/${id}/status?status=${status}`, {});
+    return this.http.put<AppointmentResponse>(`${this.apiUrl}/${id}/status?status=${status}`, {});
+  }
+
+  sendFeedback(id: number, message: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${id}/feedback`, null, { params: { message } });
+  }
+
+  updateFeedback(id: number, message: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}/feedback`, null, { params: { message } });
+  }
+
+  deleteFeedback(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/feedback`);
+  }
+
+  sendGeneralFeedback(userId: number, message: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/feedback/general`, null, { params: { userId: userId.toString(), message } });
   }
 }

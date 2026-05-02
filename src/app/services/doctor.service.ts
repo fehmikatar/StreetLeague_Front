@@ -8,9 +8,24 @@ export interface DoctorResponse {
   firstName: string;
   lastName: string;
   specialty: string;
-  email?: string;
-  phone?: string;
-  licenseNumber?: string;
+  email: string;
+  phoneNumber: string;
+  licenseNumber: string;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  isAvailable: boolean;
+}
+
+export interface DoctorRequest {
+  firstName: string;
+  lastName: string;
+  specialty: string;
+  email: string;
+  phoneNumber: string;
+  licenseNumber: string;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  isAvailable: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -27,5 +42,19 @@ export class DoctorService {
     return this.http.get<DoctorResponse>(`${this.apiUrl}/${id}`);
   }
 
-  // Ajoutez d'autres méthodes si nécessaire (create, update, delete)
+  create(data: DoctorRequest): Observable<DoctorResponse> {
+    return this.http.post<DoctorResponse>(this.apiUrl, data);
+  }
+
+  update(id: number, data: DoctorRequest): Observable<DoctorResponse> {
+    return this.http.put<DoctorResponse>(`${this.apiUrl}/${id}`, data);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  updateAvailability(id: number, isAvailable: boolean): Observable<DoctorResponse> {
+    return this.http.patch<DoctorResponse>(`${this.apiUrl}/${id}/availability?available=${isAvailable}`, {});
+  }
 }

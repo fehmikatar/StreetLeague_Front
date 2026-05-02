@@ -54,6 +54,7 @@ import { DietPlansComponent } from './pages/healthcare/diet-plans.component';
 import { HealthTrendsComponent } from './pages/healthcare/health-trends.component';
 import { HealthAlertsComponent } from './pages/healthcare/health-alerts.component';
 import { ComplianceTrackingComponent } from './pages/healthcare/compliance-tracking.component';
+import { DoctorManagementComponent } from './pages/healthcare/doctor-management.component';
 
 
 import { BadgeDashboardComponent } from './pages/badges/badge-dashboard.component';
@@ -147,6 +148,7 @@ export const routes: Routes = [
             { path: 'healthcare/trends', component: HealthTrendsComponent },
             { path: 'healthcare/alerts', component: HealthAlertsComponent },
             { path: 'healthcare/compliance', component: ComplianceTrackingComponent },
+            { path: 'healthcare/doctors', component: DoctorManagementComponent },
 
         ],
 

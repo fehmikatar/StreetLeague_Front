@@ -69,4 +69,14 @@ export class DietPlanService {
   deactivate(id: number): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/${id}/deactivate`, {});
   }
+  searchFoodCalories(query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/search-calories?query=${query}`);
+  }
+  generateRecommendation(healthProfileId: number, goal?: string): Observable<DietPlanResponse> {
+    let url = `${this.apiUrl}/health-profile/${healthProfileId}/recommend`;
+    if (goal) {
+      url += `?goal=${goal}`;
+    }
+    return this.http.post<DietPlanResponse>(url, {});
+  }
 }

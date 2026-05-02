@@ -1,4 +1,4 @@
-// health-dashboard.component.ts (version sans IA)
+// health-dashboard.component.ts
 import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -11,6 +11,7 @@ import { AppointmentService } from '../../services/appointment.service';
 import { HealthProfileService, HealthProfileResponse } from '../../services/health-profile.service';
 import { MedicalRecordService } from '../../services/medical-record.service';
 import { DietPlanService } from '../../services/diet-plan.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-health-dashboard',
@@ -20,18 +21,35 @@ import { DietPlanService } from '../../services/diet-plan.service';
     <div class="min-h-screen" style="background: #F8FAFC;">
       <div class="p-6 max-w-7xl mx-auto space-y-6">
         
-        <!-- EN-TÊTE SIMPLIFIÉ -->
+        <!-- EN-TÊTE AVEC SÉLECTEUR ADMIN -->
         <div class="relative overflow-hidden rounded-2xl shadow-lg" style="background: linear-gradient(135deg, #1DB954, #0e8e3e);">
           <div class="relative p-6 text-white">
             <div class="flex justify-between items-center flex-wrap gap-4">
               <div>
                 <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Tableau de bord santé</h1>
-                <p class="text-green-100 mt-1 text-sm">Vue d'ensemble de votre activité médicale et bien-être</p>
+                <p *ngIf="!isAdmin" class="text-green-100 mt-1 text-sm">Vue d'ensemble de votre activité médicale et bien-être</p>
+                <p *ngIf="isAdmin && selectedUserName" class="text-green-100 text-sm mt-1">
+                  👤 Utilisateur consulté : <strong>{{ selectedUserName }}</strong>
+                </p>
               </div>
-              <div class="backdrop-blur-md bg-gradient-to-r from-green-500 to-green-600 rounded-xl px-4 py-2 text-center shadow-lg">
-                <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                  <span class="text-xs font-bold">SYNCHRONISÉ</span>
+              <div class="flex items-center gap-3">
+                <!-- Sélecteur d'utilisateur (visible uniquement pour admin / field owner) -->
+                <div *ngIf="isAdmin" class="relative">
+                  <select [(ngModel)]="selectedUserId" (change)="onUserChange()"
+                          class="bg-white/20 backdrop-blur-md text-white border border-white/30 rounded-xl px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white">
+                    <option *ngFor="let user of userList" [value]="user.id" class="text-gray-900">
+                      {{ user.firstName }} {{ user.lastName }} (ID: {{ user.id }})
+                    </option>
+                  </select>
+                  <div *ngIf="selectedUserId !== currentUserId" class="text-xs text-yellow-200 mt-1">
+                    ⚡ Visualisation des données de {{ selectedUserName }}
+                  </div>
+                </div>
+                <div class="backdrop-blur-md bg-gradient-to-r from-green-500 to-green-600 rounded-xl px-4 py-2 text-center shadow-lg">
+                  <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                    <span class="text-xs font-bold">SYNCHRONISÉ</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -49,15 +67,53 @@ import { DietPlanService } from '../../services/diet-plan.service';
           </div>
         </div>
 
-        <!-- AUCUN PROFIL SANTÉ -->
+        <!-- VUE GLOBALE POUR ADMIN / FIELD OWNER (tableau de tous les utilisateurs) - visible directement -->
+        <div *ngIf="!isLoading && isAdmin && showGlobalView" class="bg-white rounded-2xl shadow-lg p-5">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-gray-800">👥 Tous les utilisateurs</h3>
+            <button (click)="toggleGlobalView()" class="text-xs text-green-600 hover:underline">
+              Masquer la vue générale
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left">ID</th>
+                  <th class="px-4 py-2 text-left">Nom</th>
+                  <th class="px-4 py-2 text-left">IMC</th>
+                  <th class="px-4 py-2 text-left">RDV à venir</th>
+                  <th class="px-4 py-2 text-left">Plans actifs</th>
+                  <th class="px-4 py-2 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of userList" class="border-t hover:bg-green-50 cursor-pointer" (click)="selectUser(user.id)">
+                  <td class="px-4 py-2">{{ user.id }}</td>
+                  <td class="px-4 py-2 font-medium">{{ user.firstName }} {{ user.lastName }}</td>
+                  <td class="px-4 py-2">{{ getUserBmiFormatted(user.id) }}</td>
+                  <td class="px-4 py-2">{{ getUserAppointmentsCount(user.id) }}</td>
+                  <td class="px-4 py-2">{{ getUserActivePlansCount(user.id) }}</td>
+                  <td class="px-4 py-2"><button class="text-green-600" (click)="selectUser(user.id); $event.stopPropagation()">👁️ Voir détails</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div *ngIf="!isLoading && isAdmin && !showGlobalView" class="text-right">
+          <button (click)="toggleGlobalView()" class="text-sm text-green-600 hover:underline">📊 Afficher la vue générale de tous les utilisateurs</button>
+        </div>
+
+        <!-- AUCUN PROFIL SANTÉ POUR L'UTILISATEUR COURANT -->
         <div *ngIf="!isLoading && !healthProfile" class="bg-white rounded-2xl shadow-lg p-12 text-center">
           <div class="flex flex-col items-center">
             <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <span class="text-4xl">📋</span>
             </div>
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Aucun profil santé trouvé</h2>
-            <p class="text-gray-500 mb-6">Pour utiliser le tableau de bord, vous devez d'abord créer votre profil de santé.</p>
-            <button (click)="navigateTo('/app/healthcare/profile')" 
+            <p class="text-gray-500 mb-6">Cet utilisateur n'a pas encore créé son profil de santé.</p>
+            <button *ngIf="!isAdmin" (click)="navigateTo('/app/healthcare/profile')" 
                     class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl shadow-md transition flex items-center gap-2">
               <span>➕</span> Créer mon profil santé
             </button>
@@ -117,8 +173,8 @@ import { DietPlanService } from '../../services/diet-plan.service';
             </div>
           </div>
 
-          <!-- BOUTONS D'ACCÈS RAPIDE -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <!-- BOUTONS D'ACCÈS RAPIDE (avec le bouton Docteurs) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             <button *ngFor="let nav of navItems" (click)="navigateTo(nav.path)" 
                     class="flex flex-col items-center bg-white p-4 rounded-xl border border-gray-100 hover:shadow-lg transition-all group">
               <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-all group-hover:bg-green-100">
@@ -183,6 +239,11 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('complianceChart') complianceCanvas!: ElementRef<HTMLCanvasElement>;
 
   isLoading = true;
+  isAdmin = false;
+  currentUserId: number | null = null;
+  selectedUserId: number | null = null;
+  selectedUserName = '';
+  userList: any[] = [];
   healthProfile: HealthProfileResponse | null = null;
 
   // Données dashboard
@@ -195,6 +256,13 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
   attendanceRate = 0;
   recentAlerts: any[] = [];
 
+  // Vue globale - affichée directement pour le Field Owner
+  showGlobalView = true;   // ← Changement clé : le tableau est visible immédiatement
+  userBmiMap = new Map<number, number>();
+  userAppointmentsMap = new Map<number, number>();
+  userActivePlansMap = new Map<number, number>();
+
+  // Raccourcis de navigation (ajout du lien vers la gestion des médecins)
   navItems = [
     { path: '/app/healthcare/profile', icon: '👤', title: 'Profil' },
     { path: '/app/healthcare/records', icon: '📋', title: 'Dossiers' },
@@ -202,7 +270,8 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
     { path: '/app/healthcare/diet', icon: '🥗', title: 'Régime' },
     { path: '/app/healthcare/trends', icon: '📈', title: 'Tendances' },
     { path: '/app/healthcare/alerts', icon: '🔔', title: 'Alertes' },
-    { path: '/app/healthcare/compliance', icon: '✅', title: 'Compliance' }
+    { path: '/app/healthcare/compliance', icon: '✅', title: 'Compliance' },
+    { path: '/app/healthcare/doctors', icon: '👨‍⚕️', title: 'Docteurs' }
   ];
 
   constructor(
@@ -210,11 +279,104 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
     private healthProfileService: HealthProfileService,
     private medicalRecordService: MedicalRecordService,
     private dietPlanService: DietPlanService,
+    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
+    this.currentUserId = this.getCurrentUserId();
+    const role = localStorage.getItem('user_type');
+    this.isAdmin = role === 'ROLE_ADMIN' || role === 'ADMIN' || role === 'ROLE_FIELD_OWNER' || role === 'FIELD_OWNER';
+    
+    if (this.isAdmin) {
+      this.loadAllUsers();
+    } else {
+      this.selectedUserId = this.currentUserId;
+      this.loadDashboardData();
+    }
+  }
+
+  async loadAllUsers() {
+    try {
+      this.userList = await firstValueFrom(this.userService.getAll());
+      if (this.userList.length > 0) {
+        this.selectedUserId = this.currentUserId && this.userList.some(u => u.id === this.currentUserId)
+          ? this.currentUserId
+          : this.userList[0].id;
+        this.updateSelectedUserName();
+        await this.loadGlobalData();
+        await this.loadDashboardData();
+      } else {
+        this.isLoading = false;
+      }
+    } catch (err) {
+      console.error('Erreur chargement utilisateurs', err);
+      this.isLoading = false;
+    }
+  }
+
+  async loadGlobalData() {
+    for (const user of this.userList) {
+      const profile = await firstValueFrom(this.healthProfileService.getByUserId(user.id)).catch(() => null);
+      if (profile) {
+        this.userBmiMap.set(user.id, profile.bmi || 0);
+      } else {
+        this.userBmiMap.set(user.id, 0);
+      }
+      const appointments = await firstValueFrom(this.appointmentService.getByUserId(user.id)).catch(() => []);
+      const now = new Date();
+      const upcoming = appointments.filter(apt => new Date(apt.appointmentDate) >= now && apt.status !== 'CANCELLED').length;
+      this.userAppointmentsMap.set(user.id, upcoming);
+      if (profile) {
+        const plans = await firstValueFrom(this.dietPlanService.getByHealthProfileId(profile.id)).catch(() => []);
+        const active = plans.filter(p => p.isActive).length;
+        this.userActivePlansMap.set(user.id, active);
+      } else {
+        this.userActivePlansMap.set(user.id, 0);
+      }
+    }
+    this.cdr.detectChanges();
+  }
+
+  selectUser(userId: number) {
+    this.selectedUserId = userId;
+    this.updateSelectedUserName();
     this.loadDashboardData();
+    if (this.showGlobalView) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  toggleGlobalView() {
+    this.showGlobalView = !this.showGlobalView;
+  }
+
+  getUserBmi(userId: number): number | null {
+    return this.userBmiMap.get(userId) ?? null;
+  }
+
+  getUserBmiFormatted(userId: number): string {
+    const bmi = this.getUserBmi(userId);
+    if (bmi === null || bmi === 0) return '—';
+    return bmi.toFixed(1);
+  }
+
+  getUserAppointmentsCount(userId: number): number {
+    return this.userAppointmentsMap.get(userId) ?? 0;
+  }
+
+  getUserActivePlansCount(userId: number): number {
+    return this.userActivePlansMap.get(userId) ?? 0;
+  }
+
+  updateSelectedUserName() {
+    const user = this.userList.find(u => u.id === this.selectedUserId);
+    this.selectedUserName = user ? `${user.firstName} ${user.lastName}` : 'Utilisateur';
+  }
+
+  async onUserChange() {
+    this.updateSelectedUserName();
+    await this.loadDashboardData();
   }
 
   ngAfterViewInit() {
@@ -226,21 +388,23 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
   }
 
   private async loadDashboardData() {
-    const userId = this.getCurrentUserId();
-    if (!userId) {
-      this.isLoading = false;
-      return;
-    }
+    if (!this.selectedUserId) return;
+    this.isLoading = true;
+    this.healthProfile = null;
 
     try {
-      this.healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId)).catch(() => null);
+      this.healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(this.selectedUserId)).catch(() => null);
       if (this.healthProfile) {
         this.bmi = this.healthProfile.bmi;
         this.bmiCategory = this.healthProfile.bmiCategory || this.getBmiCategory(this.bmi);
         this.bmiPercent = this.bmi ? Math.min((this.bmi / 40) * 100, 100) : 0;
+      } else {
+        this.bmi = null;
+        this.bmiCategory = 'Non défini';
+        this.bmiPercent = 0;
       }
 
-      const appointments = await firstValueFrom(this.appointmentService.getByUserId(userId)).catch(() => []);
+      const appointments = await firstValueFrom(this.appointmentService.getByUserId(this.selectedUserId)).catch(() => []);
       const now = new Date();
       const nextMonth = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       this.upcomingAppointmentsCount = appointments.filter(apt => 
@@ -256,6 +420,8 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
       if (this.healthProfile) {
         const dietPlans = await firstValueFrom(this.dietPlanService.getByHealthProfileId(this.healthProfile.id)).catch(() => []);
         this.activePlansCount = dietPlans.filter(p => p.isActive).length;
+      } else {
+        this.activePlansCount = 0;
       }
 
       this.recentAlerts = this.generateAlerts(this.healthProfile, appointments);

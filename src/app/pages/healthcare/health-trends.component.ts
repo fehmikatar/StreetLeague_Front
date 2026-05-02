@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { firstValueFrom } from 'rxjs';
-import { HealthProfileService, HealthProfileResponse } from '../../services/health-profile.service';
+import { HealthProfileService, HealthProfileResponse, ActivityRecommendation } from '../../services/health-profile.service';
 import { MedicalRecordService, MedicalRecordResponse } from '../../services/medical-record.service';
 
 @Component({
@@ -13,72 +13,109 @@ import { MedicalRecordService, MedicalRecordResponse } from '../../services/medi
   imports: [CommonModule, RouterModule],
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
-      <div class="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl p-6 shadow-sm">
+      <div class="bg-gradient-to-r from-green-50 to-emerald-100 rounded-2xl p-6 shadow-sm">
         <div class="flex items-center gap-4">
-          <a routerLink="/app/healthcare" class="bg-white hover:bg-gray-100 text-blue-700 px-4 py-2 rounded-xl shadow-md transition">← Dashboard Santé</a>
+          <a routerLink="/app/healthcare" class="bg-white hover:bg-gray-100 text-green-700 px-4 py-2 rounded-xl shadow-md transition">← Health Dashboard</a>
           <div>
-            <h1 class="text-3xl font-bold text-gray-800">📈 Tendances santé</h1>
-            <p class="text-gray-600">Évolution de vos indicateurs corporels</p>
+            <h1 class="text-3xl font-bold text-gray-800">📈 Health Trends</h1>
+            <p class="text-gray-600">Evolution of your body indicators</p>
           </div>
         </div>
       </div>
 
       <div *ngIf="isLoading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-        <p class="mt-2">Chargement de vos données...</p>
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent"></div>
+        <p class="mt-2">Loading your data...</p>
       </div>
 
-      <div *ngIf="!isLoading && !healthProfile" class="text-center py-12 bg-yellow-50 rounded-xl">
-        <p class="text-gray-600">⚠️ Aucun profil santé trouvé.</p>
-        <a routerLink="/app/healthcare/profile" class="text-blue-600 underline">Créez votre profil santé</a>
-      </div>
-
-      <div *ngIf="!isLoading && healthProfile">
+      <div *ngIf="!isLoading">
         <!-- 3 Cartes -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-blue-500">
-            <p class="text-sm text-gray-500">IMC actuel</p>
+          <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
+            <p class="text-sm text-gray-500">Current BMI</p>
             <p class="text-2xl font-bold">{{ currentBMI !== null ? currentBMI.toFixed(1) : '—' }}</p>
-            <p class="text-xs text-gray-400">Catégorie : {{ bmiCategory }}</p>
+            <p class="text-xs text-gray-400">Category: {{ bmiCategory }}</p>
             <div class="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full bg-blue-500 rounded-full" [style.width]="bmiPercent + '%'"></div>
+              <div class="h-full bg-green-500 rounded-full" [style.width]="bmiPercent + '%'"></div>
             </div>
           </div>
           <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
-            <p class="text-sm text-gray-500">Blessures actives</p>
+            <p class="text-sm text-gray-500">Active Injuries</p>
             <p class="text-2xl font-bold">{{ activeInjuries }}</p>
-            <p class="text-xs text-gray-400">en cours de traitement</p>
+            <p class="text-xs text-gray-400">under treatment</p>
           </div>
           <div class="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-500">
-            <p class="text-sm text-gray-500">Blessures terminées</p>
+            <p class="text-sm text-gray-500">Completed Injuries</p>
             <p class="text-2xl font-bold">{{ completedInjuries }}</p>
-            <p class="text-xs text-gray-400">guéries</p>
+            <p class="text-xs text-gray-400">healed</p>
           </div>
         </div>
 
         <!-- 2 Graphiques -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <div class="bg-white rounded-xl p-4 shadow-sm border">
-            <h3 class="font-semibold text-gray-700 mb-3">📉 Évolution de l'IMC</h3>
+            <h3 class="font-semibold text-gray-700 mb-3">📉 BMI Evolution</h3>
             <canvas #bmiChart style="height: 250px; width: 100%"></canvas>
             <p class="text-xs text-gray-500 mt-3 text-center">{{ bmiTrend }}</p>
           </div>
           <div class="bg-white rounded-xl p-4 shadow-sm border">
-            <h3 class="font-semibold text-gray-700 mb-3">🩺 Répartition des blessures</h3>
+            <h3 class="font-semibold text-gray-700 mb-3">🩺 Injury Distribution</h3>
             <canvas #injuryChart style="height: 250px; width: 100%"></canvas>
-            <p class="text-xs text-gray-500 mt-3 text-center" *ngIf="medicalRecords.length === 0">Aucun dossier médical</p>
+            <p class="text-xs text-gray-500 mt-3 text-center" *ngIf="medicalRecords.length === 0">No medical records</p>
           </div>
         </div>
 
         <!-- Diagnostic IA -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 shadow-sm mt-6">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm mt-6">
           <h3 class="font-bold text-gray-800 flex items-center gap-2">
-            <span>🔍</span> Diagnostic santé
+            <span>🔍</span> Health Diagnosis
           </h3>
           <div class="mt-3 space-y-2 text-gray-700 text-sm">
             <p *ngFor="let diag of diagnostics" class="flex items-start gap-2">
-              <span class="text-blue-600">•</span> {{ diag }}
+              <span class="text-green-600">•</span> {{ diag }}
             </p>
+          </div>
+        </div>
+
+        <!-- Programme d'activités dynamique -->
+        <div class="bg-white rounded-xl shadow-sm border mt-6 overflow-hidden" *ngIf="!isAdmin">
+          <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 flex justify-between items-center">
+            <h3 class="font-bold text-white flex items-center gap-2">
+              <span>🗓️</span> Your Dynamic Sport Program (Based on your BMI: {{ bmiCategory }})
+            </h3>
+            <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full">Weekly Plan</span>
+          </div>
+          
+          <div *ngIf="isPlanLoading" class="p-8 text-center text-gray-500">
+            <div class="inline-block animate-spin rounded-full h-6 w-6 border-4 border-green-500 border-t-transparent mb-2"></div>
+            <p>Generating your personalized program...</p>
+          </div>
+
+          <div *ngIf="!isPlanLoading && activityPlan.length > 0" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div *ngFor="let activity of activityPlan" class="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:shadow-md transition flex flex-col">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="font-bold text-emerald-700">{{ activity.dayOfWeek }}</span>
+                  <span class="text-xs px-2 py-1 rounded-md font-medium" 
+                    [ngClass]="{
+                      'bg-green-100 text-green-700': activity.intensity === 'Faible' || activity.intensity === 'Low',
+                      'bg-yellow-100 text-yellow-700': activity.intensity.includes('Modérée') || activity.intensity.includes('Moderate') || activity.intensity.includes('Faible à Modérée') || activity.intensity.includes('Low to Moderate'),
+                      'bg-red-100 text-red-700': activity.intensity.includes('Élevée') || activity.intensity.includes('High')
+                    }">
+                    {{ activity.intensity }}
+                  </span>
+                </div>
+                <h4 class="font-semibold text-gray-800 mb-1">{{ activity.activityName }}</h4>
+                <div class="flex items-center text-sm text-gray-500 mb-3 gap-1">
+                  <span>⏱️</span> {{ activity.durationMinutes }} min
+                </div>
+                <p class="text-sm text-gray-600 flex-1">{{ activity.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!isPlanLoading && activityPlan.length === 0" class="p-8 text-center text-gray-500">
+            <p>Could not generate program (Missing BMI).</p>
           </div>
         </div>
       </div>
@@ -92,6 +129,7 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
   healthProfile: HealthProfileResponse | null = null;
   medicalRecords: MedicalRecordResponse[] = [];
   isLoading = true;
+  isAdmin = false;
 
   currentBMI: number | null = null;
   bmiCategory = '';
@@ -101,6 +139,9 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
   completedInjuries = 0;
   diagnostics: string[] = [];
 
+  activityPlan: ActivityRecommendation[] = [];
+  isPlanLoading = false;
+
   private bmiChartInstance: Chart | null = null;
   private injuryChartInstance: Chart | null = null;
 
@@ -108,14 +149,14 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
     private healthProfileService: HealthProfileService,
     private medicalRecordService: MedicalRecordService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
-  ngOnInit() { 
-    this.loadUserData(); 
+  ngOnInit() {
+    this.loadUserData();
   }
 
-  ngAfterViewInit() { 
-    setTimeout(() => this.renderCharts(), 500); 
+  ngAfterViewInit() {
+    setTimeout(() => this.renderCharts(), 500);
   }
 
   private getCurrentUserId(): number | null {
@@ -124,33 +165,65 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
   }
 
   private async loadUserData() {
+    const role = localStorage.getItem('user_type');
+    this.isAdmin = role === 'ROLE_ADMIN' || role === 'ADMIN' || role === 'ROLE_FIELD_OWNER' || role === 'FIELD_OWNER';
     const userId = this.getCurrentUserId();
-    if (!userId) {
+
+    if (!userId && !this.isAdmin) {
       this.isLoading = false;
       this.cdr.detectChanges();
       return;
     }
 
     try {
-      this.healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId)).catch(() => null);
-      
-      if (this.healthProfile) {
-        this.currentBMI = this.healthProfile.bmi;
-        this.bmiCategory = this.healthProfile.bmiCategory || this.getBmiCategory(this.currentBMI);
-        this.bmiPercent = this.currentBMI ? Math.min((this.currentBMI / 40) * 100, 100) : 0;
-        
-        this.medicalRecords = await firstValueFrom(
-          this.medicalRecordService.getByHealthProfileId(this.healthProfile.id)
-        ).catch(() => []);
+      if (this.isAdmin) {
+        this.medicalRecords = await firstValueFrom(this.medicalRecordService.getAll()).catch(() => []);
+        const profiles = await firstValueFrom(this.healthProfileService.getAll()).catch(() => []);
+        if (profiles.length > 0) {
+          const bmis = profiles.filter(p => p.bmi).map(p => p.bmi!);
+          if (bmis.length > 0) {
+            this.currentBMI = bmis.reduce((a, b) => a + b, 0) / bmis.length;
+            this.bmiCategory = 'Global Average';
+            this.bmiPercent = Math.min((this.currentBMI / 40) * 100, 100);
+          }
+        }
+      } else {
+        this.healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId!)).catch(() => null);
+
+        if (this.healthProfile) {
+          this.currentBMI = this.healthProfile.bmi;
+          this.bmiCategory = this.healthProfile.bmiCategory || this.getBmiCategory(this.currentBMI);
+          this.bmiPercent = this.currentBMI ? Math.min((this.currentBMI / 40) * 100, 100) : 0;
+
+          this.medicalRecords = await firstValueFrom(
+            this.medicalRecordService.getByHealthProfileId(this.healthProfile.id)
+          ).catch(() => []);
+        }
       }
-      
+
       this.computeStats();
       this.generateDiagnostics();
       this.cdr.detectChanges();
       setTimeout(() => this.renderCharts(), 300);
-      
+
+      if (!this.isAdmin && this.healthProfile) {
+        this.isPlanLoading = true;
+        this.healthProfileService.getActivityPlan(userId!).subscribe({
+          next: (plan) => {
+            this.activityPlan = plan;
+            this.isPlanLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error loading dynamic program:', err);
+            this.isPlanLoading = false;
+            this.cdr.detectChanges();
+          }
+        });
+      }
+
     } catch (err) {
-      console.error('Erreur chargement des données:', err);
+      console.error('Error loading data:', err);
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -158,44 +231,44 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
   }
 
   private getBmiCategory(bmi: number | null): string {
-    if (!bmi) return 'Non défini';
-    if (bmi < 18.5) return 'Sous-poids';
+    if (!bmi) return 'Not defined';
+    if (bmi < 18.5) return 'Underweight';
     if (bmi < 25) return 'Normal';
-    if (bmi < 30) return 'Surpoids';
-    return 'Obésité';
+    if (bmi < 30) return 'Overweight';
+    return 'Obesity';
   }
 
   private computeStats() {
     this.activeInjuries = this.medicalRecords.filter(r => r.recoveryStatus === 'IN_PROGRESS').length;
     this.completedInjuries = this.medicalRecords.filter(r => r.recoveryStatus === 'COMPLETED').length;
-    this.bmiTrend = this.currentBMI ? `IMC actuel : ${this.currentBMI.toFixed(1)} - ${this.bmiCategory}` : 'IMC non disponible';
+    this.bmiTrend = this.currentBMI ? `Current BMI: ${this.currentBMI.toFixed(1)} - ${this.bmiCategory}` : 'BMI not available';
   }
 
   private generateDiagnostics() {
     const diag: string[] = [];
-    
+
     if (this.currentBMI) {
       if (this.currentBMI >= 30) {
-        diag.push(`⚠️ IMC élevé (${this.currentBMI.toFixed(1)}) : risque cardiovasculaire. Consultez un médecin.`);
+        diag.push(`⚠️ High BMI (${this.currentBMI.toFixed(1)}): cardiovascular risk. Consult a doctor.`);
       } else if (this.currentBMI >= 25) {
-        diag.push(`📈 Surpoids (IMC ${this.currentBMI.toFixed(1)}). Augmentez l'activité physique.`);
+        diag.push(`📈 Overweight (BMI ${this.currentBMI.toFixed(1)}). Increase physical activity.`);
       } else if (this.currentBMI < 18.5) {
-        diag.push(`⚠️ Insuffisance pondérale (IMC ${this.currentBMI.toFixed(1)}). Suivi nutritionnel conseillé.`);
+        diag.push(`⚠️ Underweight (BMI ${this.currentBMI.toFixed(1)}). Nutritional monitoring recommended.`);
       } else {
-        diag.push(`✅ IMC normal (${this.currentBMI.toFixed(1)}). Maintenez une bonne hygiène de vie.`);
+        diag.push(`✅ Normal BMI (${this.currentBMI.toFixed(1)}). Maintain a healthy lifestyle.`);
       }
     } else {
-      diag.push(`📊 Aucune donnée IMC. Complétez votre profil santé.`);
+      diag.push(`📊 No BMI data. Complete your health profile.`);
     }
 
     if (this.activeInjuries > 0) {
-      diag.push(`🩺 ${this.activeInjuries} blessure(s) en cours. Respectez les protocoles de traitement.`);
+      diag.push(`🩺 ${this.activeInjuries} injury(ies) in progress. Follow treatment protocols.`);
     }
     if (this.completedInjuries > 0) {
-      diag.push(`✅ ${this.completedInjuries} blessure(s) terminées. Félicitations pour votre rétablissement !`);
+      diag.push(`✅ ${this.completedInjuries} injuries completed. Congratulations on your recovery!`);
     }
     if (this.activeInjuries === 0 && this.completedInjuries === 0 && this.medicalRecords.length === 0) {
-      diag.push(`📋 Aucun historique de blessure. Continuez vos bonnes pratiques !`);
+      diag.push(`📋 No injury history. Keep up your good practices!`);
     }
 
     this.diagnostics = diag;
@@ -214,28 +287,28 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
 
   private renderCharts() {
     this.destroyCharts();
-    if (!this.healthProfile) return;
+    if (!this.healthProfile && !this.isAdmin) return;
 
     // Graphique IMC
     if (this.bmiCanvas?.nativeElement && this.currentBMI) {
       try {
         this.bmiChartInstance = new Chart(this.bmiCanvas.nativeElement, {
           type: 'line',
-          data: { 
-            labels: ['Actuel'], 
-            datasets: [{ 
-              label: 'IMC', 
-              data: [this.currentBMI], 
-              borderColor: '#3b82f6', 
+          data: {
+            labels: ['Current'],
+            datasets: [{
+              label: 'BMI',
+              data: [this.currentBMI],
+              borderColor: '#1DB954',
               borderWidth: 3,
-              fill: true, 
-              backgroundColor: 'rgba(59,130,246,0.1)',
+              fill: true,
+              backgroundColor: 'rgba(29,185,84,0.1)',
               pointRadius: 6,
-              pointBackgroundColor: '#3b82f6'
-            }] 
+              pointBackgroundColor: '#1DB954'
+            }]
           },
-          options: { 
-            responsive: true, 
+          options: {
+            responsive: true,
             maintainAspectRatio: true,
             plugins: { legend: { position: 'bottom' } }
           }
@@ -247,37 +320,37 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
     if (this.injuryCanvas?.nativeElement && this.medicalRecords.length > 0) {
       try {
         const statusCount: Record<string, number> = {};
-        this.medicalRecords.forEach(r => { 
-          statusCount[r.recoveryStatus] = (statusCount[r.recoveryStatus] || 0) + 1; 
+        this.medicalRecords.forEach(r => {
+          statusCount[r.recoveryStatus] = (statusCount[r.recoveryStatus] || 0) + 1;
         });
-        
+
         const labels = Object.keys(statusCount);
         const data = labels.map(key => statusCount[key]);
-        
+
         const colorMap: Record<string, string> = {
           'PENDING': '#f59e0b',
-          'IN_PROGRESS': '#3b82f6',
+          'IN_PROGRESS': '#1DB954',
           'COMPLETED': '#10b981',
           'COMPLICATED': '#ef4444',
           'REFERRED': '#9ca3af'
         };
-        
+
         const backgroundColors = labels.map(label => colorMap[label] || '#9ca3af');
-        
+
         this.injuryChartInstance = new Chart(this.injuryCanvas.nativeElement, {
           type: 'pie',
-          data: { 
-            labels: labels.map(l => this.getStatusLabel(l)), 
-            datasets: [{ 
-              data: data, 
+          data: {
+            labels: labels.map(l => this.getStatusLabel(l)),
+            datasets: [{
+              data: data,
               backgroundColor: backgroundColors,
               borderWidth: 0
-            }] 
+            }]
           },
-          options: { 
-            responsive: true, 
+          options: {
+            responsive: true,
             maintainAspectRatio: true,
-            plugins: { legend: { position: 'bottom' } } 
+            plugins: { legend: { position: 'bottom' } }
           }
         });
       } catch (e) { console.warn(e); }
@@ -286,11 +359,11 @@ export class HealthTrendsComponent implements OnInit, AfterViewInit {
 
   private getStatusLabel(status: string): string {
     const labels: Record<string, string> = {
-      'PENDING': 'En attente',
-      'IN_PROGRESS': 'En cours',
-      'COMPLETED': 'Terminé',
-      'COMPLICATED': 'Compliqué',
-      'REFERRED': 'Référencé'
+      'PENDING': 'Pending',
+      'IN_PROGRESS': 'In Progress',
+      'COMPLETED': 'Completed',
+      'COMPLICATED': 'Complicated',
+      'REFERRED': 'Referred'
     };
     return labels[status] || status;
   }

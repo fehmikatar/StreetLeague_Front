@@ -9,6 +9,7 @@ import { AppointmentService, AppointmentResponse } from '../../services/appointm
 import { HealthProfileService, HealthProfileResponse } from '../../services/health-profile.service';
 import { MedicalRecordService, MedicalRecordResponse } from '../../services/medical-record.service';
 import { DietPlanService, DietPlanResponse } from '../../services/diet-plan.service';
+import { NotificationService } from '../../services/notification.service';
 
 interface HealthAlert {
   id: string;
@@ -33,16 +34,16 @@ interface HealthAlert {
             <div class="flex items-center gap-4">
               <a routerLink="/app/healthcare" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-muted text-foreground hover:bg-muted/80 transition-colors">
                 <lucide-icon [name]="arrowLeftIcon" [size]="18"></lucide-icon>
-                Dashboard Santé
+                Health Dashboard
               </a>
               <div>
-                <h1 class="text-3xl font-bold text-foreground">🔔 Alertes santé</h1>
-                <p class="text-muted-foreground mt-1">Notifications automatiques pour votre suivi</p>
+                <h1 class="text-3xl font-bold text-foreground">🔔 Health Alerts</h1>
+                <p class="text-muted-foreground mt-1">Automatic notifications for your follow-up</p>
               </div>
             </div>
             <div class="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-xl">
               <lucide-icon [name]="heartIcon" [size]="20" class="text-primary"></lucide-icon>
-              <span class="text-primary font-medium">Suivi personnalisé</span>
+              <span class="text-primary font-medium">Personalized follow-up</span>
             </div>
           </div>
         </div>
@@ -50,39 +51,39 @@ interface HealthAlert {
         <!-- Cartes compteurs -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-card rounded-xl p-5 border-l-4 border-primary shadow-sm">
-            <p class="text-muted-foreground text-sm">Total alertes</p>
+            <p class="text-muted-foreground text-sm">Total alerts</p>
             <p class="text-3xl font-bold text-primary mt-1">{{ alerts.length }}</p>
           </div>
           <div class="bg-card rounded-xl p-5 border-l-4 border-destructive shadow-sm">
-            <p class="text-muted-foreground text-sm">Critiques</p>
+            <p class="text-muted-foreground text-sm">Critical</p>
             <p class="text-3xl font-bold text-destructive mt-1">{{ criticalCount }}</p>
           </div>
           <div class="bg-card rounded-xl p-5 border-l-4 border-accent shadow-sm">
-            <p class="text-muted-foreground text-sm">À surveiller</p>
+            <p class="text-muted-foreground text-sm">To Watch</p>
             <p class="text-3xl font-bold text-accent mt-1">{{ warningCount }}</p>
           </div>
           <div class="bg-card rounded-xl p-5 border-l-4 border-secondary shadow-sm">
-            <p class="text-muted-foreground text-sm">Informations</p>
+            <p class="text-muted-foreground text-sm">Information</p>
             <p class="text-3xl font-bold text-secondary mt-1">{{ infoCount }}</p>
           </div>
         </div>
 
         <!-- Filtres -->
         <div class="flex flex-wrap gap-2">
-          <button (click)="filter = 'all'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-primary]="filter==='all'" [class.text-primary-foreground]="filter==='all'" [class.bg-muted]="filter!=='all'" [class.text-foreground]="filter!=='all'">Toutes</button>
-          <button (click)="filter = 'danger'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-destructive]="filter==='danger'" [class.text-destructive-foreground]="filter==='danger'" [class.bg-muted]="filter!=='danger'" [class.text-foreground]="filter!=='danger'">Critiques</button>
-          <button (click)="filter = 'warning'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-accent]="filter==='warning'" [class.text-accent-foreground]="filter==='warning'" [class.bg-muted]="filter!=='warning'" [class.text-foreground]="filter!=='warning'">À surveiller</button>
-          <button (click)="filter = 'info'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-secondary]="filter==='info'" [class.text-secondary-foreground]="filter==='info'" [class.bg-muted]="filter!=='info'" [class.text-foreground]="filter!=='info'">Informations</button>
+          <button (click)="filter = 'all'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-primary]="filter==='all'" [class.text-primary-foreground]="filter==='all'" [class.bg-muted]="filter!=='all'" [class.text-foreground]="filter!=='all'">All</button>
+          <button (click)="filter = 'danger'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-destructive]="filter==='danger'" [class.text-destructive-foreground]="filter==='danger'" [class.bg-muted]="filter!=='danger'" [class.text-foreground]="filter!=='danger'">Critical</button>
+          <button (click)="filter = 'warning'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-accent]="filter==='warning'" [class.text-accent-foreground]="filter==='warning'" [class.bg-muted]="filter!=='warning'" [class.text-foreground]="filter!=='warning'">To Watch</button>
+          <button (click)="filter = 'info'" class="px-4 py-2 rounded-full text-sm font-medium transition-colors" [class.bg-secondary]="filter==='info'" [class.text-secondary-foreground]="filter==='info'" [class.bg-muted]="filter!=='info'" [class.text-foreground]="filter!=='info'">Information</button>
         </div>
 
-        <!-- Chargement / erreur -->
+        <!-- Loading...erreur -->
         <div *ngIf="isLoading" class="flex flex-col items-center py-12">
           <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p class="mt-4 text-muted-foreground">Chargement des alertes...</p>
+          <p class="mt-4 text-muted-foreground">Loading alerts...</p>
         </div>
         <div *ngIf="errorMessage" class="bg-destructive/10 border border-destructive/30 rounded-xl p-4 text-destructive text-sm">
           {{ errorMessage }}
-          <button (click)="loadAlerts()" class="underline ml-2">Réessayer</button>
+          <button (click)="loadAlerts()" class="underline ml-2">Retry</button>
         </div>
 
         <!-- Liste des alertes -->
@@ -110,9 +111,9 @@ interface HealthAlert {
               <h3 class="font-semibold text-foreground">{{ alert.title }}</h3>
               <p class="text-sm text-muted-foreground mt-1">{{ alert.message }}</p>
               <div *ngIf="alert.dietData" class="mt-2 text-xs text-muted-foreground">
-                <span>📊 Calories du plan : {{ alert.dietData.planCalories }} kcal/jour</span><br>
-                <span>🎯 Besoins recommandés : {{ alert.dietData.recommendedCalories }} kcal/jour</span><br>
-                <span *ngIf="alert.dietData.difference !== 0">📉 Écart : {{ alert.dietData.difference > 0 ? '+' : '' }}{{ alert.dietData.difference }} kcal</span>
+                <span>📊 Plan calories: {{ alert.dietData.planCalories }} kcal/day</span><br>
+                <span>🎯 Recommended needs: {{ alert.dietData.recommendedCalories }} kcal/day</span><br>
+                <span *ngIf="alert.dietData.difference !== 0">📉 Difference: {{ alert.dietData.difference > 0 ? '+' : '' }}{{ alert.dietData.difference }} kcal</span>
               </div>
               <p class="text-xs text-muted-foreground/70 mt-2 flex items-center gap-1">
                 <lucide-icon [name]="calendarIcon" [size]="12"></lucide-icon>
@@ -127,7 +128,7 @@ interface HealthAlert {
           </div>
           <div *ngIf="filteredAlerts.length === 0" class="text-center py-12 bg-muted/20 rounded-xl">
             <lucide-icon name="check-circle" [size]="40" class="text-primary mx-auto mb-3"></lucide-icon>
-            <p class="text-muted-foreground">Aucune alerte pour le moment. Tout va bien !</p>
+            <p class="text-muted-foreground">No alerts at the moment. Everything is fine!</p>
           </div>
         </div>
       </div>
@@ -143,6 +144,7 @@ export class HealthAlertsComponent implements OnInit {
   public isLoading = true;
   public errorMessage = '';
   public filter: 'all' | 'danger' | 'warning' | 'info' = 'all';
+  public isAdmin = false;
 
   public readonly alertIcon = AlertTriangle;
   public readonly infoIcon = Info;
@@ -156,8 +158,9 @@ export class HealthAlertsComponent implements OnInit {
     private healthProfileService: HealthProfileService,
     private medicalRecordService: MedicalRecordService,
     private dietPlanService: DietPlanService,
+    private notificationService: NotificationService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadAlerts();
@@ -195,125 +198,167 @@ export class HealthAlertsComponent implements OnInit {
     this.errorMessage = '';
     this.cdr.detectChanges();
 
+    const role = localStorage.getItem('user_type');
+    this.isAdmin = role === 'ROLE_ADMIN' || role === 'ADMIN' || role === 'ROLE_FIELD_OWNER' || role === 'FIELD_OWNER';
     const userId = this.getCurrentUserId();
-    if (!userId) {
-      this.errorMessage = 'Utilisateur non identifié. Veuillez vous reconnecter.';
+
+    if (!userId && !this.isAdmin) {
+      this.errorMessage = 'User not identified. Please log in again.';
       this.isLoading = false;
       this.cdr.detectChanges();
       return;
     }
 
     try {
-      let healthProfile: HealthProfileResponse | null = null;
-      try {
-        healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId));
-      } catch { }
-
-      const appointments = await firstValueFrom(this.appointmentService.getByUserId(userId)).catch(() => []);
-
+      let appointments: AppointmentResponse[] = [];
       let medicalRecords: MedicalRecordResponse[] = [];
       let dietPlans: DietPlanResponse[] = [];
-      if (healthProfile) {
-        medicalRecords = await firstValueFrom(this.medicalRecordService.getByHealthProfileId(healthProfile.id)).catch(() => []);
-        dietPlans = await firstValueFrom(this.dietPlanService.getByHealthProfileId(healthProfile.id)).catch(() => []);
-      }
-
+      let notifications: any[] = [];
       const alerts: HealthAlert[] = [];
 
-      // 1. IMC
-      if (healthProfile?.bmi) {
-        const bmi = healthProfile.bmi;
-        if (bmi >= 30) {
-          alerts.push({ id: 'bmi-obese', type: 'danger', title: 'Obésité sévère', message: `IMC = ${bmi.toFixed(1)}. Risques cardiovasculaires élevés.`, time: 'Dernière mise à jour', dismissible: false });
-        } else if (bmi >= 25) {
-          alerts.push({ id: 'bmi-overweight', type: 'warning', title: 'Surpoids détecté', message: `IMC = ${bmi.toFixed(1)}. Activité physique et alimentation équilibrée.`, time: 'Dernière mise à jour', dismissible: true });
-        } else if (bmi < 18.5) {
-          alerts.push({ id: 'bmi-underweight', type: 'warning', title: 'Insuffisance pondérale', message: `IMC = ${bmi.toFixed(1)}. Suivi nutritionnel recommandé.`, time: 'Dernière mise à jour', dismissible: true });
-        }
-      }
-
-      // 2. Rendez-vous
-      const now = new Date();
-      const pending = appointments.filter(a => a.status === 'PENDING' && new Date(a.appointmentDate) > now);
-      const missed = appointments.filter(a => new Date(a.appointmentDate) < now && a.status !== 'CANCELLED' && a.status !== 'COMPLETED');
-      const upcoming = appointments.filter(a => new Date(a.appointmentDate) > now && a.status !== 'CANCELLED');
-      if (pending.length) alerts.push({ id: 'appointments-pending', type: 'warning', title: 'Rendez-vous à confirmer', message: `${pending.length} rendez-vous en attente de confirmation.`, time: 'À traiter', dismissible: true });
-      if (missed.length) alerts.push({ id: 'appointments-missed', type: 'danger', title: 'Rendez-vous manqués', message: `${missed.length} rendez-vous non honorés.`, time: 'Passé', dismissible: false });
-      if (upcoming.length && !pending.length && !missed.length) alerts.push({ id: 'appointments-upcoming', type: 'info', title: 'Prochains rendez-vous', message: `${upcoming.length} rendez-vous programmés.`, time: 'À venir', dismissible: true });
-
-      // 3. Dossiers médicaux
-      const notStarted = medicalRecords.filter(r => r.recoveryStatus === 'NOT_STARTED');
-      const inProgress = medicalRecords.filter(r => r.recoveryStatus === 'IN_PROGRESS');
-      if (notStarted.length) alerts.push({ id: 'recovery-notstarted', type: 'warning', title: 'Blessure non prise en charge', message: `${notStarted.length} dossier(s) sans début de rétablissement.`, time: 'Urgent', dismissible: false });
-      if (inProgress.length) alerts.push({ id: 'recovery-inprogress', type: 'info', title: 'Rétablissement en cours', message: `${inProgress.length} blessure(s) en traitement.`, time: 'Actif', dismissible: true });
-
-      // 4. Plans alimentaires
-      if (healthProfile) {
-        const needs = this.calculateCaloricNeeds(healthProfile);
-        const activePlans = dietPlans.filter(p => p.isActive);
-        const expiredPlans = dietPlans.filter(p => p.endDate && new Date(p.endDate) < new Date() && p.isActive);
-        if (expiredPlans.length) {
-          alerts.push({ id: 'diet-expired', type: 'warning', title: 'Plan alimentaire expiré', message: `${expiredPlans.length} plan(s) arrivés à terme.`, time: 'À renouveler', dismissible: true });
-        }
-        const targetPlan = activePlans.length > 0 ? activePlans[0] : null;
-        if (targetPlan && targetPlan.dailyCalories && targetPlan.dailyCalories > 0) {
-          const planCalories = targetPlan.dailyCalories;
-          const diffMain = Math.abs(planCalories - needs.maintenance);
-          const diffLoss = Math.abs(planCalories - needs.weightLoss);
-          const diffGain = Math.abs(planCalories - needs.weightGain);
-          const tolerance = 150;
-          let type: 'danger' | 'warning' | 'info' = 'info';
-          let title = '';
-          let message = '';
-          let recommendedCalories = needs.maintenance;
-          let difference = planCalories - needs.maintenance;
-
-          if (diffLoss <= tolerance) {
-            type = 'info'; title = 'Plan alimentaire cohérent (perte)'; message = `Votre plan (${planCalories} kcal/jour) est adapté à un objectif de perte de poids.`; recommendedCalories = needs.weightLoss; difference = planCalories - needs.weightLoss;
-          } else if (diffMain <= tolerance) {
-            type = 'info'; title = 'Plan alimentaire équilibré'; message = `Votre plan (${planCalories} kcal/jour) correspond à vos besoins de maintien.`; recommendedCalories = needs.maintenance; difference = 0;
-          } else if (diffGain <= tolerance) {
-            type = 'info'; title = 'Plan alimentaire pour gain musculaire'; message = `Votre plan (${planCalories} kcal/jour) est adapté à une prise de masse.`; recommendedCalories = needs.weightGain; difference = planCalories - needs.weightGain;
-          } else if (planCalories < needs.weightLoss - 200) {
-            type = 'danger'; title = 'Régime trop restrictif'; message = `Votre plan (${planCalories} kcal/jour) est très en dessous de vos besoins (${needs.weightLoss} kcal/jour).`; recommendedCalories = needs.weightLoss;
-          } else if (planCalories > needs.weightGain + 200) {
-            type = 'warning'; title = 'Excès calorique important'; message = `Votre plan (${planCalories} kcal/jour) dépasse largement vos besoins (${needs.weightGain} kcal/jour).`; recommendedCalories = needs.weightGain;
-          } else if (planCalories < needs.maintenance && planCalories > needs.weightLoss) {
-            type = 'warning'; title = 'Léger déficit calorique'; message = `Votre plan (${planCalories} kcal/jour) est légèrement inférieur à votre maintien.`; recommendedCalories = needs.maintenance;
-          } else if (planCalories > needs.maintenance && planCalories < needs.weightGain) {
-            type = 'info'; title = 'Léger surplus calorique'; message = `Votre plan (${planCalories} kcal/jour) est légèrement supérieur à votre maintien.`; recommendedCalories = needs.maintenance;
-          } else {
-            type = 'info'; title = 'Vérification conseillée'; message = `Vos calories (${planCalories} kcal/jour) ne sont pas alignées avec vos objectifs.`; recommendedCalories = needs.maintenance;
+      // Charger les notifications systèmes pour cet utilisateur
+      try {
+        notifications = await firstValueFrom(this.notificationService.getByUserId(userId!));
+        notifications.forEach(n => {
+          if (n.type === 'HEALTH_ALERT') {
+            alerts.push({
+              id: 'notif-' + n.id,
+              type: 'danger',
+              title: n.title,
+              message: n.message,
+              time: n.createdAt ? new Date(n.createdAt).toLocaleString() : 'Recently',
+              dismissible: true
+            });
           }
-          alerts.push({
-            id: 'diet-coherence',
-            type: type,
-            title: title,
-            message: message + ` Consultez les valeurs recommandées : ${recommendedCalories} kcal/jour.`,
-            time: 'Plan actif',
-            dismissible: true,
-            dietData: { planCalories, recommendedCalories, difference }
-          });
-        } else if (activePlans.length === 0) {
-          alerts.push({
-            id: 'diet-no-active-plan',
-            type: 'warning',
-            title: 'Aucun plan alimentaire actif',
-            message: `Vous n'avez pas de plan actif. Besoins : ${needs.maintenance} kcal/jour pour le maintien.`,
-            time: 'Action recommandée',
-            dismissible: true
-          });
-        }
+        });
+      } catch (err) {
+        console.error('Erreur chargement notifications:', err);
       }
 
-      if (alerts.length === 0) {
-        alerts.push({ id: 'annual-checkup', type: 'info', title: 'Bilan annuel recommandé', message: 'Planifiez votre bilan de santé annuel.', time: 'Rappel', dismissible: true });
+      if (this.isAdmin) {
+        appointments = await firstValueFrom(this.appointmentService.getAll()).catch(() => []);
+        medicalRecords = await firstValueFrom(this.medicalRecordService.getAll()).catch(() => []);
+        dietPlans = await firstValueFrom(this.dietPlanService.getAll()).catch(() => []);
+        
+        const now = new Date();
+        const pending = appointments.filter(a => a.status === 'PENDING' && new Date(a.appointmentDate) > now);
+        const missed = appointments.filter(a => new Date(a.appointmentDate) < now && a.status !== 'CANCELLED' && a.status !== 'COMPLETED');
+        if (pending.length) alerts.push({ id: 'global-apt-pending', type: 'warning', title: 'Global appointments to confirm', message: `${pending.length} appointments pending in the system.`, time: 'To process', dismissible: true });
+        if (missed.length) alerts.push({ id: 'global-apt-missed', type: 'danger', title: 'Global appointments missed', message: `${missed.length} appointments not honored in the system.`, time: 'Past', dismissible: false });
+
+        const notStarted = medicalRecords.filter(r => r.recoveryStatus === 'NOT_STARTED');
+        if (notStarted.length) alerts.push({ id: 'global-rec-notstarted', type: 'warning', title: 'Global injuries not managed', message: `${notStarted.length} record(s) without recovery start.`, time: 'Urgent', dismissible: false });
+        
+        const expiredPlans = dietPlans.filter(p => p.endDate && new Date(p.endDate) < new Date() && p.isActive);
+        if (expiredPlans.length) alerts.push({ id: 'global-diet-expired', type: 'warning', title: 'Global diet plans expired', message: `${expiredPlans.length} plan(s) reached their end date.`, time: 'To renew', dismissible: true });
+
+        if (alerts.length === 0) {
+          alerts.push({ id: 'global-ok', type: 'info', title: 'Healthy system', message: 'No critical alerts in the system.', time: 'Now', dismissible: true });
+        }
+      } else {
+        let healthProfile: HealthProfileResponse | null = null;
+        try {
+          healthProfile = await firstValueFrom(this.healthProfileService.getByUserId(userId!));
+        } catch { }
+
+        appointments = await firstValueFrom(this.appointmentService.getByUserId(userId!)).catch(() => []);
+
+        if (healthProfile) {
+          medicalRecords = await firstValueFrom(this.medicalRecordService.getByHealthProfileId(healthProfile.id)).catch(() => []);
+          dietPlans = await firstValueFrom(this.dietPlanService.getByHealthProfileId(healthProfile.id)).catch(() => []);
+        }
+
+        if (healthProfile?.bmi) {
+          const bmi = healthProfile.bmi;
+          if (bmi >= 30) {
+            alerts.push({ id: 'bmi-obese', type: 'danger', title: 'Severe Obesity', message: `BMI = ${bmi.toFixed(1)}. High cardiovascular risks.`, time: 'Last update', dismissible: false });
+          } else if (bmi >= 25) {
+            alerts.push({ id: 'bmi-overweight', type: 'warning', title: 'Overweight Detected', message: `BMI = ${bmi.toFixed(1)}. Physical activity and balanced diet recommended.`, time: 'Last update', dismissible: true });
+          } else if (bmi < 18.5) {
+            alerts.push({ id: 'bmi-underweight', type: 'warning', title: 'Underweight', message: `BMI = ${bmi.toFixed(1)}. Nutritional follow-up recommended.`, time: 'Last update', dismissible: true });
+          }
+        }
+
+        const now = new Date();
+        const pending = appointments.filter(a => a.status === 'PENDING' && new Date(a.appointmentDate) > now);
+        const missed = appointments.filter(a => new Date(a.appointmentDate) < now && a.status !== 'CANCELLED' && a.status !== 'COMPLETED');
+        const upcoming = appointments.filter(a => new Date(a.appointmentDate) > now && a.status !== 'CANCELLED');
+        if (pending.length) alerts.push({ id: 'appointments-pending', type: 'warning', title: 'Appointments to confirm', message: `${pending.length} appointments pending confirmation.`, time: 'To process', dismissible: true });
+        if (missed.length) alerts.push({ id: 'appointments-missed', type: 'danger', title: 'Missed appointments', message: `${missed.length} appointments not honored.`, time: 'Past', dismissible: false });
+        if (upcoming.length && !pending.length && !missed.length) alerts.push({ id: 'appointments-upcoming', type: 'info', title: 'Next appointments', message: `${upcoming.length} appointments scheduled.`, time: 'Upcoming', dismissible: true });
+
+        const notStarted = medicalRecords.filter(r => r.recoveryStatus === 'NOT_STARTED');
+        const inProgress = medicalRecords.filter(r => r.recoveryStatus === 'IN_PROGRESS');
+        if (notStarted.length) alerts.push({ id: 'recovery-notstarted', type: 'warning', title: 'Injury not managed', message: `${notStarted.length} record(s) without recovery start.`, time: 'Urgent', dismissible: false });
+        if (inProgress.length) alerts.push({ id: 'recovery-inprogress', type: 'info', title: 'Recovery in progress', message: `${inProgress.length} injury(ies) in treatment.`, time: 'Active', dismissible: true });
+
+        if (healthProfile) {
+          const needs = this.calculateCaloricNeeds(healthProfile);
+          const activePlans = dietPlans.filter(p => p.isActive);
+          const expiredPlans = dietPlans.filter(p => p.endDate && new Date(p.endDate) < new Date() && p.isActive);
+          if (expiredPlans.length) {
+            alerts.push({ id: 'diet-expired', type: 'warning', title: 'Diet plan expired', message: `${expiredPlans.length} plan(s) reached their end date.`, time: 'To renew', dismissible: true });
+          }
+          const targetPlan = activePlans.length > 0 ? activePlans[0] : null;
+          if (targetPlan && targetPlan.dailyCalories && targetPlan.dailyCalories > 0) {
+            const planCalories = targetPlan.dailyCalories;
+            const diffMain = Math.abs(planCalories - needs.maintenance);
+            const diffLoss = Math.abs(planCalories - needs.weightLoss);
+            const diffGain = Math.abs(planCalories - needs.weightGain);
+            const tolerance = 150;
+            let type: 'danger' | 'warning' | 'info' = 'info';
+            let title = '';
+            let message = '';
+            let recommendedCalories = needs.maintenance;
+            let difference = planCalories - needs.maintenance;
+
+            if (diffLoss <= tolerance) {
+              type = 'info'; title = 'Consistent diet plan (loss)'; message = `Your plan (${planCalories} kcal/day) is adapted to a weight loss goal.`; recommendedCalories = needs.weightLoss; difference = planCalories - needs.weightLoss;
+            } else if (diffMain <= tolerance) {
+              type = 'info'; title = 'Balanced diet plan'; message = `Your plan (${planCalories} kcal/day) matches your maintenance needs.`; recommendedCalories = needs.maintenance; difference = 0;
+            } else if (diffGain <= tolerance) {
+              type = 'info'; title = 'Muscle gain diet plan'; message = `Your plan (${planCalories} kcal/day) is adapted to muscle building.`; recommendedCalories = needs.weightGain; difference = planCalories - needs.weightGain;
+            } else if (planCalories < needs.weightLoss - 200) {
+              type = 'danger'; title = 'Too restrictive diet'; message = `Your plan (${planCalories} kcal/day) is well below your needs (${needs.weightLoss} kcal/day).`; recommendedCalories = needs.weightLoss;
+            } else if (planCalories > needs.weightGain + 200) {
+              type = 'warning'; title = 'High caloric excess'; message = `Your plan (${planCalories} kcal/day) significantly exceeds your needs (${needs.weightGain} kcal/day).`; recommendedCalories = needs.weightGain;
+            } else if (planCalories < needs.maintenance && planCalories > needs.weightLoss) {
+              type = 'warning'; title = 'Slight caloric deficit'; message = `Your plan (${planCalories} kcal/day) is slightly below your maintenance.`; recommendedCalories = needs.maintenance;
+            } else if (planCalories > needs.maintenance && planCalories < needs.weightGain) {
+              type = 'info'; title = 'Slight caloric surplus'; message = `Your plan (${planCalories} kcal/day) is slightly above your maintenance.`; recommendedCalories = needs.maintenance;
+            } else {
+              type = 'info'; title = 'Check recommended'; message = `Your calories (${planCalories} kcal/day) are not aligned with your goals.`; recommendedCalories = needs.maintenance;
+            }
+            alerts.push({
+              id: 'diet-coherence',
+              type: type,
+              title: title,
+              message: message + ` Check recommended values: ${recommendedCalories} kcal/day.`,
+              time: 'Active plan',
+              dismissible: true,
+              dietData: { planCalories, recommendedCalories, difference }
+            });
+          } else if (activePlans.length === 0) {
+            alerts.push({
+              id: 'diet-no-active-plan',
+              type: 'warning',
+              title: 'No active diet plan',
+              message: `You don't have an active plan. Needs: ${needs.maintenance} kcal/day for maintenance.`,
+              time: 'Recommended action',
+              dismissible: true
+            });
+          }
+        }
+
+        if (alerts.length === 0) {
+          alerts.push({ id: 'annual-checkup', type: 'info', title: 'Annual checkup recommended', message: 'Schedule your annual health checkup.', time: 'Reminder', dismissible: true });
+        }
       }
 
       this.alerts = alerts;
     } catch (err) {
       console.error(err);
-      this.errorMessage = 'Impossible de charger les alertes. Vérifiez votre connexion.';
+      this.errorMessage = 'Unable to load alerts. Check your connection.';
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -322,6 +367,16 @@ export class HealthAlertsComponent implements OnInit {
 
   public dismissAlert(alert: HealthAlert) {
     this.alerts = this.alerts.filter(a => a.id !== alert.id);
+    
+    // Si c'est une notification backend, la supprimer ou la marquer comme lue
+    if (alert.id.startsWith('notif-')) {
+      const notifId = parseInt(alert.id.replace('notif-', ''), 10);
+      this.notificationService.delete(notifId).subscribe({
+        next: () => console.log('Notification deleted'),
+        error: (err) => console.error('Error deleting notification:', err)
+      });
+    }
+    
     this.cdr.detectChanges();
   }
 }
