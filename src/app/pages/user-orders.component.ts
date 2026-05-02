@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { LucideAngularModule, ShoppingBag, CheckCircle, Truck, Package, MapPin } from 'lucide-angular';
-import { QRCodeComponent } from 'angularx-qrcode';
-import { CartResponse, ProductService } from '../services/product.service';
+import { LucideAngularModule, ShoppingBag, Clock, CheckCircle, Truck, QrCode, Package, ChevronRight, MapPin } from 'lucide-angular';
+import { ProductService, CartResponse } from '../services/product.service';
 import { RealTimeNotificationService } from '../services/real-time-notification.service';
+import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-user-orders',
@@ -31,10 +31,10 @@ import { environment } from '../../environments/environment';
 
         <div *ngIf="!loading && orders.length === 0" class="bg-card rounded-3xl p-12 text-center border border-border shadow-sm">
           <lucide-icon [img]="ShoppingBagIcon" class="w-16 h-16 text-muted/30 mx-auto mb-6"></lucide-icon>
-          <h2 class="text-2xl font-bold mb-2">Aucune commande trouvee</h2>
-          <p class="text-muted-foreground mb-8">Vous n'avez pas encore passe de commande sur StreetLeague.</p>
+          <h2 class="text-2xl font-bold mb-2">Aucune commande trouvée</h2>
+          <p class="text-muted-foreground mb-8">Vous n'avez pas encore passé de commande sur StreetLeague.</p>
           <a routerLink="/app/sponsors" class="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg hover:shadow-primary/30 transition-all inline-block">
-            Decouvrir la boutique
+            Découvrir la boutique
           </a>
         </div>
 
@@ -52,25 +52,26 @@ import { environment } from '../../environments/environment';
               </div>
 
               <div class="grid md:grid-cols-3 gap-8 items-start">
+                <!-- Items Summary -->
                 <div class="md:col-span-2 space-y-4">
                   <div *ngFor="let item of order.items" class="flex items-center gap-4 bg-muted/30 p-3 rounded-2xl">
                     <div class="w-12 h-12 bg-background rounded-lg flex items-center justify-center overflow-hidden border border-border/50">
-                      <img *ngIf="item.productImage" [src]="item.productImage" class="w-full h-full object-contain p-1">
-                      <img *ngIf="!item.productImage && item.product?.images?.length" [src]="item.product?.images?.[0]" class="w-full h-full object-contain p-1">
-                      <span *ngIf="!item.productImage && !item.product?.images?.length">📦</span>
+                       <img *ngIf="item.productImage" [src]="item.productImage" class="w-full h-full object-contain p-1">
+                       <span *ngIf="!item.productImage">📦</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <div class="font-bold text-sm truncate">{{ item.productName || item.product?.nom }}</div>
-                      <div class="text-xs text-muted-foreground">Qte: {{ item.quantity }} x {{ formatPrice(item.price) }}</div>
+                      <div class="font-bold text-sm truncate">{{ item.productName }}</div>
+                      <div class="text-xs text-muted-foreground">Qté: {{ item.quantity }} × {{ formatPrice(item.price) }}</div>
                     </div>
                   </div>
-
+                  
                   <div class="pt-4 border-t border-border/50 flex justify-between items-center">
                     <div class="text-sm font-medium">Total de la commande</div>
                     <div class="text-xl font-black text-primary">{{ formatPrice(order.total) }}</div>
                   </div>
                 </div>
 
+                <!-- Order Status Info Section -->
                 <div class="bg-primary/5 border border-primary/10 rounded-2xl p-6 flex flex-col items-center text-center">
                   <ng-container *ngIf="order.deliveryStatus !== 'LIVRE'">
                     <div class="py-4">
@@ -78,11 +79,12 @@ import { environment } from '../../environments/environment';
                         <lucide-icon [img]="TruckIcon" class="w-8 h-8"></lucide-icon>
                       </div>
                       <h4 class="font-bold text-sm mb-1">Livraison en cours</h4>
-                      <p class="text-[10px] text-muted-foreground leading-tight">Votre commande est en route. Le livreur validera la reception lors de la remise.</p>
+                      <p class="text-[10px] text-muted-foreground leading-tight">Votre commande est en route. Le livreur validera la réception lors de la remise.</p>
                       <div class="mt-4 p-2 bg-background rounded-lg border border-border">
                         <span class="text-[10px] font-bold text-muted-foreground block uppercase">Code de confirmation</span>
                         <span class="text-sm font-mono font-bold text-primary">{{ getShortCode(order) }}</span>
                       </div>
+                      <!-- Add QR Code here -->
                       <div class="mt-4 flex justify-center bg-white p-2 rounded-xl shadow-sm border border-border/50">
                         <qrcode [qrdata]="getConfirmationUrl(order)" [width]="120" [errorCorrectionLevel]="'M'"></qrcode>
                       </div>
@@ -94,17 +96,18 @@ import { environment } from '../../environments/environment';
                       <div class="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <lucide-icon [img]="CheckCircleIcon" class="w-8 h-8"></lucide-icon>
                       </div>
-                      <h4 class="font-bold text-green-600">Commande Livree</h4>
+                      <h4 class="font-bold text-green-600">Commande Livrée</h4>
                       <p class="text-xs text-muted-foreground">Merci pour votre confiance !</p>
                     </div>
                   </ng-container>
                 </div>
               </div>
             </div>
-
+            
+            <!-- Address Footer -->
             <div class="bg-muted/30 px-6 py-4 flex items-center gap-2 text-xs text-muted-foreground border-t border-border">
               <lucide-icon [img]="MapPinIcon" class="w-3.5 h-3.5 text-primary"></lucide-icon>
-              <span>Livre a : <strong>{{ order.clientAddress }}, {{ order.clientCity }}</strong></span>
+              <span>Livré à : <strong>{{ order.clientAddress }}, {{ order.clientCity }}</strong></span>
             </div>
           </div>
         </div>
@@ -124,6 +127,7 @@ export class UserOrdersComponent implements OnInit, OnDestroy {
   readonly CheckCircleIcon = CheckCircle;
   readonly TruckIcon = Truck;
   readonly MapPinIcon = MapPin;
+  readonly ClockIcon = Clock;
 
   orders: CartResponse[] = [];
   loading = true;
@@ -135,104 +139,89 @@ export class UserOrdersComponent implements OnInit, OnDestroy {
     private realTimeNotifService: RealTimeNotificationService
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadOrders();
     this.listenForUpdates();
     this.startPolling();
   }
 
-  loadOrders(): void {
+  loadOrders() {
     this.loading = true;
     this.productService.getMyOrders().subscribe({
       next: (data) => {
         this.orders = data || [];
         this.loading = false;
       },
-      error: (error) => {
-        console.error(error);
+      error: (err) => {
+        console.error(err);
         this.loading = false;
       }
     });
   }
 
   listenForUpdates(): void {
-    this.notificationSubscription = this.realTimeNotifService.messages$.subscribe((message) => {
-      if (message && message.type === 'ORDER_UPDATE') {
-        this.loadOrders();
+    this.notificationSubscription = this.realTimeNotifService.messages$.subscribe(msg => {
+      if (msg && msg.type === 'ORDER_UPDATE') {
+        this.loadOrders(); 
       }
     });
   }
 
   startPolling(): void {
+    // Fallback: Refresh every 10 seconds for user
     const intervalId = setInterval(() => {
       this.loadOrders();
     }, 10000);
-
     this.pollingSubscription = new Subscription();
     this.pollingSubscription.add(() => clearInterval(intervalId));
   }
 
   ngOnDestroy(): void {
-    this.notificationSubscription?.unsubscribe();
-    this.pollingSubscription?.unsubscribe();
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+    }
   }
 
   getConfirmationUrl(order: CartResponse): string {
-    return `${environment.apiUrl}/cart/confirm-delivery/${order.deliveryConfirmationCode || ''}`;
+    // Force backendBase to the persistent localtunnel URL to bypass firewall
+    const backendBase = 'https://streetleague-api-2026.loca.lt';
+    return `${backendBase}/api/cart/confirm-delivery/${order.deliveryConfirmationCode}`;
   }
 
   getShortCode(order: CartResponse): string {
-    if (!order.deliveryConfirmationCode) {
-      return 'PENDING';
-    }
-
+    if (!order.deliveryConfirmationCode) return 'PENDING';
     return order.deliveryConfirmationCode.substring(0, 8).toUpperCase();
   }
 
   getStatusLabel(status: string | undefined): string {
     switch (status) {
-      case 'EN_COURS_DE_TRAITEMENT':
-        return 'En preparation';
-      case 'EXPEDIE':
-        return 'En cours de livraison';
-      case 'LIVRE':
-        return 'Livree';
-      default:
-        return 'En attente';
+      case 'EN_COURS_DE_TRAITEMENT': return 'En préparation';
+      case 'EXPEDIE': return 'En cours de livraison';
+      case 'LIVRE': return 'Livrée';
+      default: return 'En attente';
     }
   }
 
   getStatusClass(status: string | undefined): string {
     switch (status) {
-      case 'EN_COURS_DE_TRAITEMENT':
-        return 'status-processing';
-      case 'EXPEDIE':
-        return 'status-shipped';
-      case 'LIVRE':
-        return 'status-delivered';
-      default:
-        return 'status-unknown';
+      case 'EN_COURS_DE_TRAITEMENT': return 'status-processing';
+      case 'EXPEDIE': return 'status-shipped';
+      case 'LIVRE': return 'status-delivered';
+      default: return 'status-unknown';
     }
   }
 
-  formatDate(dateStr: string | undefined): string {
-    if (!dateStr) {
-      return 'N/A';
-    }
-
+  formatDate(dateStr: string): string {
+    if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   }
 
-  formatPrice(price: number | undefined): string {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'TND'
-    }).format(price || 0).replace('TND', 'DT');
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(price).replace('TND', 'DT');
   }
 }

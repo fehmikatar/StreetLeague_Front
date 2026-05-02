@@ -1,11 +1,11 @@
 <div class="admin-orders-container">
   <div class="header">
-    <h1>Gestion des Commandes</h1>
-    <p>Visualisez et gerez les commandes des utilisateurs en temps reel.</p>
+    <h1>🌍 Gestion des Commandes</h1>
+    <p>Visualisez et gérez les commandes des utilisateurs en temps réel.</p>
     <div class="header-actions">
-      <button (click)="loadOrders()" class="btn-refresh">
-        Actualiser ({{ orders.length }} commandes)
-      </button>
+       <button (click)="loadOrders()" class="btn-refresh">
+          <i class="fas fa-sync"></i> Actualiser ({{ orders.length }} commandes)
+       </button>
     </div>
   </div>
 
@@ -19,7 +19,8 @@
   </div>
 
   <div *ngIf="!loading && orders.length === 0" class="empty-state">
-    <p>Aucune commande trouvee.</p>
+    <i class="fas fa-box-open"></i>
+    <p>Aucune commande trouvée.</p>
   </div>
 
   <div *ngIf="!loading && orders.length > 0" class="orders-table-wrapper">
@@ -45,10 +46,10 @@
           </td>
           <td>{{ order.createdAt | date:'short' }}</td>
           <td class="order-total">
-            <span *ngIf="order.total !== undefined">
+            <span *ngIf="order.total">
               {{ order.total }} DT
             </span>
-            <span *ngIf="order.total === undefined" class="text-muted-foreground italic">
+            <span *ngIf="!order.total" class="text-muted-foreground italic">
               0.00 DT
             </span>
           </td>
@@ -59,11 +60,11 @@
           </td>
           <td class="actions">
             <button class="btn-details" (click)="viewDetails(order)">
-              Details
+              <i class="fas fa-eye"></i> Détails
             </button>
             <div class="status-dropdown">
               <select (change)="updateStatus(order, $any($event.target).value)" [value]="order.deliveryStatus">
-                <option *ngFor="let status of statuses" [value]="status.value">{{ status.label }}</option>
+                <option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</option>
               </select>
             </div>
           </td>
@@ -72,10 +73,11 @@
     </table>
   </div>
 
+  <!-- Modal Détails -->
   <div class="modal-backdrop" *ngIf="selectedOrder" (click)="closeDetails()">
     <div class="details-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Details de la Commande #{{ selectedOrder.orderCode || selectedOrder.id }}</h2>
+        <h2>Détails de la Commande #{{ selectedOrder.orderCode || selectedOrder.id }}</h2>
         <button class="btn-close" (click)="closeDetails()">&times;</button>
       </div>
       <div class="modal-body scrollable">
@@ -83,13 +85,13 @@
           <h3>Informations Client</h3>
           <p><strong>Nom:</strong> {{ selectedOrder.clientName }}</p>
           <p><strong>Adresse:</strong> {{ selectedOrder.clientAddress }}, {{ selectedOrder.clientPostalCode }} {{ selectedOrder.clientCity }}</p>
-          <p><strong>Telephone:</strong> {{ selectedOrder.clientPhone }}</p>
+          <p><strong>Téléphone:</strong> {{ selectedOrder.clientPhone }}</p>
         </div>
 
         <div class="details-section">
-          <h3>Methode de Livraison / Paiement</h3>
-          <p><strong>Livraison:</strong> {{ selectedOrder.deliveryMode === 'LIVRAISON_DOMICILE' ? 'A domicile' : 'Retrait magasin' }}</p>
-          <p><strong>Paiement:</strong> {{ selectedOrder.paymentMode === 'CARTE' ? 'Carte Bancaire' : 'Especes a la livraison' }}</p>
+          <h3>Méthode de Livraison / Paiement</h3>
+          <p><strong>Livraison:</strong> {{ selectedOrder.deliveryMode === 'LIVRAISON_DOMICILE' ? 'À domicile' : 'Retrait magasin' }}</p>
+          <p><strong>Paiement:</strong> {{ selectedOrder.paymentMode === 'CARTE' ? 'Carte Bancaire' : 'Espèces à la livraison' }}</p>
           <p><strong>Frais de livraison:</strong> {{ selectedOrder.deliveryFee | currency:'TND':'DT ' }}</p>
         </div>
 
@@ -101,11 +103,11 @@
                 <img [src]="item.productImage" alt="">
               </div>
               <div class="item-info">
-                <span class="item-name">{{ item.productName || item.product?.nom }}</span>
+                <span class="item-name">{{ item.productName }}</span>
                 <span class="item-variant" *ngIf="item.selectedVariant">
                   ( {{ item.selectedVariant.size }} - {{ item.selectedVariant.color }} )
                 </span>
-                <span class="item-qty">Qte: {{ item.quantity }}</span>
+                <span class="item-qty">Qté: {{ item.quantity }}</span>
               </div>
               <div class="item-price">
                 {{ item.price * item.quantity | currency:'TND':'DT ' }}
@@ -116,7 +118,7 @@
 
         <div class="details-section qr-section" *ngIf="selectedOrder.deliveryStatus !== 'LIVRE'">
           <h3>Code de Confirmation Livraison</h3>
-          <p class="qr-info">Faites scanner ce code par le livreur pour confirmer la reception.</p>
+          <p class="qr-info">Faites scanner ce code par le livreur pour confirmer la réception.</p>
           <div class="qr-container" *ngIf="currentQrData">
             <qrcode [qrdata]="currentQrData" [width]="180" [errorCorrectionLevel]="'M'"></qrcode>
           </div>

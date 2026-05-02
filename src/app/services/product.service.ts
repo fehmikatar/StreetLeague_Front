@@ -76,27 +76,26 @@ export interface FavoriteResponse {
 
 export interface CartItemDTO {
   id: number;
-  productId?: number;
-  productName?: string;
+  productId: number;
+  productName: string;
   productImage?: string;
-  product?: Product;
   price: number;
   quantity: number;
   selectedVariant?: ProductVariant;
-  addedAt?: string;
+  addedAt: string;
 }
 
 export interface CartResponse {
   id: number;
   orderCode?: string;
   items: CartItemDTO[];
-  subtotal?: number;
-  discount?: number;
-  total?: number;
+  subtotal: number;
+  discount: number;
+  total: number;
   appliedPromoCode?: string;
-  status?: string;
-  createdAt?: string;
-  lastModified?: string;
+  status: string;
+  createdAt: string;
+  lastModified: string;
   clientName?: string;
   clientAddress?: string;
   clientPostalCode?: string;
@@ -124,15 +123,10 @@ export class ProductService {
   private apiUrl = `${environment.apiUrl}/products`;
   private categoryUrl = `${environment.apiUrl}/categories`;
   private cartUrl = `${environment.apiUrl}/cart`;
-  private favoriteUrl = `${environment.apiUrl}/favorites`;
-  private statsUrl = `${environment.apiUrl}/stats`;
-  private sponsoredUrl = `${environment.apiUrl}/sponsored`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  // ==========================
-  // CATEGORIES
-  // ==========================
+
   getCategories(): Observable<Category[]> {
     return this.http.get<Category[]>(this.categoryUrl);
   }
@@ -149,9 +143,7 @@ export class ProductService {
     return this.http.delete<any>(`${this.categoryUrl}/${id}`);
   }
 
-  // ==========================
-  // PRODUCTS
-  // ==========================
+
   getAllProducts(page: number = 0, size: number = 20): Observable<ProductResponse> {
     const params = new HttpParams()
       .set('page', page.toString())
@@ -176,7 +168,6 @@ export class ProductService {
     return this.http.get<ProductResponse>(`${this.apiUrl}/search`, { params });
   }
 
-  // Obsolete - kept for backward compatibility mostly, redirecting to search.
   getProductsByCategory(categoryId: number, page: number = 0, size: number = 20): Observable<ProductResponse> {
     return this.searchProducts({ categoryId }, page, size);
   }
@@ -217,15 +208,12 @@ export class ProductService {
     return this.http.get(`${this.apiUrl}/bulk/export`, { responseType: 'blob' });
   }
 
-  uploadImage(file: File): Observable<{ url: string }> {
+  uploadImage(file: File): Observable<{url: string}> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<{ url: string }>(`${this.apiUrl}/upload-image`, formData);
+    return this.http.post<{url: string}>(`${this.apiUrl}/upload-image`, formData);
   }
 
-  // ==========================
-  // CART
-  // ==========================
   addToCart(productId: number, quantity: number = 1, variantId?: number): Observable<any> {
     const payload: any = { productId, quantity };
     if (variantId) payload.variantId = variantId;
@@ -273,18 +261,9 @@ export class ProductService {
     return this.http.put<CartResponse>(`${this.cartUrl}/orders/${cartId}/status`, { status });
   }
 
-  calculateDeliveryFee(address: string): Observable<number> {
-    const params = new HttpParams().set('address', address);
-    return this.http.get<number>(`${this.cartUrl}/calculate-delivery`, { params });
-  }
 
-  confirmDelivery(code: string): Observable<string> {
-    return this.http.get(`${this.cartUrl}/confirm-delivery/${code}`, { responseType: 'text' });
-  }
+  private favoriteUrl = `${environment.apiUrl}/favorites`;
 
-  // ==========================
-  // FAVORITES & WISHLIST
-  // ==========================
   addToFavorites(productId: number, categoryId?: number): Observable<FavoriteResponse | null> {
     const body: any = { productId };
     if (categoryId) body.categoryId = categoryId;
@@ -299,7 +278,7 @@ export class ProductService {
     return this.http.get<boolean>(`${this.favoriteUrl}/check/${productId}`);
   }
 
-  getMyFavorites(page: number = 0, size: number = 50): Observable<{ content: FavoriteResponse[]; totalPages: number; totalElements: number }> {
+  getMyFavorites(page: number = 0, size: number = 50): Observable<{ content: FavoriteResponse[], totalPages: number, totalElements: number }> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     return this.http.get<any>(this.favoriteUrl, { params });
   }
@@ -320,7 +299,7 @@ export class ProductService {
     return this.http.put<any>(`${this.favoriteUrl}/${favoriteId}/categorize/${categoryId}`, {});
   }
 
-  searchFavorites(productName: string = '', categoryName: string = ''): Observable<FavoriteResponse[]> {
+    searchFavorites(productName: string = '', categoryName: string = ''): Observable<FavoriteResponse[]> {
     const params = new HttpParams()
       .set('productName', productName)
       .set('categoryName', categoryName);
@@ -335,9 +314,11 @@ export class ProductService {
     return this.http.post<void>(`${this.favoriteUrl}/trigger-check`, {});
   }
 
-  // ==========================
-  // RECOMMENDATIONS & STATS
-  // ==========================
+
+  private statsUrl = `${environment.apiUrl}/stats`;
+  private sponsoredUrl = `${environment.apiUrl}/sponsored`;
+
+
   getAIRecommendations(userId: number, limit: number = 20): Observable<{
     user_id: number;
     total: number;
@@ -351,6 +332,8 @@ export class ProductService {
       .set('limit', limit.toString());
     return this.http.get<any>(`${this.sponsoredUrl}/recommendations/ai`, { params });
   }
+
+
 
   getTopSellingProductsStats(): Observable<any[]> {
     return this.http.get<any[]>(`${this.statsUrl}/top-products`);
@@ -367,4 +350,14 @@ export class ProductService {
   getOrderSummaryStats(userId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.statsUrl}/order-summary/${userId}`);
   }
+
+  calculateDeliveryFee(address: string): Observable<number> {
+    const params = new HttpParams().set('address', address);
+    return this.http.get<number>(`${this.cartUrl}/calculate-delivery`, { params });
+  }
+
+  confirmDelivery(code: string): Observable<string> {
+    return this.http.get(`${this.cartUrl}/confirm-delivery/${code}`, { responseType: 'text' });
+  }
 }
+

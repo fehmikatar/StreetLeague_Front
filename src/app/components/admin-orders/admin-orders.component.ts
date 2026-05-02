@@ -1,10 +1,11 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { HttpClientModule } from '@angular/common/http';
+import { ProductService, CartResponse } from '../../services/product.service';
 import { QRCodeComponent } from 'angularx-qrcode';
-import { CartResponse, ProductService } from '../../services/product.service';
 import { RealTimeNotificationService } from '../../services/real-time-notification.service';
+import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -20,15 +21,14 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
   loading = false;
   error = '';
   showAllCarts = false;
-  currentQrData = '';
-
   private notificationSubscription: Subscription | null = null;
   private pollingSubscription: Subscription | null = null;
+  currentQrData: string = '';
 
   statuses = [
     { value: 'EN_COURS_DE_TRAITEMENT', label: 'En cours de traitement' },
-    { value: 'EXPEDIE', label: 'Expedie' },
-    { value: 'LIVRE', label: 'Livre' }
+    { value: 'EXPEDIE', label: 'Expédié' },
+    { value: 'LIVRE', label: 'Livré' }
   ];
 
   constructor(
@@ -44,14 +44,16 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
   }
 
   listenForUpdates(): void {
-    this.notificationSubscription = this.realTimeNotifService.messages$.subscribe((message) => {
-      if (message && message.type === 'ORDER_UPDATE') {
-        this.loadOrders();
+    this.notificationSubscription = this.realTimeNotifService.messages$.subscribe(msg => {
+      if (msg && msg.type === 'ORDER_UPDATE') {
+        console.log('AdminOrdersComponent: Real-time update received:', msg);
+        this.loadOrders(); // Refresh the list
       }
     });
   }
 
   startPolling(): void {
+    // Fallback: Refresh every 5 seconds to ensure "automatic" update
     this.pollingSubscription = new Subscription();
     const intervalId = setInterval(() => {
       this.loadOrders();
@@ -60,12 +62,18 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.notificationSubscription?.unsubscribe();
-    this.pollingSubscription?.unsubscribe();
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+    }
   }
 
   getConfirmationUrl(order: CartResponse): string {
-    return `${environment.apiUrl}/cart/confirm-delivery/${order.deliveryConfirmationCode || ''}`;
+    // Force backendBase to the persistent localtunnel URL to bypass firewall
+    const backendBase = 'https://streetleague-api-2026.loca.lt';
+    return `${backendBase}/api/cart/confirm-delivery/${order.deliveryConfirmationCode}`;
   }
 
   toggleDiagnostics(): void {
@@ -76,26 +84,30 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
   loadOrders(): void {
     this.loading = true;
     this.error = '';
+    console.log('AdminOrdersComponent: Requesting all orders...');
     this.productService.getAllOrders().subscribe({
       next: (data) => {
+        console.log('AdminOrdersComponent: Received orders:', data);
         this.orders = data || [];
         this.loading = false;
-
+        
+        // Update selectedOrder if it's currently open
         if (this.selectedOrder) {
-          const updatedOrder = this.orders.find((order) => order.id === this.selectedOrder?.id);
-          if (updatedOrder) {
-            this.selectedOrder = updatedOrder;
-            this.currentQrData = this.getConfirmationUrl(updatedOrder);
+          const updated = this.orders.find(o => o.id === this.selectedOrder?.id);
+          if (updated) {
+            this.selectedOrder = updated;
+            this.currentQrData = this.getConfirmationUrl(updated);
           }
         }
 
+        // The data is there, we force a view update just in case
         setTimeout(() => this.cdr.detectChanges(), 0);
       },
-      error: (error) => {
+      error: (err) => {
         this.error = 'Erreur lors du chargement des commandes';
         this.loading = false;
         this.cdr.detectChanges();
-        console.error('AdminOrdersComponent: Error loading orders', error);
+        console.error('AdminOrdersComponent: Error loading orders', err);
       }
     });
   }
@@ -116,31 +128,24 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
         order.deliveryStatus = updatedOrder.deliveryStatus;
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Erreur lors de la mise a jour du statut', error);
+      error: (err) => {
+        console.error('Erreur lors de la mise à jour du statut', err);
       }
     });
   }
 
   getStatusLabel(value: string | undefined): string {
-    if (!value) {
-      return 'En attente';
-    }
-
-    const status = this.statuses.find((entry) => entry.value === value);
+    if (!value) return 'En attente';
+    const status = this.statuses.find(s => s.value === value);
     return status ? status.label : value;
   }
 
   getStatusClass(status: string | undefined): string {
     switch (status) {
-      case 'EN_COURS_DE_TRAITEMENT':
-        return 'status-processing';
-      case 'EXPEDIE':
-        return 'status-shipped';
-      case 'LIVRE':
-        return 'status-delivered';
-      default:
-        return 'status-unknown';
+      case 'EN_COURS_DE_TRAITEMENT': return 'status-processing';
+      case 'EXPEDIE': return 'status-shipped';
+      case 'LIVRE': return 'status-delivered';
+      default: return 'status-unknown';
     }
   }
 }

@@ -1,7 +1,7 @@
 <div class="stats-container">
   <div class="header">
     <h1>Tableau de Bord des Statistiques</h1>
-    <p>Analyse approfondie de l'activite e-commerce et performance commerciale</p>
+    <p>Analyse approfondie de l'activité e-commerce et performance commerciale</p>
   </div>
 
   <div *ngIf="loading" class="loader-container">
@@ -10,6 +10,7 @@
   </div>
 
   <div *ngIf="!loading" class="dashboard-grid">
+    <!-- Top Stats Cards -->
     <div class="summary-cards">
       <div class="card glass shadow-blue">
         <div class="card-icon">📈</div>
@@ -34,7 +35,9 @@
       </div>
     </div>
 
+    <!-- Main Content Grid -->
     <div class="main-sections">
+      <!-- Top Products Section -->
       <section class="section-card glass">
         <div class="section-header">
           <h2>Produits les Plus Vendus</h2>
@@ -45,8 +48,8 @@
             <thead>
               <tr>
                 <th>Produit</th>
-                <th>Categorie</th>
-                <th>Quantite</th>
+                <th>Catégorie</th>
+                <th>Quantité</th>
                 <th>Chiffre d'Affaires</th>
               </tr>
             </thead>
@@ -62,17 +65,18 @@
         </div>
       </section>
 
+      <!-- High Demand Products Section (JPQL with Joins) -->
       <section class="section-card glass demand-section">
         <div class="section-header">
-          <h2>Produits a Forte Demande (Paniers Actifs)</h2>
-          <span class="badge warning">Temps Reel</span>
+          <h2>Produits à Forte Demande (Paniers Actifs)</h2>
+          <span class="badge warning">Temps Réel</span>
         </div>
         <div class="table-responsive">
           <table class="modern-table">
             <thead>
               <tr>
                 <th>Produit</th>
-                <th>Categorie</th>
+                <th>Catégorie</th>
                 <th>En Panier</th>
                 <th>Stock Relatif</th>
               </tr>
@@ -81,7 +85,7 @@
               <tr *ngFor="let item of highDemandProducts">
                 <td>{{ item.nom }}</td>
                 <td><span class="cat-pill blue">{{ item.categoryName }}</span></td>
-                <td><strong>{{ item.quantityInActiveCarts }} unites</strong></td>
+                <td><strong>{{ item.quantityInActiveCarts }} unités</strong></td>
                 <td>
                   <div class="stock-impact">
                     <div class="progress-mini">
@@ -96,9 +100,10 @@
         </div>
       </section>
 
+      <!-- Abandoned Stats Section -->
       <section class="section-card glass">
         <div class="section-header">
-          <h2>Paniers Abandonnes par Ville</h2>
+          <h2>Paniers Abandonnés par Ville</h2>
           <span class="badge danger">Alertes</span>
         </div>
         <div class="city-grid">
@@ -115,6 +120,7 @@
         </div>
       </section>
 
+      <!-- Promo Codes Section -->
       <section class="section-card glass full-width">
         <div class="section-header">
           <h2>Performance des Codes Promo</h2>

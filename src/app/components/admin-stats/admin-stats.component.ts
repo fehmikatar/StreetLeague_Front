@@ -24,41 +24,33 @@ export class AdminStatsComponent implements OnInit {
 
   loadStats(): void {
     this.loading = true;
-
+    
+    // Charger Top Selling Products
     this.productService.getTopSellingProductsStats().subscribe({
-      next: (data: any[]) => {
-        this.topProducts = data;
-      },
-      error: (error: any) => {
-        console.error('Error loading top products', error);
-      }
+      next: (data: any[]) => this.topProducts = data,
+      error: (err: any) => console.error('Error loading top products', err)
     });
 
+    // Charger High Demand Products (JPQL with Joins)
     this.productService.getHighDemandProducts().subscribe({
-      next: (data: any[]) => {
-        this.highDemandProducts = data;
-      },
-      error: (error: any) => {
-        console.error('Error loading high demand products', error);
-      }
+      next: (data: any[]) => this.highDemandProducts = data,
+      error: (err: any) => console.error('Error loading high demand products', err)
     });
 
+    // Charger Abandoned Stats by City
     this.productService.getAbandonedCartStatsCity().subscribe({
-      next: (data: any[]) => {
-        this.abandonedByCity = data;
-      },
-      error: (error: any) => {
-        console.error('Error loading abandoned stats', error);
-      }
+      next: (data: any[]) => this.abandonedByCity = data,
+      error: (err: any) => console.error('Error loading abandoned stats', err)
     });
 
+    // Charger Promo Code Stats
     this.productService.getPromoCodeUsageStats().subscribe({
       next: (data: any[]) => {
         this.promoStats = data;
         this.loading = false;
       },
-      error: (error: any) => {
-        console.error('Error loading promo stats', error);
+      error: (err: any) => {
+        console.error('Error loading promo stats', err);
         this.loading = false;
       }
     });
