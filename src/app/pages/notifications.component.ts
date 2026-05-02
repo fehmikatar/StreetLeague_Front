@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { LucideAngularModule, Bell, CheckCheck, Settings, Trash2 } from 'lucide-angular';
 import { NotificationService } from '../services/notification.service';
-import { UserService } from '../services/user.service';
 import { BookingService } from '../services/booking.service';
 import { WebSocketService } from '../services/websocket.service';
 
@@ -57,7 +56,7 @@ type NotificationItem = {
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-medium text-foreground">{{ n.title }}</p>
-            <p class="text-sm text-muted-foreground">{{ n.message }}</p>
+            <p class="text-sm text-muted-foreground whitespace-pre-line">{{ n.message }}</p>
             <p class="text-xs text-muted-foreground mt-1">{{ formatDate(n.createdAt) }}</p>
           </div>
           <div class="flex gap-2 shrink-0">
@@ -94,9 +93,9 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   constructor(
     private notifService: NotificationService,
-    private userService: UserService,
     private bookingService: BookingService,
-    private webSocketService: WebSocketService
+    private webSocketService: WebSocketService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -128,30 +127,16 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       })
     );
 
-    const email = localStorage.getItem('user_email');
-    if (!email) {
-      this.loading = false;
-      return;
-    }
-
-    this.subscriptions.add(
-      this.userService.getByEmail(email).subscribe({
-        next: (user: any) => this.loadNotifs(user.id),
-        error: () => {
-          this.loading = false;
-          this.mergeNotifications();
-        }
-      })
-    );
+    this.loadNotifs();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
-  loadNotifs(userId: number) {
+  loadNotifs() {
     this.subscriptions.add(
-      this.notifService.getByUserId(userId).subscribe({
+      this.notifService.getMine().subscribe({
         next: (data: any[]) => {
           this.apiNotifications = data.map((notification) => ({
             id: notification.id,
@@ -191,7 +176,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     notification.isRead = true;
 
     if (notification.source === 'api' && typeof id === 'number') {
-      this.notifService.markAsRead(id).subscribe();
+      this.notifService.markAsRead(id).subscribe({
+        next: () => {
+          this.loadNotifs();
+        },
+        error: () => this.mergeNotifications()
+      });
+      return;
     }
 
     if (notification.source === 'websocket' && typeof id === 'string') {
@@ -215,8 +206,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
     if (notification.source === 'api' && typeof id === 'number') {
       this.notifService.delete(id).subscribe(() => {
-        this.apiNotifications = this.apiNotifications.filter((item) => item.id !== id);
-        this.mergeNotifications();
+        this.loadNotifs();
       });
       return;
     }
@@ -253,11 +243,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       .filter((notification, index, list) =>
         index === list.findIndex((item) =>
           item.title === notification.title &&
-          item.message === notification.message &&
-          item.source === notification.source
+          item.message === notification.message
         )
       )
       .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+
+    this.cdr.detectChanges();
   }
 
   private toIsoDate(value: string): string {

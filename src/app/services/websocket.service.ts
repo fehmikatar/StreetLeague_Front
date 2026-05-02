@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
+import { Client, IMessage } from '@stomp/stompjs';
 import { ApiService } from './api.service';
 import { environment } from '../../environments/environment';
 
@@ -22,7 +22,7 @@ export interface WebSocketNotification {
     providedIn: 'root'
 })
 export class WebSocketService implements OnDestroy {
-    private stompClient: any = null;
+    private stompClient: Client | null = null;
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private notificationsSubject = new BehaviorSubject<WebSocketNotification[]>([]);
     public notifications$ = this.notificationsSubject.asObservable();
@@ -51,31 +51,41 @@ export class WebSocketService implements OnDestroy {
     }
 
     private initializeConnection(): void {
-        if (!this.hasSession() || this.stompClient?.connected) {
+        if (!this.hasSession() || this.stompClient?.connected || this.stompClient?.active) {
             return;
         }
 
         try {
             const wsBaseUrl = environment.wsUrl || 'http://localhost:8085';
             const wsUrl = `${wsBaseUrl}/ws`;
-            const socket = new SockJS(wsUrl);
+            const client = new Client({
+                webSocketFactory: () => new SockJS(wsUrl) as WebSocket,
+                reconnectDelay: 0,
+                debug: () => {},
+            });
 
-            this.stompClient = Stomp.over(socket);
-            this.stompClient.debug = () => {};
+            client.onConnect = () => {
+                this.connectionStatusSubject.next(true);
+                client.subscribe('/user/queue/notifications', (message: IMessage) => {
+                    this.handleNotification(message);
+                });
+                client.subscribe('/topic/notifications', (message: IMessage) => {
+                    this.handleNotification(message);
+                });
+            };
 
-            this.stompClient.connect(
-                {},
-                () => {
-                    this.connectionStatusSubject.next(true);
-                    this.stompClient.subscribe('/user/queue/notifications', (message: any) => {
-                        this.handleNotification(message);
-                    });
-                },
-                () => {
-                    this.connectionStatusSubject.next(false);
-                    this.scheduleReconnect();
-                }
-            );
+            client.onStompError = () => {
+                this.connectionStatusSubject.next(false);
+                this.scheduleReconnect();
+            };
+
+            client.onWebSocketClose = () => {
+                this.connectionStatusSubject.next(false);
+                this.scheduleReconnect();
+            };
+
+            this.stompClient = client;
+            client.activate();
         } catch (error) {
             console.error('WebSocket initialization error:', error);
             this.connectionStatusSubject.next(false);
@@ -83,11 +93,15 @@ export class WebSocketService implements OnDestroy {
         }
     }
 
-    private handleNotification(message: any): void {
+    private handleNotification(message: IMessage): void {
         try {
+            if (!message.body || !message.body.trim().startsWith('{')) {
+                return;
+            }
+
             const data = JSON.parse(message.body);
             this.addNotification({
-                type: data.type || 'message',
+                type: this.normalizeNotificationType(data.type),
                 title: data.title,
                 message: data.message,
                 fieldName: data.fieldName || '',
@@ -163,6 +177,24 @@ export class WebSocketService implements OnDestroy {
         });
     }
 
+    private normalizeNotificationType(rawType: string | null | undefined): WebSocketNotification['type'] {
+        const normalized = (rawType || '').toLowerCase();
+
+        if (normalized.includes('cancel')) {
+            return 'cancellation';
+        }
+
+        if (normalized.includes('reservation') || normalized.includes('confirm')) {
+            return 'reservation';
+        }
+
+        if (normalized.includes('reminder')) {
+            return 'update';
+        }
+
+        return 'message';
+    }
+
     private formatDisplayDate(value?: string): string {
         const date = value ? new Date(value) : new Date();
         return Number.isNaN(date.getTime())
@@ -201,15 +233,14 @@ export class WebSocketService implements OnDestroy {
             this.reconnectTimer = null;
         }
 
-        if (this.stompClient?.connected) {
-            this.stompClient.disconnect(() => {
-                this.connectionStatusSubject.next(false);
-            });
-        } else {
-            this.connectionStatusSubject.next(false);
+        const client = this.stompClient;
+        this.stompClient = null;
+
+        if (client) {
+            void client.deactivate();
         }
 
-        this.stompClient = null;
+        this.connectionStatusSubject.next(false);
     }
 
     ngOnDestroy(): void {

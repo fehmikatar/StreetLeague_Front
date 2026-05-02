@@ -108,6 +108,9 @@ import { environment } from '../../environments/environment';
               <h3 class="mb-4">Actions rapides</h3>
               <div class="space-y-3">
                 <button (click)="router.navigate(['/app/admin/products'])" class="w-full py-3 text-sm bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all font-semibold shadow-sm text-center">Gestion de la Boutique (Inventaire)</button>
+                <button (click)="router.navigate(['/app/admin/categories'])" class="w-full py-3 text-sm bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all font-semibold">Gestion des categories sponsors</button>
+                <button (click)="router.navigate(['/app/admin/orders'])" class="w-full py-3 text-sm bg-slate-700 text-white rounded-xl hover:bg-slate-800 transition-all font-semibold">Gestion des commandes</button>
+                <button (click)="router.navigate(['/app/admin/stats'])" class="w-full py-3 text-sm bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-all font-semibold">Statistiques boutique</button>
                 <button (click)="router.navigate(['/app/admin/badges/dashboard'])" class="w-full py-3 text-sm bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-all font-semibold">🎖️ Gestion des Badges</button>
                 <button (click)="router.navigate(['/app/admin/performances/dashboard'])" class="w-full py-3 text-sm bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all font-semibold">📊 Performance Tracking</button>
                 <button (click)="router.navigate(['/app/fields/add'])" class="w-full py-3 text-sm bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-semibold">Ajouter un terrain</button>
@@ -228,8 +231,16 @@ export class AdminComponent implements OnInit {
             return 'Annulée';
         }
 
-        if (normalized === 'pending') {
+        if (normalized === 'pending' || normalized === 'pending_confirmation') {
             return 'En attente';
+        }
+
+        if (normalized === 'reminder_sent') {
+            return 'Confirmation requise';
+        }
+
+        if (normalized === 'completed') {
+            return 'Terminée';
         }
 
         return 'Confirmée';

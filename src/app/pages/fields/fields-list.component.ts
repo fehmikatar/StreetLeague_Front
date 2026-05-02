@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { LucideAngularModule, MapPin, Plus, Edit, Trash, Star, ArrowLeft, Loader2, Mail, Phone } from 'lucide-angular';
+import { LucideAngularModule, MapPin, Plus, Edit, Trash, Star, ArrowLeft, Loader2 } from 'lucide-angular';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { OwnerFeedbackComponent } from '../../components/owner-feedback/owner-feedback.component';
 
 @Component({
   selector: 'app-fields-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule, OwnerFeedbackComponent],
   template: `
     <div class="min-h-screen bg-background p-4 md:p-6">
       <div class="max-w-7xl mx-auto">
@@ -62,11 +63,7 @@ import { catchError } from 'rxjs/operators';
                 <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{{ field.sportType || 'Sport' }}</span>
                 <span class="text-primary font-semibold">{{ field.pricePerHour || field.price }}€/h</span>
               </div>
-              <div class="grid grid-cols-2 gap-2 mb-4 text-xs">
-                <div class="rounded-lg bg-muted/40 px-3 py-2">
-                  <div class="text-muted-foreground">Réservations</div>
-                  <div class="font-bold">{{ reservationsByField[field.id]?.length || 0 }}</div>
-                </div>
+              <div class="mb-4 text-xs">
                 <div class="rounded-lg bg-muted/40 px-3 py-2">
                   <div class="text-muted-foreground">Feedbacks</div>
                   <div class="font-bold">{{ feedbacksByField[field.id]?.length || 0 }}</div>
@@ -76,65 +73,12 @@ import { catchError } from 'rxjs/operators';
                 type="button"
                 (click)="toggleFieldDetails(field.id)"
                 class="w-full mb-4 py-2 border border-border rounded-lg text-sm font-semibold hover:bg-muted transition-all">
-                {{ expandedFieldId === field.id ? 'Masquer activité' : 'Voir réservations et feedbacks' }}
+                {{ expandedFieldId === field.id ? 'Masquer les feedbacks' : 'Voir les feedbacks' }}
               </button>
               <div *ngIf="expandedFieldId === field.id" class="mb-4 space-y-4">
                 <div class="rounded-xl bg-muted/40 p-3">
-                  <h4 class="font-semibold text-sm mb-3">Réservations du terrain</h4>
-                  <div *ngIf="(reservationsByField[field.id]?.length || 0) === 0" class="text-sm text-muted-foreground">
-                    Aucune réservation pour ce terrain.
-                  </div>
-                  <div *ngFor="let reservation of reservationsByField[field.id]" class="border-b border-border/60 py-2 last:border-b-0">
-                    <div class="flex items-center justify-between gap-3 text-sm">
-                      <span class="font-medium">{{ reservation.userName || ('Utilisateur #' + reservation.userId) }}</span>
-                      <span class="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">{{ reservation.status }}</span>
-                    </div>
-                    <div class="mt-2 space-y-2" *ngIf="reservation.userEmail || reservation.userPhone">
-                      <div class="flex items-center gap-2 text-xs text-muted-foreground" *ngIf="reservation.userEmail">
-                        <lucide-icon [name]="MailIcon" [size]="13"></lucide-icon>
-                        <a [href]="'mailto:' + reservation.userEmail" class="hover:text-primary hover:underline">
-                          {{ reservation.userEmail }}
-                        </a>
-                      </div>
-                      <div class="flex items-center gap-2 text-xs text-muted-foreground" *ngIf="reservation.userPhone">
-                        <lucide-icon [name]="PhoneIcon" [size]="13"></lucide-icon>
-                        <a [href]="'tel:' + reservation.userPhone" class="hover:text-primary hover:underline">
-                          {{ reservation.userPhone }}
-                        </a>
-                      </div>
-                      <div class="flex gap-2 pt-1">
-                        <a
-                          *ngIf="reservation.userEmail"
-                          [href]="'mailto:' + reservation.userEmail"
-                          class="px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all">
-                          Envoyer un email
-                        </a>
-                        <a
-                          *ngIf="reservation.userPhone"
-                          [href]="'tel:' + reservation.userPhone"
-                          class="px-2 py-1 rounded-md bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-all">
-                          Appeler
-                        </a>
-                      </div>
-                    </div>
-                    <div class="text-xs text-muted-foreground mt-1">
-                      {{ reservation.startTime | date:'dd/MM/yyyy HH:mm' }} - {{ reservation.endTime | date:'HH:mm' }}
-                    </div>
-                  </div>
-                </div>
-                <div class="rounded-xl bg-muted/40 p-3">
                   <h4 class="font-semibold text-sm mb-3">Feedbacks reçus</h4>
-                  <div *ngIf="(feedbacksByField[field.id]?.length || 0) === 0" class="text-sm text-muted-foreground">
-                    Aucun feedback reçu pour ce terrain.
-                  </div>
-                  <div *ngFor="let feedback of feedbacksByField[field.id]" class="border-b border-border/60 py-2 last:border-b-0">
-                    <div class="flex items-center justify-between gap-3 mb-1">
-                      <span class="font-medium text-sm">{{ feedback.userName || ('Utilisateur #' + feedback.userId) }}</span>
-                      <span class="text-amber-500 text-sm">{{ '★'.repeat(feedback.rating) }}<span class="text-muted-foreground">{{ '☆'.repeat(5 - feedback.rating) }}</span></span>
-                    </div>
-                    <div class="text-sm text-muted-foreground">{{ feedback.comment }}</div>
-                    <div class="text-xs text-muted-foreground mt-1">{{ feedback.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
-                  </div>
+                  <app-owner-feedback [sportSpaceId]="field.id"></app-owner-feedback>
                 </div>
               </div>
               <div class="flex gap-2">
@@ -158,37 +102,43 @@ export class FieldsListComponent implements OnInit {
   readonly TrashIcon = Trash;
   readonly ArrowLeftIcon = ArrowLeft;
   readonly Loader2Icon = Loader2;
-  readonly MailIcon = Mail;
-  readonly PhoneIcon = Phone;
 
   loading = true;
   notification = '';
   fields: any[] = [];
-  reservationsByField: Record<string, any[]> = {};
   feedbacksByField: Record<string, any[]> = {};
   expandedFieldId: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    const userId = localStorage.getItem('user_id');
-    const url = userId
-      ? `${environment.apiUrl}/sport-spaces/owner/${userId}`
-      : `${environment.apiUrl}/sport-spaces`;
-
-    this.http.get<any[]>(url).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/sport-spaces/owner/me`).subscribe({
       next: (data) => {
         this.fields = data;
         this.loadFieldDetails();
+        this.cdr.detectChanges();
       },
       error: () => {
-        // Fallback: load all fields if owner endpoint fails
-        this.http.get<any[]>(`${environment.apiUrl}/sport-spaces`).subscribe({
+        const userId = localStorage.getItem('user_id');
+        if (!userId) {
+          this.loading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.http.get<any[]>(`${environment.apiUrl}/sport-spaces/owner/${userId}`).subscribe({
           next: (data) => {
             this.fields = data;
             this.loadFieldDetails();
+            this.cdr.detectChanges();
           },
-          error: () => { this.loading = false; }
+          error: () => {
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
         });
       }
     });
@@ -200,14 +150,19 @@ export class FieldsListComponent implements OnInit {
       next: () => {
         this.fields = this.fields.filter(f => f.id !== field.id);
         this.showNotification(`✅ Terrain "${field.name}" supprimé`);
+        this.cdr.detectChanges();
       },
-      error: () => this.showNotification('❌ Erreur lors de la suppression')
+      error: () => {
+        this.showNotification('❌ Erreur lors de la suppression');
+        this.cdr.detectChanges();
+      }
     });
   }
 
   private showNotification(msg: string) {
     this.notification = msg;
     setTimeout(() => { this.notification = ''; }, 3000);
+    this.cdr.detectChanges();
   }
 
   toggleFieldDetails(fieldId: string): void {
@@ -217,12 +172,12 @@ export class FieldsListComponent implements OnInit {
   private loadFieldDetails(): void {
     if (this.fields.length === 0) {
       this.loading = false;
+      this.cdr.detectChanges();
       return;
     }
 
     const requests = this.fields.map(field =>
       forkJoin({
-        reservations: this.http.get<any[]>(`${environment.apiUrl}/bookings/sport-space/${field.id}`).pipe(catchError(() => of([]))),
         feedbacks: this.http.get<any[]>(`${environment.apiUrl}/feedbacks/sport-space/${field.id}`).pipe(catchError(() => of([])))
       })
     );
@@ -231,13 +186,14 @@ export class FieldsListComponent implements OnInit {
       next: (results) => {
         results.forEach((result, index) => {
           const fieldId = String(this.fields[index].id);
-          this.reservationsByField[fieldId] = result.reservations || [];
           this.feedbacksByField[fieldId] = result.feedbacks || [];
         });
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }

@@ -65,14 +65,14 @@
 
     <!-- Desktop Sidebar -->
     <aside class="fixed left-0 top-0 z-40 h-screen w-72 border-r border-border bg-card hidden lg:block">
-        <div class="flex h-full flex-col">
+        <div class="flex h-full min-h-0 flex-col overflow-hidden">
             <!-- Logo -->
             <div class="flex h-20 items-center justify-center border-b border-border px-6">
                 <img src="/logo.png" alt="StreetLeague" class="h-12 w-auto" />
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 space-y-1 p-4">
+            <nav class="flex-1 min-h-0 space-y-1 overflow-y-auto p-4">
                 <a *ngFor="let item of filteredNavItems" [routerLink]="item.path"
                     routerLinkActive="bg-primary text-primary-foreground shadow-lg shadow-primary/30"
                     [routerLinkActiveOptions]="{exact: item.path === '/app'}"

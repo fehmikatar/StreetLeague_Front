@@ -105,16 +105,19 @@ const ICON_MAP: Record<string, LucideIconData> = {
                 </div>
                 <div *ngFor="let match of upcomingMatches" class="bg-muted/50 rounded-xl p-4 hover:bg-muted transition-all group" [ngClass]="{'opacity-60': match.status === 'cancelled'}">
                   <div class="flex items-start justify-between gap-4">
-                    <a [routerLink]="match.status === 'confirmed' ? ['/app/matches', match.id] : null" class="flex-1 block" [class.pointer-events-none]="match.status === 'cancelled'">
+                    <a [routerLink]="match.status !== 'cancelled' ? ['/app/matches', match.id] : null" class="flex-1 block" [class.pointer-events-none]="match.status === 'cancelled'">
                     <div class="flex items-center gap-2 mb-2">
-                        <span class="text-xs font-semibold px-2 py-1 rounded-full" [ngClass]="match.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-primary/10 text-primary'">
-                          {{ match.status === 'cancelled' ? 'Annulée' : match.type }}
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full" [ngClass]="getReservationStatusBadge(match.status)">
+                          {{ getReservationStatusLabel(match.status) }}
                         </span>
-                        <h4 class="font-semibold" [ngClass]="{'group-hover:text-primary transition-colors': match.status === 'confirmed', 'text-muted-foreground': match.status === 'cancelled'}">{{ match.title }}</h4>
+                        <h4 class="font-semibold" [ngClass]="{'group-hover:text-primary transition-colors': match.status !== 'cancelled', 'text-muted-foreground': match.status === 'cancelled'}">{{ match.title }}</h4>
                       </div>
                       <div class="flex items-center gap-4 text-sm text-muted-foreground">
                         <div class="flex items-center gap-1"><lucide-icon [img]="MapPinIcon" class="w-4 h-4"></lucide-icon><span>{{ match.fieldName }}</span></div>
                         <div class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon><span>{{ match.time }} ({{match.duration}}h)</span></div>
+                      </div>
+                      <div *ngIf="isAwaitingConfirmation(match)" class="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700">
+                        Confirmation de présence requise avant le créneau.
                       </div>
                     </a>
                     <div class="flex items-center gap-2">
@@ -122,7 +125,15 @@ const ICON_MAP: Record<string, LucideIconData> = {
                         <div class="text-sm font-semibold">{{ formatDate(match.date) }}</div>
                       </div>
                       <button 
-                        *ngIf="match.status === 'confirmed'" 
+                        *ngIf="canConfirmReservation(match)"
+                        (click)="confirmReservationPresence(match)" 
+                        [disabled]="confirmingReservationId === match.id"
+                        class="px-2.5 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all flex-shrink-0"
+                        title="Confirmer la présence">
+                        {{ confirmingReservationId === match.id ? '...' : 'Confirmer' }}
+                      </button>
+                      <button 
+                        *ngIf="canCancelReservation(match)" 
                         (click)="cancelReservation(match)" 
                         [disabled]="cancelingReservationId === match.id"
                         class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
@@ -198,6 +209,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
 
   userName = '';
   cancelingReservationId: number | null = null;
+  confirmingReservationId: number | null = null;
 
   stats = [
     { label: 'Matchs joués', value: '24', icon: Trophy, trend: '+12%' },
@@ -219,7 +231,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
     const userId = localStorage.getItem('user_id') || '1';
     this.subs.add(
       this.bookingService.getUserReservations(userId).subscribe(reservations => {
-        this.upcomingMatches = reservations.filter(r => r.status === 'confirmed');
+        this.upcomingMatches = reservations.filter(r => this.isUpcomingReservation(r));
       })
     );
     this.subs.add(
@@ -245,6 +257,88 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  isAwaitingConfirmation(reservation: Reservation): boolean {
+    return this.bookingService.isAwaitingPresenceConfirmation(reservation.status);
+  }
+
+  canConfirmReservation(reservation: Reservation): boolean {
+    return this.isAwaitingConfirmation(reservation) && !this.isPastReservation(reservation);
+  }
+
+  canCancelReservation(reservation: Reservation): boolean {
+    return ['pending_confirmation', 'reminder_sent', 'confirmed'].includes(reservation.status)
+      && !this.isPastReservation(reservation);
+  }
+
+  getReservationStatusLabel(status: Reservation['status']): string {
+    switch (status) {
+      case 'pending_confirmation':
+        return 'En attente';
+      case 'reminder_sent':
+        return 'Confirmation requise';
+      case 'completed':
+        return 'Terminée';
+      case 'cancelled':
+        return 'Annulée';
+      case 'confirmed':
+      default:
+        return 'Confirmée';
+    }
+  }
+
+  getReservationStatusBadge(status: Reservation['status']): string {
+    switch (status) {
+      case 'pending_confirmation':
+        return 'bg-amber-100 text-amber-700';
+      case 'reminder_sent':
+        return 'bg-orange-100 text-orange-700';
+      case 'completed':
+        return 'bg-sky-100 text-sky-700';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700';
+      case 'confirmed':
+      default:
+        return 'bg-primary/10 text-primary';
+    }
+  }
+
+  confirmReservationPresence(reservation: Reservation): void {
+    const shouldConfirm = confirm(`Confirmer votre présence pour "${reservation.fieldName}" le ${this.formatDate(reservation.date)} à ${reservation.time} ?`);
+
+    if (!shouldConfirm) {
+      return;
+    }
+
+    this.confirmingReservationId = reservation.id;
+
+    this.subs.add(
+      this.bookingService.confirmReservationPresence(reservation.id).subscribe({
+        next: () => {
+          this.confirmingReservationId = null;
+          const userId = localStorage.getItem('user_id') || '1';
+          this.bookingService.getUserReservations(userId).subscribe(res => {
+            this.upcomingMatches = res.filter(r => this.isUpcomingReservation(r));
+          });
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Erreur lors de la confirmation';
+          alert('Impossible de confirmer la présence: ' + errorMsg);
+          this.confirmingReservationId = null;
+        }
+      })
+    );
+  }
+
+  private isPastReservation(reservation: Reservation): boolean {
+    const start = new Date(`${reservation.date}T${reservation.time}:00`);
+    const end = new Date(start.getTime() + reservation.duration * 60 * 60 * 1000);
+    return end.getTime() < Date.now();
+  }
+
+  private isUpcomingReservation(reservation: Reservation): boolean {
+    return !['cancelled', 'completed'].includes(reservation.status) && !this.isPastReservation(reservation);
+  }
+
   cancelReservation(reservation: Reservation): void {
     const confirmCancel = confirm(`Êtes-vous sûr de vouloir annuler la réservation pour "${reservation.fieldName}" le ${this.formatDate(reservation.date)} à ${reservation.time} ?`);
     
@@ -263,7 +357,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
           // Recharger les réservations pour mettre à jour la liste
           const userId = localStorage.getItem('user_id') || '1';
           this.bookingService.getUserReservations(userId).subscribe(res => {
-            this.upcomingMatches = res.filter(r => r.status === 'confirmed');
+            this.upcomingMatches = res.filter(r => this.isUpcomingReservation(r));
             console.log('📋 Réservations mises à jour:', this.upcomingMatches.length);
           });
         },
@@ -272,7 +366,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
           console.error('Status:', err.status);
           console.error('Message:', err.message);
           console.error('Full error:', err);
-          const errorMsg = err?.error?.message || err?.message || 'Erreur lors de l\'annulation de la réservation';
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Erreur lors de l\'annulation de la réservation';
           alert('Impossible d\'annuler la réservation: ' + errorMsg);
           this.cancelingReservationId = null;
         }

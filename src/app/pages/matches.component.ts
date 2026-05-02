@@ -37,16 +37,22 @@ import { Subscription } from 'rxjs';
               [ngClass]="{'opacity-60': res.status === 'cancelled'}">
 
               <!-- Status + date + Cancel button -->
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
                 <span class="text-xs font-bold px-2 py-1 rounded-full"
-                  [ngClass]="res.status === 'confirmed'
-                    ? 'bg-green-100 text-green-700 border border-green-200'
-                    : 'bg-red-100 text-red-600 border border-red-200'">
-                  {{ res.status === 'confirmed' ? '✅ Confirmée' : '❌ Annulée' }}
+                  [ngClass]="getReservationStatusBadge(res.status)">
+                  {{ getReservationStatusLabel(res.status) }}
                 </span>
                 <span class="text-xs font-medium text-muted-foreground flex-grow">{{ res.date }}</span>
+                <button
+                  *ngIf="canConfirmReservation(res)"
+                  (click)="confirmReservationPresence(res)"
+                  [disabled]="confirmingReservationId === res.id"
+                  class="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-all flex-shrink-0 disabled:opacity-60"
+                  title="Confirmer ma présence">
+                  {{ confirmingReservationId === res.id ? 'Confirmation...' : 'Confirmer ma présence' }}
+                </button>
                 <button 
-                  *ngIf="res.status === 'confirmed'" 
+                  *ngIf="canCancelReservation(res)" 
                   (click)="cancelReservation(res)" 
                   [disabled]="cancelingReservationId === res.id"
                   class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
@@ -82,7 +88,11 @@ import { Subscription } from 'rxjs';
                 </span>
               </div>
 
-              <div *ngIf="res.status === 'confirmed' && isPastReservation(res)" class="border-t border-border pt-3">
+              <div *ngIf="isAwaitingConfirmation(res)" class="rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700">
+                Confirmation requise avant le créneau. Sans réponse, la réservation sera annulée automatiquement.
+              </div>
+
+              <div *ngIf="canLeaveFeedback(res)" class="border-t border-border pt-3">
                 <div class="flex items-center justify-between gap-3 mb-3">
                   <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
                     Match terminé
@@ -127,6 +137,13 @@ import { Subscription } from 'rxjs';
                     rows="3"
                     placeholder="Partagez votre expérience sur l'état du terrain, la propreté, l'éclairage..."
                     class="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary resize-none"></textarea>
+
+                  <!-- Message d'erreur toxicité -->
+                  <div *ngIf="feedbackErrors[res.id]"
+                    class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-3 py-2 text-sm font-medium">
+                    <span>🚨</span>
+                    <span>{{ feedbackErrors[res.id] }}</span>
+                  </div>
 
                   <button
                     type="button"
@@ -312,11 +329,13 @@ export class MatchesComponent implements OnInit, OnDestroy {
   myReservations: Reservation[] = [];
   feedbackDrafts: Record<number, { rating: number; comment: string; open: boolean }> = {};
   savedFeedbacks: Record<number, FieldFeedback> = {};
+  feedbackErrors: Record<number, string> = {};
 
   loading = true;
   errorMsg = '';
   userType = '';
   cancelingReservationId: number | null = null;
+  confirmingReservationId: number | null = null;
 
   competitionFilter = '';
   statusFilter = '';
@@ -384,6 +403,55 @@ export class MatchesComponent implements OnInit, OnDestroy {
     return endDate.getTime() < Date.now();
   }
 
+  isAwaitingConfirmation(reservation: Reservation): boolean {
+    return this.bookingService.isAwaitingPresenceConfirmation(reservation.status);
+  }
+
+  canConfirmReservation(reservation: Reservation): boolean {
+    return this.isAwaitingConfirmation(reservation) && !this.isPastReservation(reservation);
+  }
+
+  canCancelReservation(reservation: Reservation): boolean {
+    return ['pending_confirmation', 'reminder_sent', 'confirmed'].includes(reservation.status)
+      && !this.isPastReservation(reservation);
+  }
+
+  canLeaveFeedback(reservation: Reservation): boolean {
+    return ['confirmed', 'completed'].includes(reservation.status) && this.isPastReservation(reservation);
+  }
+
+  getReservationStatusLabel(status: Reservation['status']): string {
+    switch (status) {
+      case 'pending_confirmation':
+        return '⏳ En attente de confirmation';
+      case 'reminder_sent':
+        return '⚠️ Confirmation requise';
+      case 'completed':
+        return '🏁 Terminée';
+      case 'cancelled':
+        return '❌ Annulée';
+      case 'confirmed':
+      default:
+        return '✅ Confirmée';
+    }
+  }
+
+  getReservationStatusBadge(status: Reservation['status']): string {
+    switch (status) {
+      case 'pending_confirmation':
+        return 'bg-amber-100 text-amber-700 border border-amber-200';
+      case 'reminder_sent':
+        return 'bg-orange-100 text-orange-700 border border-orange-200';
+      case 'completed':
+        return 'bg-sky-100 text-sky-700 border border-sky-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-600 border border-red-200';
+      case 'confirmed':
+      default:
+        return 'bg-green-100 text-green-700 border border-green-200';
+    }
+  }
+
   hasFeedback(reservationId: number): boolean {
     return !!this.savedFeedbacks[reservationId];
   }
@@ -428,11 +496,27 @@ export class MatchesComponent implements OnInit, OnDestroy {
         next: (savedFeedback) => {
           this.savedFeedbacks[reservation.id] = savedFeedback;
           this.feedbackDrafts[reservation.id] = { ...draft, open: false };
+          delete this.feedbackErrors[reservation.id];
           this.cdr.detectChanges();
         },
         error: (err) => {
-          const message = err?.error?.message || err?.message || 'Impossible d\'enregistrer votre avis.';
-          alert(message);
+          let message = 'Impossible d\'enregistrer votre avis.';
+
+          if (err?.error?.error) {
+            message = err.error.error;
+          } else if (err?.error?.message) {
+            message = err.error.message;
+          } else if (typeof err?.error === 'string') {
+            message = err.error;
+          }
+
+          // Afficher inline au lieu d'alert
+          this.feedbackErrors[reservation.id] = message;
+          this.feedbackDrafts[reservation.id] = {
+            ...this.feedbackDrafts[reservation.id],
+            open: true
+          };
+          this.cdr.detectChanges();
         }
       })
     );
@@ -614,6 +698,34 @@ export class MatchesComponent implements OnInit, OnDestroy {
     } catch (e) { return '—'; }
   }
 
+  confirmReservationPresence(reservation: Reservation): void {
+    const shouldConfirm = confirm(
+      `Confirmer votre présence pour la réservation de "${reservation.fieldName}" le ${reservation.date} à ${reservation.time} ?`
+    );
+
+    if (!shouldConfirm) {
+      return;
+    }
+
+    this.confirmingReservationId = reservation.id;
+
+    this.sub.add(
+      this.bookingService.confirmReservationPresence(reservation.id).subscribe({
+        next: () => {
+          this.confirmingReservationId = null;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('❌ Erreur lors de la confirmation de présence:', err);
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Erreur lors de la confirmation';
+          alert('Impossible de confirmer la présence: ' + errorMsg);
+          this.confirmingReservationId = null;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+  }
+
   cancelReservation(reservation: Reservation): void {
     const confirmCancel = confirm(`Êtes-vous sûr de vouloir annuler la réservation pour "${reservation.fieldName}" le ${reservation.date} à ${reservation.time} ?`);
     
@@ -643,7 +755,7 @@ export class MatchesComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('❌ Erreur lors de l\'annulation:', err);
-          const errorMsg = err?.error?.message || err?.message || 'Erreur lors de l\'annulation de la réservation';
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Erreur lors de l\'annulation de la réservation';
           alert('Impossible d\'annuler la réservation: ' + errorMsg);
           this.cancelingReservationId = null;
           this.cdr.detectChanges();

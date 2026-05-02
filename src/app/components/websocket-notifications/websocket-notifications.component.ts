@@ -22,9 +22,9 @@ type DisplayNotification = WebSocketNotification & {
                 <div class="flex justify-between items-start gap-2">
                     <div class="flex-1">
                         <h3 class="font-semibold text-gray-900">{{ notification.title }}</h3>
-                        <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
-                        <div class="text-xs text-gray-500 mt-2">
-                            {{ notification.date }} a {{ notification.time }}
+                        <p class="text-sm text-gray-600 mt-1 whitespace-pre-line">{{ notification.message }}</p>
+                        <div *ngIf="notification.date || notification.time" class="text-xs text-gray-500 mt-2">
+                            {{ notification.date }}<span *ngIf="notification.date && notification.time"> à </span>{{ notification.time }}
                         </div>
                     </div>
                     <button
@@ -79,8 +79,7 @@ export class WebSocketNotificationsComponent implements OnDestroy {
                         index === list.findIndex((item) =>
                             item.title === notification.title &&
                             item.message === notification.message &&
-                            item.time === notification.time &&
-                            item.source === notification.source
+                            item.time === notification.time
                         )
                     )
                     .filter((notification) => !dismissedIds.has(notification.widgetId));
@@ -139,6 +138,12 @@ export class WebSocketNotificationsComponent implements OnDestroy {
         const normalizedTitle = title.toLowerCase();
         if (normalizedTitle.includes('annul')) {
             return 'cancellation';
+        }
+        if (normalizedTitle.includes('rappel')) {
+            return 'update';
+        }
+        if (normalizedTitle.includes('présence') || normalizedTitle.includes('presence')) {
+            return 'reservation';
         }
         if (normalizedTitle.includes('reservation')) {
             return 'reservation';

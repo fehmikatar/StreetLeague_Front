@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, map, catchError, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, tap, map, catchError, of, throwError, forkJoin, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { WebSocketService } from './websocket.service';
 
@@ -13,6 +13,10 @@ export interface Field {
     rating: number;
     reviews: number;
     hours: string;
+    openingTime: string;
+    closingTime: string;
+    latitude: number | null;
+    longitude: number | null;
     available: boolean;
 }
 
@@ -20,6 +24,10 @@ export interface Reservation {
     id: number;
     fieldId: string;
     fieldName: string;
+    userId?: string;
+    userName?: string;
+    userEmail?: string;
+    userPhone?: string;
     title: string;
     location: string;
     date: string;
@@ -27,8 +35,16 @@ export interface Reservation {
     duration: number;
     players: number;
     type: string;
-    status: 'confirmed' | 'cancelled';
+    status: ReservationStatus;
+    message?: string;
 }
+
+export type ReservationStatus =
+    | 'pending_confirmation'
+    | 'reminder_sent'
+    | 'confirmed'
+    | 'completed'
+    | 'cancelled';
 
 export interface FieldFeedback {
     id?: number;
@@ -39,6 +55,8 @@ export interface FieldFeedback {
     fieldName: string;
     rating: number;
     comment: string;
+    censoredComment?: string;
+    isToxic?: boolean;
     status?: string;
     createdAt: string;
 }
@@ -58,6 +76,7 @@ export interface Notification {
 })
 export class BookingService {
     private apiUrl = environment.apiUrl;
+    private readonly minimumAdvanceNoticeMs = 2 * 60 * 60 * 1000;
 
     private fieldsSubject = new BehaviorSubject<Field[]>([]);
     private notificationsSubject = new BehaviorSubject<Notification[]>([]);
@@ -83,7 +102,13 @@ export class BookingService {
                 const mappedFields: Field[] = (data || []).map((space: any) => {
                     // Stocker les données brutes dans le cache local
                     this.spaceCacheMap.set(space.id, space);
-                    
+
+                    const derivedOpeningTime = this.extractOpeningTime(space.hours);
+                    const derivedClosingTime = this.extractClosingTime(space.hours);
+                    const openingTime = space.openingTime || derivedOpeningTime || '08:00';
+                    const closingTime = space.closingTime || derivedClosingTime || '22:00';
+                    const parsedCoordinates = this.extractCoordinates(space.location);
+
                     return {
                         id: String(space.id || space.sportSpaceId || ''),
                         name: space.name || space.fieldName || 'Terrain',
@@ -92,7 +117,11 @@ export class BookingService {
                         price: space.pricePerHour || space.hourlyRate || 50,
                         rating: space.averageRating || space.rating || 4.5,
                         reviews: space.reviews || space.reviewCount || 0,
-                        hours: space.hours || '8h - 22h',
+                        hours: space.hours || `${openingTime} - ${closingTime}`,
+                        openingTime,
+                        closingTime,
+                        latitude: typeof space.latitude === 'number' ? space.latitude : parsedCoordinates?.lat ?? null,
+                        longitude: typeof space.longitude === 'number' ? space.longitude : parsedCoordinates?.lng ?? null,
                         available: space.available !== false
                     };
                 });
@@ -112,7 +141,7 @@ export class BookingService {
     }
 
     public getFieldFeedbacks(fieldId: string): Observable<FieldFeedback[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/feedbacks/sport-space/${fieldId}`).pipe(
+        return this.http.get<any[]>(`${this.apiUrl}/feedbacks/space/${fieldId}/player`).pipe(
             map(feedbacks => feedbacks.map(feedback => this.mapBackendFeedback(feedback))),
             catchError(() => of([]))
         );
@@ -208,29 +237,105 @@ export class BookingService {
     }
 
     public getUserReservations(userId: string): Observable<Reservation[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/bookings/user/${userId}`).pipe(
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/user/${userId}?t=${Date.now()}`).pipe(
             map(data => {
                 console.log('📥 Raw user reservations from backend:', data);
-                return data.map(b => this.mapBackendToFrontendReservation(b));
+                const mapped = data.map(b => this.mapBackendToFrontendReservation(b));
+                return mapped.sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
+            }),
+            catchError(() => of([]))
+        );
+    }
+
+    public getOwnerReservations(ownerId: string): Observable<Reservation[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/owner/${ownerId}?t=${Date.now()}`).pipe(
+            map(data => {
+                console.log('📥 Raw owner reservations from backend:', data);
+                const mapped = data.map(b => this.mapBackendToFrontendReservation(b));
+                return mapped.sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
+            }),
+            catchError(() => of([]))
+        );
+    }
+
+    public getMyOwnerReservations(): Observable<Reservation[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/owner/me?t=${Date.now()}`).pipe(
+            map(data => {
+                console.log('📥 Raw owner reservations (/me) from backend:', data);
+                const mapped = data.map(b => this.mapBackendToFrontendReservation(b));
+                return mapped.sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
+            }),
+            catchError(() => of([]))
+        );
+    }
+
+    public getOwnerReservationsFromOwnedFields(ownerId: string): Observable<Reservation[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/sport-spaces/owner/${ownerId}?t=${Date.now()}`).pipe(
+            switchMap((sportSpaces) => {
+                if (!Array.isArray(sportSpaces) || sportSpaces.length === 0) {
+                    return of([]);
+                }
+
+                const bookingRequests = sportSpaces.map((sportSpace) =>
+                    this.http.get<any[]>(`${this.apiUrl}/bookings/sport-space/${sportSpace.id}?t=${Date.now()}`).pipe(
+                        catchError(() => of([]))
+                    )
+                );
+
+                return forkJoin(bookingRequests).pipe(
+                    map((bookingsByField) => bookingsByField.flat())
+                );
+            }),
+            map((data) => {
+                console.log('📥 Raw owner reservations (via owned fields) from backend:', data);
+                const mapped = data.map(b => this.mapBackendToFrontendReservation(b));
+                return mapped.sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
             }),
             catchError(() => of([]))
         );
     }
 
     public getFieldReservations(fieldId: string): Observable<Reservation[]> {
-        return this.http.get<any[]>(`${this.apiUrl}/bookings/sport-space/${fieldId}`).pipe(
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/sport-space/${fieldId}?t=${Date.now()}`).pipe(
             map(data => {
                 console.log('📥 Raw field reservations from backend:', data);
-                // Filtrer les réservations annulées - garder seulement les CONFIRMED
+
                 const filtered = data
                     .map(b => this.mapBackendToFrontendReservation(b))
-                    .filter(r => r.status === 'confirmed');
-                
-                console.log(`📋 Réservations confirmées pour terrain ${fieldId}:`, filtered.length);
+                    .filter(r => this.isBlockingReservationStatus(r.status));
+
+                console.log(`📋 Réservations bloquantes pour terrain ${fieldId}:`, filtered.length);
                 return filtered;
             }),
             catchError(() => of([]))
         );
+    }
+
+    public respectsMinimumAdvanceNotice(date: string, time: string): boolean {
+        const selectedDateTime = new Date(`${date}T${time}:00`);
+
+        return !Number.isNaN(selectedDateTime.getTime())
+            && selectedDateTime.getTime() - Date.now() >= this.minimumAdvanceNoticeMs;
+    }
+
+    public isAwaitingPresenceConfirmation(status: ReservationStatus): boolean {
+        return status === 'pending_confirmation' || status === 'reminder_sent';
     }
 
     public isSlotAvailableClientSide(
@@ -249,7 +354,7 @@ export class BookingService {
         const reqEnd = reqStart + duration * 60;
 
         return !reservations.some(r => {
-            if (r.status === 'cancelled') return false;
+            if (!this.isBlockingReservationStatus(r.status)) return false;
             if (r.fieldId !== fieldId || r.date !== date) return false;
 
             const rStart = convertToMinutes(r.time);
@@ -275,18 +380,25 @@ export class BookingService {
             startTime: this.formatLocalDateTime(startDate),
             endTime: this.formatLocalDateTime(endDate)
         };
-        
+
         console.log('📤 Envoi de réservation au backend:', backendPayload);
 
         return this.http.post<any>(`${this.apiUrl}/bookings`, backendPayload).pipe(
             tap((saved) => {
                 console.log('✅ Réservation créée avec succès:', saved);
-                
-                // Notification locale
+
+                const savedReservation = this.mapBackendToFrontendReservation(saved);
+                const reservationMessage = saved?.message
+                    || 'Votre réservation a été enregistrée.';
+                const notificationContent = this.buildNotificationContent(
+                    reservationMessage,
+                    'Réservation enregistrée'
+                );
+
                 const currentNotifs = this.notificationsSubject.getValue();
                 const newNotif: Notification = {
-                    title: 'Réservation confirmée',
-                    message: `Votre réservation pour "${reservationData.fieldName}" est confirmée.`,
+                    title: notificationContent.title,
+                    message: notificationContent.message,
                     time: 'Maintenant',
                     icon: 'calendar',
                     bgColor: 'bg-green-50',
@@ -295,30 +407,33 @@ export class BookingService {
                 };
                 this.notificationsSubject.next([newNotif, ...currentNotifs]);
 
-                // ✅ Le backend envoie automatiquement la notification WebSocket via STOMP
-
-                // ✅ Ajouter immédiatement dans myReservations$
                 const newRes: Reservation = {
-                    id: saved?.id || Date.now(),
-                    fieldId: reservationData.fieldId,
-                    fieldName: reservationData.fieldName,
+                    ...savedReservation,
+                    id: savedReservation.id || Date.now(),
+                    fieldId: savedReservation.fieldId || reservationData.fieldId,
+                    fieldName: savedReservation.fieldName || reservationData.fieldName,
                     title: reservationData.title,
-                    location: reservationData.location,
-                    date: reservationData.date,
-                    time: reservationData.time,
-                    duration: reservationData.duration,
+                    location: savedReservation.location || reservationData.location,
+                    date: savedReservation.date || reservationData.date,
+                    time: savedReservation.time || reservationData.time,
+                    duration: savedReservation.duration || reservationData.duration,
                     players: reservationData.players,
                     type: reservationData.type,
-                    status: 'confirmed'
+                    message: reservationMessage
                 };
                 const current = this.myReservationsSubject.getValue();
-                this.myReservationsSubject.next([newRes, ...current]);
+                const updated = [newRes, ...current].sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
+                this.myReservationsSubject.next(updated);
                 console.log('📋 Réservation ajoutée à myReservations$:', newRes);
             }),
             catchError(err => {
                 console.error('❌ Erreur lors de la création de réservation:', err);
                 console.error('Status:', err.status);
-                console.error('Message:', err?.error?.message || err?.message);
+                console.error('Message:', err?.error?.error || err?.error?.message || err?.message);
                 return throwError(() => err);
             })
         );
@@ -326,24 +441,31 @@ export class BookingService {
 
     public cancelReservation(reservationId: number): Observable<any> {
         console.log('🔄 Envoi de la requête PATCH /bookings/', reservationId, '/cancel vers', `${this.apiUrl}/bookings/${reservationId}/cancel`);
-        
+
+        const reservation = this.myReservationsSubject.getValue().find(r => r.id === reservationId);
+        const cancellationMessage = reservation
+            ? `Votre réservation pour "${reservation.fieldName}" a été annulée.`
+            : 'Votre réservation a été annulée.';
+        const notificationContent = this.buildNotificationContent(
+            cancellationMessage,
+            'Réservation annulée'
+        );
+
         return this.http.patch<any>(`${this.apiUrl}/bookings/${reservationId}/cancel`, {}).pipe(
             tap((response) => {
                 console.log('✅ Réponse du serveur reçue:', response);
-                
-                // Mettre à jour la liste des réservations
+
                 const current = this.myReservationsSubject.getValue();
-                const updated = current.map(r => 
-                    r.id === reservationId ? { ...r, status: 'cancelled' as const } : r
+                const updated = current.map(r =>
+                    r.id === reservationId ? { ...r, status: 'cancelled' as ReservationStatus } : r
                 );
                 this.myReservationsSubject.next(updated);
                 console.log('✅ État local mis à jour - réservation marquée comme annulée');
 
-                // Notification locale
                 const currentNotifs = this.notificationsSubject.getValue();
                 const newNotif: Notification = {
-                    title: 'Réservation annulée',
-                    message: 'Votre réservation a été annulée avec succès.',
+                    title: notificationContent.title,
+                    message: notificationContent.message,
                     time: 'Maintenant',
                     icon: 'calendar',
                     bgColor: 'bg-red-50',
@@ -351,21 +473,60 @@ export class BookingService {
                     read: false
                 };
                 this.notificationsSubject.next([newNotif, ...currentNotifs]);
-
-                // ✅ Le backend envoie automatiquement la notification WebSocket via STOMP
             }),
             catchError(err => {
                 console.error('❌ Erreur PATCH:', err);
                 console.error('Status:', err.status);
                 console.error('Error:', err.error);
-                throw err;
+                return throwError(() => err);
+            })
+        );
+    }
+
+    public confirmReservationPresence(
+        reservationId: number,
+        confirmationReply: 'OUI' | 'CONFIRMER' = 'CONFIRMER'
+    ): Observable<any> {
+        const reservation = this.myReservationsSubject.getValue().find(r => r.id === reservationId);
+        const confirmationMessage = reservation
+            ? `Votre présence pour la réservation du ${this.formatDateForMessage(reservation.date)} à ${reservation.time} a bien été confirmée.`
+            : 'Votre présence a bien été confirmée.';
+        const notificationContent = this.buildNotificationContent(
+            confirmationMessage,
+            'Présence confirmée'
+        );
+
+        return this.http.patch<any>(
+            `${this.apiUrl}/bookings/${reservationId}/confirm`,
+            { response: confirmationReply }
+        ).pipe(
+            tap(() => {
+                const current = this.myReservationsSubject.getValue();
+                const updated = current.map(r =>
+                    r.id === reservationId
+                        ? { ...r, status: 'confirmed' as ReservationStatus, message: confirmationMessage }
+                        : r
+                );
+                this.myReservationsSubject.next(updated);
+
+                const currentNotifs = this.notificationsSubject.getValue();
+                const newNotif: Notification = {
+                    title: notificationContent.title,
+                    message: notificationContent.message,
+                    time: 'Maintenant',
+                    icon: 'calendar',
+                    bgColor: 'bg-green-50',
+                    iconColor: 'text-green-500',
+                    read: false
+                };
+                this.notificationsSubject.next([newNotif, ...currentNotifs]);
             })
         );
     }
 
     private mapBackendToFrontendReservation(backendBooking: any): Reservation {
         console.log('🔍 Backend booking data:', backendBooking);
-        
+
         const startDate = this.parseBackendLocalDateTime(backendBooking.startTime);
         const endDate = this.parseBackendLocalDateTime(backendBooking.endTime);
         const durationH = startDate && endDate
@@ -380,28 +541,26 @@ export class BookingService {
             ? `${padZero(startDate.getHours())}:${padZero(startDate.getMinutes())}`
             : '';
 
-        // Mapper le statut correctement
-        const statusLower = backendBooking.status?.toLowerCase() || 'confirmed';
-        const status: 'confirmed' | 'cancelled' = statusLower === 'cancelled' ? 'cancelled' : 'confirmed';
+        const status = this.parseBackendReservationStatus(backendBooking.status);
 
         // Tenter d'extraire le nom du terrain et la localisation
         let fieldName = backendBooking.sportSpaceName || 'Terrain';
         let location = backendBooking.location || '';
         const sportSpaceId = backendBooking.sportSpaceId;
-        
+
         console.log(`📌 Raw data - sportSpaceName: "${backendBooking.sportSpaceName}", location: "${backendBooking.location}", sportSpaceId: ${sportSpaceId}`);
-        
+
         // Si sportSpace est un objet (nested), extraire les infos
         if (backendBooking.sportSpace && typeof backendBooking.sportSpace === 'object') {
             console.log(`🔗 SportSpace objet trouvé:`, backendBooking.sportSpace);
             fieldName = backendBooking.sportSpace.name || fieldName;
             location = backendBooking.sportSpace.location || backendBooking.sportSpace.address || location;
         }
-        
+
         // 🎯 Essayer de charger depuis le cache local des SportSpaces
         if (!fieldName || fieldName === 'Terrain' || !location) {
             const cachedSpace = this.spaceCacheMap.get(sportSpaceId);
-            
+
             if (cachedSpace) {
                 console.log(`✅ SportSpace trouvé dans le cache local:`, cachedSpace);
                 if (!fieldName || fieldName === 'Terrain') {
@@ -414,7 +573,7 @@ export class BookingService {
                 // Alternative: essayer depuis le BehaviorSubject fieldsSubject
                 const cachedFields = this.fieldsSubject.getValue();
                 const cachedField = cachedFields.find(f => f.id === String(sportSpaceId));
-                
+
                 if (cachedField) {
                     console.log(`✅ Champ trouvé dans fieldsSubject:`, cachedField);
                     if (!fieldName || fieldName === 'Terrain') {
@@ -428,13 +587,17 @@ export class BookingService {
                 }
             }
         }
-        
+
         console.log(`📍 FINAL MAPPED: fieldName="${fieldName}", location="${location}"`);
 
         return {
             id: backendBooking.id,
             fieldId: String(sportSpaceId),
             fieldName: fieldName,
+            userId: backendBooking.userId != null ? String(backendBooking.userId) : undefined,
+            userName: backendBooking.userName || undefined,
+            userEmail: backendBooking.userEmail || undefined,
+            userPhone: backendBooking.userPhone || undefined,
             title: `Réservation`,
             location: location,
             date: formattedDate,
@@ -442,11 +605,96 @@ export class BookingService {
             duration: durationH,
             players: 10,
             type: 'Multisport',
-            status: status
+            status: status,
+            message: backendBooking.message || undefined
         };
     }
 
+    private parseBackendReservationStatus(status: string | null | undefined): ReservationStatus {
+        const normalized = (status || '').toLowerCase();
+
+        switch (normalized) {
+            case 'pending_confirmation':
+                return 'pending_confirmation';
+            case 'reminder_sent':
+                return 'reminder_sent';
+            case 'cancelled':
+                return 'cancelled';
+            case 'completed':
+                return 'completed';
+            case 'confirmed':
+            default:
+                return 'confirmed';
+        }
+    }
+
+    private isBlockingReservationStatus(status: ReservationStatus): boolean {
+        return status !== 'cancelled';
+    }
+
+    private buildNotificationContent(rawMessage: string | null | undefined, fallbackTitle: string): { title: string; message: string } {
+        const message = (rawMessage || fallbackTitle).trim();
+        const lines = message.split(/\n+/).map(line => line.trim()).filter(Boolean);
+
+        return {
+            title: lines[0] || fallbackTitle,
+            message: lines.length > 1 ? lines.slice(1).join('\n') : message
+        };
+    }
+
+    private formatDateForMessage(value: string): string {
+        const parsed = new Date(`${value}T00:00:00`);
+
+        return Number.isNaN(parsed.getTime())
+            ? value
+            : parsed.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+    }
+
+    private extractOpeningTime(hours: string | null | undefined): string | null {
+        if (!hours) {
+            return null;
+        }
+
+        const [openingTime] = hours.split('-').map(part => part.trim());
+        return openingTime || null;
+    }
+
+    private extractClosingTime(hours: string | null | undefined): string | null {
+        if (!hours || !hours.includes('-')) {
+            return null;
+        }
+
+        const [, closingTime] = hours.split('-').map(part => part.trim());
+        return closingTime || null;
+    }
+
+    private extractCoordinates(location: string | null | undefined): { lat: number; lng: number } | null {
+        if (!location) {
+            return null;
+        }
+
+        const coordinateMatch = location.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+        if (!coordinateMatch) {
+            return null;
+        }
+
+        const lat = Number(coordinateMatch[1]);
+        const lng = Number(coordinateMatch[2]);
+
+        if (Number.isNaN(lat) || Number.isNaN(lng)) {
+            return null;
+        }
+
+        return { lat, lng };
+    }
+
     private mapBackendFeedback(feedback: any): FieldFeedback {
+        const visibleComment = feedback.censoredComment || feedback.comment || '';
+
         return {
             id: feedback.id,
             reservationId: Number(feedback.bookingId),
@@ -455,7 +703,9 @@ export class BookingService {
             fieldId: String(feedback.sportSpaceId),
             fieldName: feedback.sportSpaceName || 'Terrain',
             rating: Number(feedback.rating),
-            comment: feedback.comment || '',
+            comment: visibleComment,
+            censoredComment: visibleComment,
+            isToxic: !!feedback.isToxic,
             status: feedback.status,
             createdAt: feedback.createdAt || new Date().toISOString()
         };

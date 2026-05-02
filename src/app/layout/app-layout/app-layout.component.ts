@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterModule, Router } from '@angular/router';
 import {
-    LucideAngularModule, Home, Users, Trophy, MapPin,
+    LucideAngularModule, Home, Users, Trophy, MapPin, Calendar,
     MessageSquare, Activity, Gift, Settings, Map,
     LogOut, Menu, X, Bell, User, Heart, ShoppingCart, Swords
 } from 'lucide-angular';
@@ -32,6 +32,7 @@ export class AppLayoutComponent implements OnInit {
     readonly GiftIcon = Gift;
     readonly SettingsIcon = Settings;
     readonly MapIcon = Map;
+    readonly CalendarIcon = Calendar;
     readonly LogOutIcon = LogOut;
     readonly MenuIcon = Menu;
     readonly XIcon = X;
@@ -50,12 +51,14 @@ export class AppLayoutComponent implements OnInit {
         { path: '/app/competitions', icon: this.TrophyIcon, label: 'Compétitions' },
         { path: '/app/matches', icon: this.SwordsIcon, label: 'Matchs' },
         { path: '/app/booking', icon: this.MapPinIcon, label: 'Réservation' },
+        { path: '/app/owner-bookings', icon: this.CalendarIcon, label: 'Réservations terrains', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
         { path: '/app/fields', icon: this.MapIcon, label: 'Terrains', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
         { path: '/app/community', icon: this.MessageSquareIcon, label: 'Communauté' },
         { path: '/app/performance', icon: this.ActivityIcon, label: 'Performance' },
         { path: '/app/healthcare', icon: this.HeartIcon, label: 'Santé' },
         { path: '/app/sponsors', icon: this.GiftIcon, label: 'Sponsors (Boutique)' },
         { path: '/app/favorites', icon: this.HeartIcon, label: 'Mes Favoris' },
+        { path: '/app/orders', icon: this.ShoppingCartIcon, label: 'Mes Commandes' },
         { path: '/app/user-profile', icon: this.UserIcon, label: 'Mon Profil' },
         { path: '/app/notifications', icon: this.BellIcon, label: 'Notifications' },
     ];

@@ -1,0 +1,72 @@
+<section class="reviews-section">
+  <div class="reviews-header">
+    <div>
+      <h3 class="reviews-title">Avis des joueurs</h3>
+      <p class="reviews-subtitle">Retours authentiques sur ce terrain</p>
+    </div>
+
+    <button type="button" class="toggle-button" (click)="toggleReviews()">
+      {{ showReviews ? 'Masquer les avis' : 'Voir les avis' }}
+    </button>
+  </div>
+
+  <div *ngIf="showReviews" class="reviews-content">
+    <div class="reviews-grid">
+      <article *ngFor="let review of visibleReviews" class="review-card">
+        <div class="review-card-header">
+          <h4 class="review-user">{{ review.userName }}</h4>
+          <div class="review-rating" aria-label="Note {{ review.rating }} sur 5">
+            <span *ngFor="let filled of getStars(review.rating); trackBy: trackByIndex"
+              [class.star-filled]="filled"
+              [class.star-empty]="!filled">
+              {{ filled ? '★' : '☆' }}
+            </span>
+          </div>
+        </div>
+
+        <p *ngIf="review.isToxic" class="review-toxic-indicator">⚠️ Commentaire censuré</p>
+        <p class="review-comment">{{ review.comment }}</p>
+      </article>
+
+      <article *ngFor="let _ of emptySlots; trackBy: trackByIndex" class="review-card review-card-placeholder">
+        <p class="placeholder-text">Aucun avis supplémentaire dans ce groupe.</p>
+      </article>
+    </div>
+
+    <div class="carousel-controls">
+      <button type="button" class="nav-button" (click)="prevPage()" [disabled]="!canGoPrev">
+        ←
+      </button>
+
+      <span class="page-indicator">Page {{ currentPage + 1 }} / {{ totalPages }}</span>
+
+      <button type="button" class="nav-button" (click)="nextPage()" [disabled]="!canGoNext">
+        →
+      </button>
+    </div>
+
+    <div class="summary-actions">
+      <button
+        type="button"
+        class="summary-button"
+        (click)="summarizeReviews()"
+        [disabled]="reviews.length === 0 || isLoadingSummary">
+        Résumer les avis avec l'IA
+      </button>
+    </div>
+
+    <div *ngIf="isLoadingSummary" class="summary-loading">
+      <span class="spinner"></span>
+      <span>Analyse en cours...</span>
+    </div>
+
+    <div *ngIf="summaryError" class="summary-error">
+      {{ summaryError }}
+    </div>
+
+    <article *ngIf="summary" class="summary-card">
+      <h4 class="summary-title">Résumé IA des avis</h4>
+      <p class="summary-text">{{ summary }}</p>
+    </article>
+  </div>
+</section>

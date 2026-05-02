@@ -317,6 +317,8 @@ export class AddFieldComponent implements AfterViewInit, OnDestroy {
           sportType: this.type,
           capacity: parseInt(this.capacity, 10),
           hourlyRate: parseFloat(this.price),
+          latitude: this.lat,
+          longitude: this.lng,
           isAvailable: true
         };
 
