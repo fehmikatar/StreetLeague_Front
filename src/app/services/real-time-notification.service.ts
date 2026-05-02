@@ -38,7 +38,7 @@ export class RealTimeNotificationService implements OnDestroy {
       this.subscribeToNotifications();
     };
 
-    this.stompClient.onStompError = (frame) => {
+    this.stompClient.onStompError = (frame: any) => {
       console.error('STOMP error', frame);
     };
 
