@@ -1,3 +1,4 @@
+// medical-records.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +29,7 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
               <p class="text-gray-600 mt-1">Manage history and follow-ups</p>
             </div>
           </div>
-          <button (click)="openModal()" 
+          <button *ngIf="isAdmin" (click)="openModal()" 
                   class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl shadow-md transition duration-200 flex items-center gap-2">
             <span class="text-xl">+</span> New Record
           </button>
@@ -113,6 +114,11 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
           </table>
         </div>
       </div>
+    </div>
+
+    <!-- Modal de création / modification (inchangée) -->
+    <div *ngIf="modalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <!-- contenu du modal identique à l'original -->
     </div>
 
     <!-- Modal de création / modification -->

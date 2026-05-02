@@ -263,16 +263,21 @@ export class HealthDashboardComponent implements OnInit, AfterViewInit {
   userActivePlansMap = new Map<number, number>();
 
   // Raccourcis de navigation (ajout du lien vers la gestion des médecins)
-  navItems = [
+public get navItems() {
+  const baseItems = [
     { path: '/app/healthcare/profile', icon: '👤', title: 'Profil' },
     { path: '/app/healthcare/records', icon: '📋', title: 'Dossiers' },
     { path: '/app/healthcare/appointments', icon: '📅', title: 'RDV' },
     { path: '/app/healthcare/diet', icon: '🥗', title: 'Régime' },
     { path: '/app/healthcare/trends', icon: '📈', title: 'Tendances' },
     { path: '/app/healthcare/alerts', icon: '🔔', title: 'Alertes' },
-    { path: '/app/healthcare/compliance', icon: '✅', title: 'Compliance' },
-    { path: '/app/healthcare/doctors', icon: '👨‍⚕️', title: 'Docteurs' }
+    { path: '/app/healthcare/compliance', icon: '✅', title: 'Compliance' }
   ];
+  if (this.isAdmin) {
+    return [...baseItems, { path: '/app/healthcare/doctors', icon: '👨‍⚕️', title: 'Docteurs' }];
+  }
+  return baseItems;
+}
 
   constructor(
     private appointmentService: AppointmentService,
