@@ -17,7 +17,7 @@ import { of, Subject } from 'rxjs';
       <!-- Top Navigation -->
       <div class="bg-card border-b border-border sticky top-0 z-40 shadow-sm">
         <div class="container mx-auto px-4 h-14 flex items-center justify-between">
-           <button (click)="goBack()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">
+           <button type="button" (click)="goBack()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">
               <lucide-icon [name]="ArrowLeftIcon" [size]="16"></lucide-icon>
               Retour Boutique
            </button>
@@ -38,7 +38,7 @@ import { of, Subject } from 'rxjs';
          </div>
          <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Oups ! Erreur de chargement</h2>
          <p class="text-muted-foreground mb-8 max-w-sm text-sm">{{ errorMessage }}</p>
-         <button (click)="loadProduct()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs">RÉESSAYER</button>
+         <button type="button" (click)="loadProduct()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs cursor-pointer">RÉESSAYER</button>
       </div>
 
       <!-- Product Detail (Stable Layout) -->
@@ -58,9 +58,9 @@ import { of, Subject } from 'rxjs';
 
              <!-- Static Miniatures -->
              <div *ngIf="product.images && product.images.length > 1" class="flex gap-3 overflow-x-auto pb-2">
-                <button *ngFor="let img of product.images" 
-                        (click)="setCurrentImage(img)"
-                        class="w-20 h-20 rounded border-2 transition-all p-1 bg-white shrink-0"
+                <button type="button" *ngFor="let img of product.images" 
+                        (click)="setCurrentImage(img); cdr.detectChanges()"
+                        class="w-20 h-20 rounded border-2 transition-all p-1 bg-white shrink-0 cursor-pointer"
                         [class.border-primary]="currentImage === img"
                         [class.border-border]="currentImage !== img">
                    <img [src]="img" class="w-full h-full object-contain">
@@ -99,11 +99,14 @@ import { of, Subject } from 'rxjs';
              <div class="space-y-8 border-t border-border pt-8">
                 
                  <div *ngIf="sizeVariants.length > 0" class="mb-6">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Choisir Taille</h3>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                       Taille : <span class="text-primary">{{ selectedSize || 'Choisir' }}</span>
+                    </h3>
                     <div class="flex flex-wrap gap-2">
                        <button *ngFor="let s of sizeVariants" 
-                               (click)="selectSize(s)"
-                               class="relative w-12 h-12 flex items-center justify-center text-xs font-bold border-2 transition-all rounded-lg overflow-hidden"
+                               type="button"
+                               (click)="selectSize(s); cdr.detectChanges()"
+                               class="relative w-12 h-12 flex items-center justify-center text-xs font-black border-2 transition-all rounded-lg overflow-hidden cursor-pointer hover:border-primary active:scale-95 z-10"
                                [class.bg-primary]="selectedSize === s && getVariantStock(s) > 0"
                                [class.text-primary-foreground]="selectedSize === s && getVariantStock(s) > 0"
                                [class.border-primary]="selectedSize === s && getVariantStock(s) > 0"
@@ -121,12 +124,15 @@ import { of, Subject } from 'rxjs';
 
                  <!-- Couleurs Disponibles -->
                  <div *ngIf="isClothingItem() || colorVariants.length > 0" class="mb-8">
-                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">Choisir Couleur</h3>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                       Couleur : <span class="text-primary">{{ selectedColor || 'Choisir' }}</span>
+                    </h3>
                     <div class="flex flex-wrap gap-4">
                        <!-- We show either the standard colors or the specific variants found -->
                        <button *ngFor="let col of (isClothingItem() ? CLOTHING_COLORS : getCustomColors())" 
-                          (click)="selectColor(col.name)"
-                          class="flex flex-col items-center gap-2 group transition-all">
+                          type="button"
+                          (click)="selectColor(col.name); cdr.detectChanges()"
+                          class="flex flex-col items-center gap-2 group transition-all cursor-pointer z-10">
                           <div [style.background-color]="col.hex"
                              class="w-10 h-10 rounded-full border border-border shadow-sm relative overflow-hidden transition-transform group-hover:scale-110 active:scale-95"
                              [class.ring-2]="selectedColor === col.name"
@@ -149,9 +155,9 @@ import { of, Subject } from 'rxjs';
                 <div class="flex flex-col gap-4">
                    <div class="flex items-center gap-4">
                       <div class="flex border rounded h-12 w-32 overflow-hidden shadow-sm">
-                         <button (click)="decrementQuantity()" class="flex-1 hover:bg-muted font-bold text-lg">-</button>
+                         <button type="button" (click)="decrementQuantity(); cdr.detectChanges()" class="flex-1 hover:bg-muted font-bold text-lg cursor-pointer">-</button>
                          <input type="number" [(ngModel)]="quantity" class="w-12 text-center font-bold border-x outline-none bg-transparent" readonly>
-                         <button (click)="incrementQuantity()" class="flex-1 hover:bg-muted font-bold text-lg">+</button>
+                         <button type="button" (click)="incrementQuantity(); cdr.detectChanges()" class="flex-1 hover:bg-muted font-bold text-lg cursor-pointer">+</button>
                       </div>
                       <div class="flex-1 flex flex-col items-end">
                          <span class="text-[9px] font-black uppercase opacity-40">Total</span>
@@ -160,9 +166,9 @@ import { of, Subject } from 'rxjs';
                    </div>
 
                    <div class="flex gap-3 h-14">
-                      <button (click)="addToCart()"
+                      <button type="button" (click)="addToCart(); cdr.detectChanges()"
                               [disabled]="product.stock === 0 || addingToCart || (selectedVariant && selectedVariant.stock === 0) || ($any(product).status && $any(product).status !== 'EN_STOCK' && $any(product).status !== 'IN_STOCK')"
-                              class="flex-1 flex items-center justify-center bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest rounded-lg shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed gap-2">
+                              class="flex-1 flex items-center justify-center bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest rounded-lg shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed gap-2 cursor-pointer">
                          <lucide-icon *ngIf="!addingToCart && product.stock > 0" [img]="ShoppingCartIcon" [size]="18"></lucide-icon>
                          <lucide-icon *ngIf="addingToCart" [img]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
                          <span *ngIf="addingToCart">Loading...</span>
@@ -171,8 +177,8 @@ import { of, Subject } from 'rxjs';
                          <span *ngIf="!addingToCart && product.stock > 0 && (!selectedVariant || $any(selectedVariant).stock > 0) && ($any(product).status === 'IN_STOCK' || $any(product).status === 'EN_STOCK' || !$any(product).status)">Add to Cart</span>
                       </button>
 
-                      <button (click)="toggleFavorite()"
-                              class="w-14 h-full flex items-center justify-center border-2 rounded-lg transition-all active:scale-90"
+                      <button type="button" (click)="toggleFavorite(); cdr.detectChanges()"
+                              class="w-14 h-full flex items-center justify-center border-2 rounded-lg transition-all active:scale-90 cursor-pointer"
                               [class.bg-red-500]="isFavorite"
                               [class.border-red-500]="isFavorite"
                               [class.text-white]="isFavorite"
@@ -205,7 +211,7 @@ import { of, Subject } from 'rxjs';
          </div>
          <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Produit introuvable</h2>
          <p class="text-muted-foreground mb-8 max-w-sm text-sm">Cet article n'existe plus ou est momentanément indisponible.</p>
-         <button (click)="goBack()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs">RETOUR À LA BOUTIQUE</button>
+         <button type="button" (click)="goBack()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs cursor-pointer">RETOUR À LA BOUTIQUE</button>
       </div>
 
       <!-- Similar AI Products -->
@@ -230,7 +236,7 @@ import { of, Subject } from 'rxjs';
 
         <div *ngIf="!loadingSimilar && similarProducts.length > 0" class="grid grid-cols-2 md:grid-cols-4 gap-6">
            <div *ngFor="let sim of similarProducts" 
-                (click)="goToProduct(sim.id)"
+                (click)="goToProduct(sim.id); cdr.detectChanges()"
                 class="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group flex flex-col">
               <div class="aspect-square bg-white p-4 flex items-center justify-center relative overflow-hidden border-b border-border/50">
                  <img *ngIf="sim.images && sim.images.length > 0" [src]="sim.images[0]" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500">
@@ -334,7 +340,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
-    private cdr: ChangeDetectorRef
+    public cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -547,13 +553,17 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   selectSize(size: string) {
+    console.log('Size selected:', size);
     this.selectedSize = size;
     this.updateSelectedVariant();
+    this.cdr.detectChanges();
   }
 
   selectColor(color: string) {
+    console.log('Color selected:', color);
     this.selectedColor = color;
     this.updateSelectedVariant();
+    this.cdr.detectChanges();
   }
 
   updateSelectedVariant() {

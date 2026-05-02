@@ -11,7 +11,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
 @Component({
   selector: 'app-user-orders',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, QRCodeComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule],
   template: `
     <div class="min-h-screen bg-background/50 p-4 md:p-8">
       <div class="max-w-4xl mx-auto">
@@ -21,7 +21,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
           </div>
           <div>
             <h1 class="text-3xl font-black uppercase tracking-tighter">Mes Commandes</h1>
-            <p class="text-muted-foreground">Suivez vos achats et montrez votre QR code au livreur</p>
+            <p class="text-muted-foreground">Suivez l'état de vos achats en temps réel</p>
           </div>
         </div>
 
@@ -53,7 +53,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
 
               <div class="grid md:grid-cols-3 gap-8 items-start">
                 <!-- Items Summary -->
-                <div class="md:col-span-2 space-y-4">
+                <div class="md:col-span-3 space-y-4">
                   <div *ngFor="let item of order.items" class="flex items-center gap-4 bg-muted/30 p-3 rounded-2xl">
                     <div class="w-12 h-12 bg-background rounded-lg flex items-center justify-center overflow-hidden border border-border/50">
                        <img *ngIf="item.productImage" [src]="item.productImage" class="w-full h-full object-contain p-1">
@@ -71,36 +71,7 @@ import { QRCodeComponent } from 'angularx-qrcode';
                   </div>
                 </div>
 
-                <!-- Order Status Info Section -->
-                <div class="bg-primary/5 border border-primary/10 rounded-2xl p-6 flex flex-col items-center text-center">
-                  <ng-container *ngIf="order.deliveryStatus !== 'LIVRE'">
-                    <div class="py-4">
-                      <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                        <lucide-icon [img]="TruckIcon" class="w-8 h-8"></lucide-icon>
-                      </div>
-                      <h4 class="font-bold text-sm mb-1">Livraison en cours</h4>
-                      <p class="text-[10px] text-muted-foreground leading-tight">Votre commande est en route. Le livreur validera la réception lors de la remise.</p>
-                      <div class="mt-4 p-2 bg-background rounded-lg border border-border">
-                        <span class="text-[10px] font-bold text-muted-foreground block uppercase">Code de confirmation</span>
-                        <span class="text-sm font-mono font-bold text-primary">{{ getShortCode(order) }}</span>
-                      </div>
-                      <!-- Add QR Code here -->
-                      <div class="mt-4 flex justify-center bg-white p-2 rounded-xl shadow-sm border border-border/50">
-                        <qrcode [qrdata]="getConfirmationUrl(order)" [width]="120" [errorCorrectionLevel]="'M'"></qrcode>
-                      </div>
-                    </div>
-                  </ng-container>
-
-                  <ng-container *ngIf="order.deliveryStatus === 'LIVRE'">
-                    <div class="py-8">
-                      <div class="w-16 h-16 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <lucide-icon [img]="CheckCircleIcon" class="w-8 h-8"></lucide-icon>
-                      </div>
-                      <h4 class="font-bold text-green-600">Commande Livrée</h4>
-                      <p class="text-xs text-muted-foreground">Merci pour votre confiance !</p>
-                    </div>
-                  </ng-container>
-                </div>
+                <!-- Order Status Info Section Removed for User -->
               </div>
             </div>
             

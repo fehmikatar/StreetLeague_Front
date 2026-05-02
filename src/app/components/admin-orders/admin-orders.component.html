@@ -2,6 +2,7 @@
   <div class="header">
     <h1>🌍 Gestion des Commandes</h1>
     <p>Visualisez et gérez les commandes des utilisateurs en temps réel.</p>
+    
     <div class="header-actions">
        <button (click)="loadOrders()" class="btn-refresh">
           <i class="fas fa-sync"></i> Actualiser ({{ orders.length }} commandes)
@@ -116,11 +117,11 @@
           </div>
         </div>
 
-        <div class="details-section qr-section" *ngIf="selectedOrder.deliveryStatus !== 'LIVRE'">
-          <h3>Code de Confirmation Livraison</h3>
-          <p class="qr-info">Faites scanner ce code par le livreur pour confirmer la réception.</p>
-          <div class="qr-container" *ngIf="currentQrData">
-            <qrcode [qrdata]="currentQrData" [width]="180" [errorCorrectionLevel]="'M'"></qrcode>
+        <div class="details-section qr-section text-center" *ngIf="selectedOrder.deliveryStatus !== 'LIVRE'">
+          <h3>Validation Livraison</h3>
+          <p class="qr-info mb-4">Le client doit scanner ce code avec son téléphone.</p>
+          <div class="qr-container flex justify-center mb-4" *ngIf="currentQrData">
+            <qrcode [qrdata]="currentQrData" [width]="250" [errorCorrectionLevel]="'M'"></qrcode>
           </div>
         </div>
       </div>

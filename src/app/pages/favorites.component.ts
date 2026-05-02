@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, Heart, HeartCrack, ShoppingCart, Loader2, Star, Tag, Folder, Plus, X, FolderHeart, ArrowRight, Trash2, Search, Filter, AlertTriangle, Bell } from 'lucide-angular';
 import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../services/product.service';
+import { RealTimeNotificationService } from '../services/real-time-notification.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-favorites',
@@ -243,7 +245,7 @@ import { ProductService, Product, FavoriteResponse, FavoriteCategory } from '../
     }
   `]
 })
-export class FavoritesComponent implements OnInit {
+export class FavoritesComponent implements OnInit, OnDestroy {
   readonly HeartIcon = Heart;
   readonly HeartCrackIcon = HeartCrack;
   readonly ShoppingCartIcon = ShoppingCart;
@@ -260,6 +262,8 @@ export class FavoritesComponent implements OnInit {
   readonly FilterIcon = Filter;
   readonly AlertTriangleIcon = AlertTriangle;
   readonly BellIcon = Bell;
+
+  private notificationSubscription: Subscription | null = null;
 
   triggeringCheck = false;
 
@@ -280,11 +284,15 @@ export class FavoritesComponent implements OnInit {
   addingToCartId: number | null = null;
   toastMessage: string | null = null;
 
-  constructor(private productService: ProductService) { }
+  constructor(
+    private productService: ProductService,
+    private realTimeNotifService: RealTimeNotificationService
+  ) { }
 
   ngOnInit() {
     this.loadCategories();
     this.loadFavorites();
+    this.listenForUpdates();
   }
 
   get selectedCategoryName(): string {
@@ -492,5 +500,20 @@ export class FavoritesComponent implements OnInit {
   showToast(msg: string) {
     this.toastMessage = msg;
     setTimeout(() => this.toastMessage = null, 3000);
+  }
+
+  listenForUpdates(): void {
+    this.notificationSubscription = this.realTimeNotifService.messages$.subscribe(msg => {
+      if (msg && (msg.type === 'PRODUCT_UPDATE' || msg.type === 'LOW_STOCK' || msg.type === 'ORDER_UPDATE')) {
+        console.log('FavoritesComponent: Real-time update received:', msg);
+        this.loadFavorites(); 
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.notificationSubscription) {
+      this.notificationSubscription.unsubscribe();
+    }
   }
 }

@@ -64,15 +64,15 @@ export class WebSocketService implements OnDestroy {
                 debug: () => {},
             });
 
-            client.onConnect = () => {
-                this.connectionStatusSubject.next(true);
-                client.subscribe('/user/queue/notifications', (message: IMessage) => {
-                    this.handleNotification(message);
-                });
-                client.subscribe('/topic/notifications', (message: IMessage) => {
-                    this.handleNotification(message);
-                });
-            };
+                client.onConnect = (frame: any) => {
+                  this.connectionStatusSubject.next(true);
+                  client.subscribe('/user/queue/notifications', (message: IMessage) => {
+                      this.handleNotification(message);
+                  });
+                  client.subscribe('/topic/notifications', (message: IMessage) => {
+                      this.handleNotification(message);
+                  });
+                };
 
             client.onStompError = () => {
                 this.connectionStatusSubject.next(false);

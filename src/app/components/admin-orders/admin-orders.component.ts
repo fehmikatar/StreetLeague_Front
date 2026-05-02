@@ -24,6 +24,7 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
   private notificationSubscription: Subscription | null = null;
   private pollingSubscription: Subscription | null = null;
   currentQrData: string = '';
+  tunnelUrl: string = 'https://streetleague-api-2026.loca.lt';
 
   statuses = [
     { value: 'EN_COURS_DE_TRAITEMENT', label: 'En cours de traitement' },
@@ -71,8 +72,8 @@ export class AdminOrdersComponent implements OnInit, OnDestroy {
   }
 
   getConfirmationUrl(order: CartResponse): string {
-    // Force backendBase to the persistent localtunnel URL to bypass firewall
-    const backendBase = 'https://streetleague-api-2026.loca.lt';
+    // Use the dynamic tunnel URL configured in the UI
+    const backendBase = this.tunnelUrl.replace(/\/$/, '');
     return `${backendBase}/api/cart/confirm-delivery/${order.deliveryConfirmationCode}`;
   }
 
