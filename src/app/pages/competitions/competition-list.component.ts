@@ -15,36 +15,42 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
         <div>
           <h1 class="text-3xl font-black flex items-center gap-3">
             <lucide-icon [name]="TrophyIcon" [size]="32" class="text-primary"></lucide-icon>
-            Compétitions
+            Competitions
           </h1>
-          <p class="text-muted-foreground mt-2">Découvrez les tournois et ligues, ou créez les vôtres.</p>
+          <p class="text-muted-foreground mt-2">Discover tournaments and leagues, or create your own.</p>
         </div>
         
-        <button *ngIf="isOrganizerOrAdmin" routerLink="/app/competitions/new" class="bg-primary text-primary-foreground font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all flex items-center gap-2 shadow-sm">
-          <lucide-icon [name]="PlusIcon" [size]="20"></lucide-icon> Focus sur le terrain
-        </button>
+        <div class="flex flex-wrap gap-3">
+          <button *ngIf="isOrganizerOrAdmin" routerLink="/app/fields" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-md hover:shadow-blue-500/20">
+            <lucide-icon [name]="MapPinIcon" [size]="20"></lucide-icon> Focus on the Field
+          </button>
+          
+          <button *ngIf="isOrganizerOrAdmin" routerLink="/app/competitions/new" class="bg-[#1e9c4c] text-white font-bold px-6 py-3 rounded-xl hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-md hover:shadow-emerald-500/20">
+            <lucide-icon [name]="PlusIcon" [size]="20"></lucide-icon> Create a Competition
+          </button>
+        </div>
       </div>
 
       <!-- Filters -->
       <div class="bg-card border border-border rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 shadow-sm">
         <div class="relative flex-1">
           <lucide-icon [name]="SearchIcon" [size]="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"></lucide-icon>
-          <input type="text" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Rechercher une compétition ou ville..." class="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-xl focus:outline-none focus:border-primary font-medium">
+          <input type="text" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Search a competition or city..." class="w-full h-11 pl-12 pr-4 bg-background border border-border rounded-xl focus:outline-none focus:border-primary font-medium">
         </div>
         
         <div class="flex gap-4 overflow-x-auto pb-1 md:pb-0">
           <select [(ngModel)]="statusFilter" (change)="applyFilters()" class="h-11 px-4 bg-background border border-border rounded-xl focus:outline-none focus:border-primary font-medium min-w-[150px]">
-            <option value="">Tous les statuts</option>
-            <option value="DRAFT">Brouillon</option>
-            <option value="ONGOING">En cours</option>
-            <option value="FINISHED">Terminé</option>
-            <option value="CANCELED">Annulé</option>
+            <option value="">All statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="ONGOING">Ongoing</option>
+            <option value="FINISHED">Finished</option>
+            <option value="CANCELED">Canceled</option>
           </select>
           
           <select [(ngModel)]="formatFilter" (change)="applyFilters()" class="h-11 px-4 bg-background border border-border rounded-xl focus:outline-none focus:border-primary font-medium min-w-[150px]">
-            <option value="">Tous formats</option>
-            <option value="LEAGUE">Ligue</option>
-            <option value="KNOCKOUT">Élimination directe</option>
+            <option value="">All formats</option>
+            <option value="LEAGUE">League</option>
+            <option value="KNOCKOUT">Direct Elimination</option>
           </select>
         </div>
       </div>
@@ -52,7 +58,7 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
       <!-- Loading -->
       <div *ngIf="loading" class="flex flex-col items-center justify-center p-20">
         <lucide-icon [name]="Loader2Icon" [size]="48" class="animate-spin text-primary/50 mb-4"></lucide-icon>
-        <p class="text-muted-foreground font-medium">Chargement des compétitions...</p>
+        <p class="text-muted-foreground font-medium">Loading competitions...</p>
       </div>
 
       <!-- Empty State -->
@@ -60,8 +66,8 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
         <div class="h-24 w-24 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6">
           <lucide-icon [name]="TrophyIcon" [size]="40" class="text-muted-foreground/50"></lucide-icon>
         </div>
-        <h2 class="text-2xl font-bold mb-3">Aucune compétition trouvée</h2>
-        <p class="text-muted-foreground text-lg">Essayez d'ajuster vos filtres ou créez une nouvelle aventure sportive dès maintenant !</p>
+        <h2 class="text-2xl font-bold mb-3">No competitions found</h2>
+        <p class="text-muted-foreground text-lg">Try adjusting your filters or create a new sports adventure now!</p>
       </div>
 
       <!-- Grid -->
@@ -78,7 +84,7 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
               </span>
               
               <span class="text-xs font-bold px-2 py-1 bg-muted text-muted-foreground rounded-lg">
-                {{ comp.format === 'LEAGUE' ? 'LIGUE' : 'COUPE' }}
+                {{ comp.format === 'LEAGUE' ? 'LEAGUE' : 'CUP' }}
               </span>
             </div>
             
@@ -87,7 +93,7 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
             </h3>
             
             <p class="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
-               {{ comp.description || 'Aucune description fournie.' }}
+               {{ comp.description || 'No description provided.' }}
             </p>
             
             <div class="space-y-2 mb-6">
@@ -103,10 +109,10 @@ import { CompetitionService, CompetitionResponse, CompetitionStatus, Competition
 
             <div class="flex gap-2 mt-auto">
               <button [routerLink]="['/app/competitions', comp.id]" class="flex-1 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
-                <lucide-icon [name]="EyeIcon" [size]="16"></lucide-icon> Voir
+                <lucide-icon [name]="EyeIcon" [size]="16"></lucide-icon> View
               </button>
               
-              <button *ngIf="canEdit(comp)" [routerLink]="['/app/competitions', comp.id, 'edit']" class="bg-muted hover:bg-primary/20 text-muted-foreground hover:text-primary p-2 rounded-xl transition-colors shadow-sm" title="Éditer">
+              <button *ngIf="canEdit(comp)" [routerLink]="['/app/competitions', comp.id, 'edit']" class="bg-muted hover:bg-primary/20 text-muted-foreground hover:text-primary p-2 rounded-xl transition-colors shadow-sm" title="Edit">
                 <lucide-icon [name]="EditIcon" [size]="18"></lucide-icon>
               </button>
             </div>
@@ -196,7 +202,7 @@ export class CompetitionListComponent implements OnInit {
     if (!dateStr) return '';
     try {
       const date = new Date(dateStr);
-      return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
+      return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', year: 'numeric' }).format(date);
     } catch (e) {
       return dateStr;
     }
@@ -224,10 +230,10 @@ export class CompetitionListComponent implements OnInit {
 
   getStatusLabel(status: CompetitionStatus): string {
     switch (status) {
-      case CompetitionStatus.DRAFT: return 'BROUILLON';
-      case CompetitionStatus.ONGOING: return 'EN COURS';
-      case CompetitionStatus.FINISHED: return 'TERMINÉE';
-      case CompetitionStatus.CANCELED: return 'ANNULÉE';
+      case CompetitionStatus.DRAFT: return 'DRAFT';
+      case CompetitionStatus.ONGOING: return 'ONGOING';
+      case CompetitionStatus.FINISHED: return 'FINISHED';
+      case CompetitionStatus.CANCELED: return 'CANCELED';
       default: return status;
     }
   }
