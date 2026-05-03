@@ -51,6 +51,7 @@ export class AppLayoutComponent implements OnInit {
         { path: '/app/competitions', icon: this.TrophyIcon, label: 'Compétitions' },
         { path: '/app/matches', icon: this.SwordsIcon, label: 'Matchs' },
         { path: '/app/booking', icon: this.MapPinIcon, label: 'Réservation' },
+        { path: '/my-bookings', icon: this.CalendarIcon, label: 'Mes Réservations' },
         { path: '/app/owner-bookings', icon: this.CalendarIcon, label: 'Réservations terrains', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
         { path: '/app/fields', icon: this.MapIcon, label: 'Terrains', roles: ['ROLE_FIELD_OWNER', 'ROLE_ADMIN'] },
         { path: '/app/community', icon: this.MessageSquareIcon, label: 'Communauté' },

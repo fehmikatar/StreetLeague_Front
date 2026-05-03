@@ -304,7 +304,7 @@ export class BookingFormComponent implements OnInit, OnDestroy {
 
         setTimeout(() => {
           this.notification = '';
-          this.router.navigate(['/app/matches']);
+          this.router.navigate(['/my-bookings']);
         }, 2000);
       },
       error: (err) => {

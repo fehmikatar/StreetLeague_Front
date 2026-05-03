@@ -49,6 +49,7 @@ import { FieldsListComponent } from './pages/fields/fields-list.component';
 import { AddFieldComponent } from './pages/fields/add-field.component';
 import { FieldDetailComponent } from './pages/fields/field-detail.component';
 import { OwnerBookingsComponent } from './pages/owner-bookings.component';
+import { MyBookingsComponent } from './components/my-bookings/my-bookings.component';
 
 // Healthcare pages
 import { HealthDashboardComponent } from './pages/healthcare/health-dashboard.component';
@@ -93,6 +94,13 @@ export const routes: Routes = [
     { path: 'auth/login', component: LoginPageComponent },
     { path: 'auth/signup', component: SignupPageComponent },
     { path: 'auth/password-reset', component: PasswordResetPageComponent },
+
+    {
+        path: 'my-bookings',
+        component: AppLayoutComponent,
+        canActivate: [authGuard],
+        children: [{ path: '', component: MyBookingsComponent }],
+    },
 
     // Authenticated Routes (requires login)
     {

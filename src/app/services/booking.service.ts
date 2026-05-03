@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map, catchError, of, throwError, forkJoin, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { WebSocketService } from './websocket.service';
@@ -36,6 +36,7 @@ export interface Reservation {
     players: number;
     type: string;
     status: ReservationStatus;
+    totalPrice?: number | null;
     message?: string;
 }
 
@@ -186,6 +187,34 @@ export class BookingService {
         );
     }
 
+    public updateFieldFeedback(
+        feedbackId: number,
+        feedback: Omit<FieldFeedback, 'createdAt' | 'id'>
+    ): Observable<FieldFeedback> {
+        return this.http.put<any>(`${this.apiUrl}/feedbacks/${feedbackId}`, {
+            userId: Number(feedback.userId),
+            sportSpaceId: Number(feedback.fieldId),
+            bookingId: feedback.reservationId,
+            rating: feedback.rating,
+            comment: feedback.comment
+        }).pipe(
+            map(updatedFeedback => this.mapBackendFeedback(updatedFeedback)),
+            tap(() => {
+                const currentNotifs = this.notificationsSubject.getValue();
+                const newNotif: Notification = {
+                    title: 'Avis mis à jour',
+                    message: `Votre avis sur "${feedback.fieldName}" a été mis à jour.`,
+                    time: 'Maintenant',
+                    icon: 'star',
+                    bgColor: 'bg-blue-50',
+                    iconColor: 'text-blue-500',
+                    read: false
+                };
+                this.notificationsSubject.next([newNotif, ...currentNotifs]);
+            })
+        );
+    }
+
     private loadStaticNotifications() {
         const defaultNotifs: Notification[] = [
             {
@@ -213,13 +242,14 @@ export class BookingService {
     }
 
     public loadMyReservations() {
-        const storedId = localStorage.getItem('user_id');
-        console.log('🔄 loadMyReservations() appelée pour userId:', storedId);
-        if (!storedId) {
-            console.warn('⚠️ Pas de user_id dans localStorage');
+        const token = localStorage.getItem('auth_token');
+        console.log('🔄 loadMyReservations() appelée, token présent:', !!token);
+        if (!token) {
+            this.myReservationsSubject.next([]);
             return;
         }
-        this.getUserReservations(storedId).subscribe({
+
+        this.getMyBookings().subscribe({
             next: (res) => {
                 console.log('✅ Réservations chargées depuis backend:', res.length, 'réservations');
                 this.myReservationsSubject.next(res);
@@ -248,6 +278,58 @@ export class BookingService {
                 });
             }),
             catchError(() => of([]))
+        );
+    }
+
+    public getMyBookings(): Observable<Reservation[]> {
+        const token = localStorage.getItem('auth_token');
+        const userId = localStorage.getItem('user_id');
+        const requestUrl = `${this.apiUrl}/bookings/my-bookings?t=${Date.now()}`;
+        const headers = token
+            ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+            : undefined;
+
+        console.log('🔄 GET my-bookings URL:', requestUrl);
+        console.log('🔐 Token présent pour my-bookings:', !!token);
+        console.log('🆔 user_id localStorage:', userId);
+
+        return this.http.get<any[]>(requestUrl, { headers }).pipe(
+            map(data => {
+                const payload = Array.isArray(data) ? data : [];
+                console.log('📥 Raw my bookings from backend:', payload);
+                const mapped = payload.map(b => this.mapBackendToFrontendReservation(b));
+                return mapped.sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
+            }),
+            switchMap((reservations) => {
+                if (reservations.length > 0 || !userId) {
+                    return of(reservations);
+                }
+
+                console.warn('⚠️ Endpoint my-bookings vide, fallback vers /bookings/user/' + userId);
+                return this.getUserReservations(userId).pipe(
+                    tap(fallbackReservations => {
+                        console.log('📥 Réservations récupérées via fallback userId:', fallbackReservations);
+                    })
+                );
+            }),
+            catchError((err) => {
+                console.error('❌ Erreur lors du chargement de mes réservations:', err);
+
+                if (userId) {
+                    console.warn('⚠️ Fallback erreur vers /bookings/user/' + userId);
+                    return this.getUserReservations(userId).pipe(
+                        tap(fallbackReservations => {
+                            console.log('📥 Réservations récupérées via fallback après erreur:', fallbackReservations);
+                        })
+                    );
+                }
+
+                return of([]);
+            })
         );
     }
 
@@ -419,6 +501,7 @@ export class BookingService {
                     duration: savedReservation.duration || reservationData.duration,
                     players: reservationData.players,
                     type: reservationData.type,
+                    totalPrice: savedReservation.totalPrice ?? null,
                     message: reservationMessage
                 };
                 const current = this.myReservationsSubject.getValue();
@@ -543,56 +626,47 @@ export class BookingService {
 
         const status = this.parseBackendReservationStatus(backendBooking.status);
 
-        // Tenter d'extraire le nom du terrain et la localisation
         let fieldName = backendBooking.sportSpaceName || 'Terrain';
         let location = backendBooking.location || '';
         const sportSpaceId = backendBooking.sportSpaceId;
+        const cachedSpace = this.spaceCacheMap.get(Number(sportSpaceId));
+        const cachedField = this.fieldsSubject.getValue().find(f => f.id === String(sportSpaceId));
 
-        console.log(`📌 Raw data - sportSpaceName: "${backendBooking.sportSpaceName}", location: "${backendBooking.location}", sportSpaceId: ${sportSpaceId}`);
-
-        // Si sportSpace est un objet (nested), extraire les infos
         if (backendBooking.sportSpace && typeof backendBooking.sportSpace === 'object') {
-            console.log(`🔗 SportSpace objet trouvé:`, backendBooking.sportSpace);
             fieldName = backendBooking.sportSpace.name || fieldName;
             location = backendBooking.sportSpace.location || backendBooking.sportSpace.address || location;
         }
 
-        // 🎯 Essayer de charger depuis le cache local des SportSpaces
-        if (!fieldName || fieldName === 'Terrain' || !location) {
-            const cachedSpace = this.spaceCacheMap.get(sportSpaceId);
+        if ((!fieldName || fieldName === 'Terrain') && cachedSpace) {
+            fieldName = cachedSpace.name || cachedSpace.fieldName || fieldName;
+        }
 
-            if (cachedSpace) {
-                console.log(`✅ SportSpace trouvé dans le cache local:`, cachedSpace);
-                if (!fieldName || fieldName === 'Terrain') {
-                    fieldName = cachedSpace.name || cachedSpace.fieldName || fieldName;
-                }
-                if (!location) {
-                    location = cachedSpace.location || cachedSpace.address || location;
-                }
-            } else {
-                // Alternative: essayer depuis le BehaviorSubject fieldsSubject
-                const cachedFields = this.fieldsSubject.getValue();
-                const cachedField = cachedFields.find(f => f.id === String(sportSpaceId));
+        if (!location && cachedSpace) {
+            location = cachedSpace.location || cachedSpace.address || location;
+        }
 
-                if (cachedField) {
-                    console.log(`✅ Champ trouvé dans fieldsSubject:`, cachedField);
-                    if (!fieldName || fieldName === 'Terrain') {
-                        fieldName = cachedField.name;
-                    }
-                    if (!location) {
-                        location = cachedField.location;
-                    }
-                } else {
-                    console.warn(`⚠️ Données NOT trouvées pour SportSpaceId ${sportSpaceId}. Cache has ${this.spaceCacheMap.size} items`);
-                }
+        if ((!fieldName || fieldName === 'Terrain') && cachedField) {
+            fieldName = cachedField.name;
+        }
+
+        if (!location && cachedField) {
+            location = cachedField.location;
+        }
+
+        let totalPrice = this.parseNumericValue(backendBooking.totalPrice);
+        if (totalPrice == null) {
+            const hourlyRate = this.parseNumericValue(
+                cachedSpace?.hourlyRate ?? cachedSpace?.pricePerHour ?? cachedField?.price
+            );
+
+            if (hourlyRate != null && durationH > 0) {
+                totalPrice = Number((hourlyRate * durationH).toFixed(2));
             }
         }
 
-        console.log(`📍 FINAL MAPPED: fieldName="${fieldName}", location="${location}"`);
-
         return {
             id: backendBooking.id,
-            fieldId: String(sportSpaceId),
+            fieldId: String(sportSpaceId ?? ''),
             fieldName: fieldName,
             userId: backendBooking.userId != null ? String(backendBooking.userId) : undefined,
             userName: backendBooking.userName || undefined,
@@ -606,8 +680,22 @@ export class BookingService {
             players: 10,
             type: 'Multisport',
             status: status,
+            totalPrice,
             message: backendBooking.message || undefined
         };
+    }
+
+    private parseNumericValue(value: unknown): number | null {
+        if (typeof value === 'number' && Number.isFinite(value)) {
+            return value;
+        }
+
+        if (typeof value === 'string' && value.trim().length > 0) {
+            const parsed = Number(value.replace(',', '.'));
+            return Number.isFinite(parsed) ? parsed : null;
+        }
+
+        return null;
     }
 
     private parseBackendReservationStatus(status: string | null | undefined): ReservationStatus {
