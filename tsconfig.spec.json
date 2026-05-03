@@ -5,10 +5,11 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./out-tsc/spec",
-    "moduleResolution": "bundler",
-    "types": [
-      "vitest/globals"
-    ]
+    "types": ["jasmine", "vitest/globals"],
+    "paths": {
+      "stompjs": ["./src/__mocks__/stompjs.ts"],
+      "sockjs-client": ["./src/__mocks__/sockjs-client.ts"]
+    }
   },
   "include": [
     "src/**/*.d.ts",

@@ -1,0 +1,51 @@
+<section class="nearby-section">
+  <div class="nearby-header">
+    <div>
+      <h3 class="nearby-title">Terrains proches de moi</h3>
+      <p class="nearby-subtitle">Trouvez les terrains les plus proches selon votre position actuelle</p>
+    </div>
+
+    <button type="button" class="nearby-button" (click)="findNearbySpaces()" [disabled]="isLoading">
+      <span *ngIf="!isLoading">📍 Terrains proches de moi</span>
+      <span *ngIf="isLoading" class="loading-inline">
+        <span class="spinner"></span>
+        Chargement...
+      </span>
+    </button>
+  </div>
+
+  <p *ngIf="errorMessage" class="nearby-error">{{ errorMessage }}</p>
+
+  <div *ngIf="userPosition && sortedSpaces.length > 0" class="nearby-content">
+    <div class="map-card">
+      <div #nearbyMap class="nearby-map"></div>
+    </div>
+
+    <div class="nearby-results">
+      <article *ngFor="let space of sortedSpaces; trackBy: trackBySpace" class="nearby-card">
+        <div class="nearby-card-header">
+          <div>
+            <h4 class="space-name">{{ space.name }}</h4>
+            <p class="space-hours">Ouvert de {{ space.openingTime }} à {{ space.closingTime }}</p>
+          </div>
+
+          <span [class]="getDistanceBadgeClass(space.distance)">
+            {{ space.distance }} km
+          </span>
+        </div>
+
+        <div class="space-meta">
+          <div class="meta-item">💶 {{ space.pricePerHour }} €/heure</div>
+          <div class="meta-item rating-display">
+            <span *ngFor="let filled of getRatingStars(space.rating)">
+              {{ filled ? '★' : '☆' }}
+            </span>
+            <span class="rating-value">{{ space.rating }}</span>
+          </div>
+        </div>
+
+        <a [routerLink]="['/app/booking-form', space.id]" class="reserve-link">Réserver</a>
+      </article>
+    </div>
+  </div>
+</section>

@@ -35,9 +35,13 @@ import { ProductDetailComponent } from './pages/product-detail.component';
 import { AdminComponent } from './pages/admin.component';
 import { AdminProductsComponent } from './pages/admin-products.component';
 import { AdminUsersComponent } from './pages/admin-users.component';
+import { AdminCategoriesComponent } from './pages/admin-categories.component';
 import { UserProfileComponent } from './pages/user-profile.component';
 import { NotificationsComponent } from './pages/notifications.component';
 import { FavoritesComponent } from './pages/favorites.component';
+import { UserOrdersComponent } from './pages/user-orders.component';
+import { AdminOrdersComponent } from './components/admin-orders/admin-orders.component';
+import { AdminStatsComponent } from './components/admin-stats/admin-stats.component';
 
 // Competition pages
 import { CompetitionListComponent } from './pages/competitions/competition-list.component';
@@ -48,6 +52,8 @@ import { CompetitionFormComponent } from './pages/competitions/competition-form.
 import { FieldsListComponent } from './pages/fields/fields-list.component';
 import { AddFieldComponent } from './pages/fields/add-field.component';
 import { FieldDetailComponent } from './pages/fields/field-detail.component';
+import { OwnerBookingsComponent } from './pages/owner-bookings.component';
+import { MyBookingsComponent } from './components/my-bookings/my-bookings.component';
 
 // Healthcare pages
 import { HealthDashboardComponent } from './pages/healthcare/health-dashboard.component';
@@ -58,6 +64,7 @@ import { DietPlansComponent } from './pages/healthcare/diet-plans.component';
 import { HealthTrendsComponent } from './pages/healthcare/health-trends.component';
 import { HealthAlertsComponent } from './pages/healthcare/health-alerts.component';
 import { ComplianceTrackingComponent } from './pages/healthcare/compliance-tracking.component';
+import { DoctorManagementComponent } from './pages/healthcare/doctor-management.component';
 
 // Badge pages
 import { BadgeDashboardComponent } from './pages/badges/badge-dashboard.component';
@@ -91,6 +98,13 @@ export const routes: Routes = [
     { path: 'auth/login', component: LoginPageComponent },
     { path: 'auth/signup', component: SignupPageComponent },
     { path: 'auth/password-reset', component: PasswordResetPageComponent },
+
+    {
+        path: 'my-bookings',
+        component: AppLayoutComponent,
+        canActivate: [authGuard],
+        children: [{ path: '', component: MyBookingsComponent }],
+    },
 
     // Authenticated Routes (requires login)
     {
@@ -127,10 +141,9 @@ export const routes: Routes = [
             { path: 'admin', component: AdminComponent },
             { path: 'admin/users', component: AdminUsersComponent },
             { path: 'admin/products', component: AdminProductsComponent },
-            {
-                path: 'admin/categories',
-                loadComponent: () => import('./pages/admin-categories.component').then((m) => m.AdminCategoriesComponent)
-            },
+            { path: 'admin/categories', component: AdminCategoriesComponent },
+            { path: 'admin/orders', component: AdminOrdersComponent },
+            { path: 'admin/stats', component: AdminStatsComponent },
             
             // Admin - Badge Management (specific routes before parameter-based routes)
             { path: 'admin/badges/dashboard', component: BadgeDashboardComponent },
@@ -152,6 +165,7 @@ export const routes: Routes = [
             },
             
             { path: 'user-profile', component: UserProfileComponent, resolve: { profile: ProfileResolver }, canDeactivate: [UnsavedChangesGuard] },
+            { path: 'orders', component: UserOrdersComponent },
             { path: 'notifications', component: NotificationsComponent },
             { path: 'favorites', component: FavoritesComponent },
 
@@ -165,6 +179,7 @@ export const routes: Routes = [
             { path: 'fields', component: FieldsListComponent },
             { path: 'fields/add', component: AddFieldComponent },
             { path: 'fields/:id', component: FieldDetailComponent },
+            { path: 'owner-bookings', component: OwnerBookingsComponent },
 
             // Healthcare Module
             { path: 'healthcare', component: HealthDashboardComponent },
@@ -175,6 +190,7 @@ export const routes: Routes = [
             { path: 'healthcare/trends', component: HealthTrendsComponent },
             { path: 'healthcare/alerts', component: HealthAlertsComponent },
             { path: 'healthcare/compliance', component: ComplianceTrackingComponent },
+            { path: 'healthcare/doctors', component: DoctorManagementComponent },
         ],
     },
 

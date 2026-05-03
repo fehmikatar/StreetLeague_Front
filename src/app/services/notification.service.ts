@@ -15,8 +15,16 @@ export class NotificationService {
         return this.http.get<any[]>(`${this.base}/user/${userId}`);
     }
 
+    getMine(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.base}/me`);
+    }
+
     getUnread(userId: number): Observable<any[]> {
         return this.http.get<any[]>(`${this.base}/user/${userId}/unread`);
+    }
+
+    getMyUnread(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.base}/me/unread`);
     }
 
     markAsRead(id: number): Observable<void> {

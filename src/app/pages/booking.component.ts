@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, MapPin, Clock, Calendar, DollarSign, Search, Star, Filter, CheckCircle } from 'lucide-angular';
 import { BookingService, Field } from '../services/booking.service';
+import { NearbySpacesComponent, SportSpace } from '../components/nearby-spaces/nearby-spaces.component';
+import { FeedbackListComponent } from '../components/feedback-list/feedback-list.component';
 
 @Component({
   selector: 'app-booking',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, RouterModule, LucideAngularModule, FeedbackListComponent, NearbySpacesComponent],
   template: `
     <div class="min-h-screen bg-background p-4 md:p-6">
       <div class="max-w-7xl mx-auto">
@@ -31,6 +33,8 @@ import { BookingService, Field } from '../services/booking.service';
             <input type="date" [(ngModel)]="selectedDate" class="px-4 py-3 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
           </div>
         </div>
+
+        <app-nearby-spaces [spaces]="nearbySpaces"></app-nearby-spaces>
 
         <!-- Fields Grid -->
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -61,6 +65,9 @@ import { BookingService, Field } from '../services/booking.service';
               <div class="flex gap-4 text-sm text-muted-foreground mb-4">
                 <span class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon>{{ field.hours }}</span>
               </div>
+              <div class="mb-4">
+                <app-feedback-list [sportSpaceId]="field.id"></app-feedback-list>
+              </div>
               <a [routerLink]="['/app/booking-form', field.id]" class="w-full block text-center py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
                 Réserver maintenant
               </a>
@@ -88,7 +95,10 @@ export class BookingComponent implements OnInit {
   constructor(private bookingService: BookingService) { }
 
   ngOnInit() {
-    this.bookingService.fields$.subscribe(f => this.fields = f);
+    this.bookingService.refreshFields();
+    this.bookingService.fields$.subscribe(f => {
+      this.fields = f;
+    });
   }
 
   get filteredFields() {
@@ -97,6 +107,19 @@ export class BookingComponent implements OnInit {
       const matchesType = this.selectedType === 'all' || f.type === this.selectedType;
       return matchesSearch && matchesType;
     });
+  }
+
+  get nearbySpaces(): SportSpace[] {
+    return this.filteredFields.map((field) => ({
+      id: field.id,
+      name: field.name,
+      latitude: field.latitude,
+      longitude: field.longitude,
+      pricePerHour: field.price,
+      rating: field.rating,
+      openingTime: field.openingTime,
+      closingTime: field.closingTime
+    }));
   }
 }
 

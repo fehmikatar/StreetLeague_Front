@@ -1,7 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, CheckCircle, XCircle, Package } from 'lucide-angular';
+import { HttpClient } from '@angular/common/http';
+import { catchError, forkJoin, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Component({
     selector: 'app-admin',
@@ -19,22 +22,22 @@ import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, Check
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div class="bg-card rounded-2xl p-6 border border-border">
             <lucide-icon [name]="UsersIcon" [size]="32" class="text-primary mb-2"></lucide-icon>
-            <div class="text-3xl font-bold text-primary">10,482</div>
+            <div class="text-3xl font-bold text-primary">{{ usersCount }}</div>
             <div class="text-sm text-muted-foreground">Utilisateurs</div>
           </div>
           <div class="bg-card rounded-2xl p-6 border border-border">
             <lucide-icon [name]="MapPinIcon" [size]="32" class="text-accent mb-2"></lucide-icon>
-            <div class="text-3xl font-bold text-accent">512</div>
+            <div class="text-3xl font-bold text-accent">{{ fieldsCount }}</div>
             <div class="text-sm text-muted-foreground">Terrains</div>
           </div>
           <div class="bg-card rounded-2xl p-6 border border-border">
             <lucide-icon [name]="TrophyIcon" [size]="32" class="text-green-500 mb-2"></lucide-icon>
-            <div class="text-3xl font-bold text-green-500">52,341</div>
+            <div class="text-3xl font-bold text-green-500">{{ bookingsCount }}</div>
             <div class="text-sm text-muted-foreground">Matchs</div>
           </div>
           <div class="bg-card rounded-2xl p-6 border border-border">
             <lucide-icon [name]="TrendingUpIcon" [size]="32" class="text-primary mb-2"></lucide-icon>
-            <div class="text-3xl font-bold">€128k</div>
+            <div class="text-3xl font-bold">{{ revenueTotal }}</div>
             <div class="text-sm text-muted-foreground">Revenus</div>
           </div>
         </div>
@@ -106,6 +109,9 @@ import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, Check
               <div class="space-y-3">
                 <button (click)="router.navigate(['/app/admin/users'])" class="w-full py-3 text-sm bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-all font-semibold">Gestion des Utilisateurs</button>
                 <button (click)="router.navigate(['/app/admin/products'])" class="w-full py-3 text-sm bg-accent text-accent-foreground rounded-xl hover:bg-accent/90 transition-all font-semibold shadow-sm text-center">Gestion de la Boutique (Inventaire)</button>
+                <button (click)="router.navigate(['/app/admin/categories'])" class="w-full py-3 text-sm bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all font-semibold">Gestion des categories sponsors</button>
+                <button (click)="router.navigate(['/app/admin/orders'])" class="w-full py-3 text-sm bg-slate-700 text-white rounded-xl hover:bg-slate-800 transition-all font-semibold">Gestion des commandes</button>
+                <button (click)="router.navigate(['/app/admin/stats'])" class="w-full py-3 text-sm bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition-all font-semibold">Statistiques boutique</button>
                 <button (click)="router.navigate(['/app/admin/badges/dashboard'])" class="w-full py-3 text-sm bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-all font-semibold">🎖️ Gestion des Badges</button>
                 <button (click)="router.navigate(['/app/admin/performances/dashboard'])" class="w-full py-3 text-sm bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all font-semibold">📊 Performance Tracking</button>
                 <button (click)="router.navigate(['/app/fields/add'])" class="w-full py-3 text-sm bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-semibold">Ajouter un terrain</button>
@@ -141,7 +147,7 @@ import { LucideAngularModule, Settings, Users, MapPin, Trophy, TrendingUp, Check
     </div>
   `,
 })
-export class AdminComponent {
+export class AdminComponent implements OnInit {
     readonly UsersIcon = Users;
     readonly MapPinIcon = MapPin;
     readonly TrophyIcon = Trophy;
@@ -150,7 +156,15 @@ export class AdminComponent {
     readonly XCircleIcon = XCircle;
 
     toast: string | null = null;
-    constructor(public router: Router) { }
+    usersCount = '0';
+    fieldsCount = '0';
+    bookingsCount = '0';
+    revenueTotal = '0€';
+
+    constructor(
+        public router: Router,
+        private http: HttpClient
+    ) { }
 
     pendingRequests: any[] = [
         { name: 'Marc Dupont', type: 'Nouveau terrain', time: 'Il y a 2h', approved: null },
@@ -159,12 +173,88 @@ export class AdminComponent {
         { name: 'Julie Bernard', type: 'Reclamation', time: 'Il y a 6h', approved: null },
     ];
 
-    recentBookings = [
-        { user: 'Alex R.', field: 'Parc Central', date: '10/02/2026', status: 'Confirmée' },
-        { user: 'Morgan L.', field: 'Court Premium', date: '12/02/2026', status: 'Confirmée' },
-        { user: 'Jordan C.', field: 'Tennis Elite', date: '15/02/2026', status: 'En attente' },
-        { user: 'Taylor B.', field: 'Multisport City', date: '18/02/2026', status: 'Confirmée' },
-    ];
+    recentBookings: Array<{ user: string; field: string; date: string; status: string }> = [];
+
+    ngOnInit(): void {
+        this.loadDashboardData();
+    }
+
+    private loadDashboardData(): void {
+        forkJoin({
+            users: this.http.get<any[]>(`${environment.apiUrl}/users`).pipe(catchError(() => of([]))),
+            fields: this.http.get<any[]>(`${environment.apiUrl}/sport-spaces`).pipe(catchError(() => of([]))),
+            bookings: this.http.get<any[]>(`${environment.apiUrl}/bookings`).pipe(catchError(() => of([]))),
+        }).subscribe(({ users, fields, bookings }) => {
+            this.usersCount = String(users.length);
+            this.fieldsCount = String(fields.length);
+            this.bookingsCount = String(bookings.length);
+            this.revenueTotal = `${Math.round(this.calculateRevenue(fields, bookings))}€`;
+            this.recentBookings = this.buildRecentBookings(fields, bookings);
+        });
+    }
+
+    private calculateRevenue(fields: any[], bookings: any[]): number {
+        const fieldRates = new Map<number, number>(
+            fields.map(field => [Number(field.id), Number(field.hourlyRate ?? field.pricePerHour ?? 0)])
+        );
+
+        return bookings.reduce((total, booking) => {
+            const rate = fieldRates.get(Number(booking.sportSpaceId)) ?? 0;
+            const start = new Date(booking.startTime).getTime();
+            const end = new Date(booking.endTime).getTime();
+            const durationHours = start && end && end > start ? (end - start) / (1000 * 60 * 60) : 1;
+            return total + (rate * durationHours);
+        }, 0);
+    }
+
+    private buildRecentBookings(fields: any[], bookings: any[]): Array<{ user: string; field: string; date: string; status: string }> {
+        const fieldMap = new Map<number, any>(fields.map(field => [Number(field.id), field]));
+
+        return [...bookings]
+            .sort((a, b) => new Date(b.startTime ?? 0).getTime() - new Date(a.startTime ?? 0).getTime())
+            .slice(0, 6)
+            .map(booking => {
+                const field = fieldMap.get(Number(booking.sportSpaceId));
+
+                return {
+                    user: booking.userName || `Utilisateur #${booking.userId ?? '?'}`,
+                    field: booking.sportSpaceName || field?.name || `Terrain #${booking.sportSpaceId ?? '?'}`,
+                    date: this.formatDate(booking.startTime),
+                    status: this.mapStatusLabel(booking.status),
+                };
+            });
+    }
+
+    private mapStatusLabel(status: string | null | undefined): string {
+        const normalized = (status || '').toLowerCase();
+
+        if (normalized === 'cancelled') {
+            return 'Annulée';
+        }
+
+        if (normalized === 'pending' || normalized === 'pending_confirmation') {
+            return 'En attente';
+        }
+
+        if (normalized === 'reminder_sent') {
+            return 'Confirmation requise';
+        }
+
+        if (normalized === 'completed') {
+            return 'Terminée';
+        }
+
+        return 'Confirmée';
+    }
+
+    private formatDate(value: string | null | undefined): string {
+        if (!value) {
+            return '-';
+        }
+
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('fr-FR');
+    }
 
     approveRequest(req: any) {
         req.approved = true;

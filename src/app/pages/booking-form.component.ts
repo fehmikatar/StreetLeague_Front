@@ -1,14 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule, MapPin, Calendar, Clock, CreditCard, ChevronLeft, Check, CheckCircle, XCircle } from 'lucide-angular';
 import { BookingService, Field } from '../services/booking.service';
+import { FeedbackListComponent } from '../components/feedback-list/feedback-list.component';
+import { Subscription } from 'rxjs';
+import { WebSocketService } from '../services/websocket.service';
 
 @Component({
   selector: 'app-booking-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule, FeedbackListComponent],
   template: `
     <div class="p-6 max-w-2xl mx-auto space-y-6">
       <div class="flex items-center gap-3">
@@ -86,7 +89,6 @@ import { BookingService, Field } from '../services/booking.service';
             </div>
           </div>
 
-          <!-- ✅ Availability Badge — visible en temps réel -->
           <!-- Players count -->
           <div>
             <label class="block text-sm font-medium text-foreground mb-2">Nombre de joueurs</label>
@@ -126,27 +128,30 @@ import { BookingService, Field } from '../services/booking.service';
           </div>
         </div>
 
+        <app-feedback-list [sportSpaceId]="fieldId"></app-feedback-list>
+
         <!-- Notification -->
         <div *ngIf="notification" class="w-full rounded-xl p-4 text-sm font-medium"
+          [class.whitespace-pre-line]="true"
           [ngClass]="notificationType === 'success'
             ? 'bg-primary/10 border border-primary/20 text-primary'
             : 'bg-red-500/10 border border-red-500/20 text-red-500'">
           {{ notification }}
         </div>
 
-        <!-- Submit — désactivé si non disponible -->
+        <!-- Submit -->
         <button (click)="confirmerEtPayer()"
           [disabled]="paid || !bookingDate || !bookingTime || !slotAvailable"
           class="w-full text-primary-foreground py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           [ngClass]="paid ? 'bg-green-500 cursor-default' : 'bg-primary hover:bg-primary/90'">
           <lucide-icon [img]="paid ? checkIcon : creditCardIcon" [size]="20"></lucide-icon>
-          {{ paid ? 'Réservation Confirmée !' : 'Confirmer et Payer' }}
+          {{ paid ? (lastReservationStatus === 'confirmed' ? 'Présence confirmée' : 'Réservation enregistrée') : 'Confirmer et Payer' }}
         </button>
       </ng-container>
     </div>
   `
 })
-export class BookingFormComponent implements OnInit {
+export class BookingFormComponent implements OnInit, OnDestroy {
   readonly backIcon = ChevronLeft;
   readonly locationIcon = MapPin;
   readonly calendarIcon = Calendar;
@@ -165,6 +170,7 @@ export class BookingFormComponent implements OnInit {
   players = 10;
   note = '';
   paid = false;
+  lastReservationStatus: string | null = null;
   notification = '';
   notificationType: 'success' | 'error' = 'success';
 
@@ -177,30 +183,51 @@ export class BookingFormComponent implements OnInit {
   ];
 
   existingReservations: any[] = [];
+  private subscriptions = new Subscription();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private bookingService: BookingService
+    private bookingService: BookingService,
+    private webSocketService: WebSocketService
   ) { }
 
   ngOnInit() {
+    this.bookingService.refreshFields();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.fieldId = id;
       this.bookingService.fields$.subscribe(fields => {
         this.field = fields.find(f => f.id === id);
       });
+
       // Charger les réservations immédiatement
       console.log('🔄 Chargement des réservations pour terrain:', id);
       this.loadReservations(id);
     }
+
+    this.subscriptions.add(
+      this.webSocketService.getNotifications().subscribe(notifications => {
+        if (!this.fieldId || notifications.length === 0) {
+          return;
+        }
+
+        const latestNotification = notifications[0];
+        if (latestNotification.type === 'reservation' || latestNotification.type === 'cancellation') {
+          this.loadReservations(this.fieldId);
+        }
+      })
+    );
 
     const today = new Date();
     const tzoffset = today.getTimezoneOffset() * 60000;
     const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
     this.bookingDate = localISOTime;
     this.minDate = localISOTime;
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
   }
 
   // Appelé quand la date OU la durée change — recharge les résa et revérifie
@@ -223,6 +250,7 @@ export class BookingFormComponent implements OnInit {
 
     const selectedDateTime = new Date(`${this.bookingDate}T${time}:00`);
     if (selectedDateTime <= new Date()) return false;
+    if (!this.bookingService.respectsMinimumAdvanceNotice(this.bookingDate, time)) return false;
 
     return this.bookingService.isSlotAvailableClientSide(
       this.existingReservations,
@@ -240,6 +268,13 @@ export class BookingFormComponent implements OnInit {
 
   confirmerEtPayer() {
     if (!this.field || !this.bookingDate || !this.bookingTime) return;
+
+    if (!this.bookingService.respectsMinimumAdvanceNotice(this.bookingDate, this.bookingTime)) {
+      this.notificationType = 'error';
+      this.notification = '⛔ Réservation impossible\nIl n\'est plus possible de réserver ce créneau. Les réservations doivent être effectuées au moins 2 heures à l\'avance.';
+      setTimeout(() => { this.notification = ''; }, 5000);
+      return;
+    }
 
     // Double vérification côté client avant envoi
     if (!this.slotAvailable) {
@@ -260,36 +295,28 @@ export class BookingFormComponent implements OnInit {
       players: this.players,
       type: this.field.type
     }).subscribe({
-      next: () => {
-        this.existingReservations.push({
-          fieldId: this.field!.id,
-          date: this.bookingDate,
-          time: this.bookingTime,
-          duration: this.bookingDuration,
-          status: 'confirmed'
-        });
-        this.slotAvailable = false; // bloquer immédiatement après confirmation
+      next: (saved) => {
+        this.loadReservations(this.fieldId);
         this.paid = true;
+        this.lastReservationStatus = saved?.status || null;
         this.notificationType = 'success';
-        this.notification = '✅ Réservation confirmée ! Redirection vers vos matchs...';
-        
-        // 🔄 Recharger les réservations depuis le backend AVANT navigation
-        this.bookingService.loadMyReservations();
-        
+        this.notification = saved?.message || '✅ Réservation enregistrée.';
+
         setTimeout(() => {
           this.notification = '';
-          this.router.navigate(['/app/matches']);
+          this.router.navigate(['/my-bookings']);
         }, 2000);
       },
       error: (err) => {
         console.error('❌ Erreur réservation:', err);
         this.notificationType = 'error';
-        
-        // Déterminer le message d'erreur
+
         let errorMsg = `Erreur ${err?.status || '?'}: `;
-        
+
         if (err?.status === 409) {
           errorMsg += 'Ce créneau est déjà réservé (conflit). Merci de choisir un autre horaire.';
+        } else if (err?.error?.error) {
+          errorMsg += err.error.error;
         } else if (err?.error?.message) {
           errorMsg += err.error.message;
         } else if (err?.message) {
@@ -297,10 +324,10 @@ export class BookingFormComponent implements OnInit {
         } else {
           errorMsg += 'Erreur lors de la réservation au serveur.';
         }
-        
+
         this.notification = `❌ ${errorMsg}`;
         console.log('Server error details:', err?.error);
-        
+
         setTimeout(() => { this.notification = ''; }, 5000);
         // Recharger les réservations au cas où quelqu'un d'autre aurait réservé
         this.loadReservations(this.fieldId);

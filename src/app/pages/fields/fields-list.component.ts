@@ -1,14 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LucideAngularModule, MapPin, Plus, Edit, Trash, Star, ArrowLeft, Loader2 } from 'lucide-angular';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { OwnerFeedbackComponent } from '../../components/owner-feedback/owner-feedback.component';
 
 @Component({
   selector: 'app-fields-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule, OwnerFeedbackComponent],
   template: `
     <div class="min-h-screen bg-background p-4 md:p-6">
       <div class="max-w-7xl mx-auto">
@@ -60,6 +63,24 @@ import { environment } from '../../../environments/environment';
                 <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">{{ field.sportType || 'Sport' }}</span>
                 <span class="text-primary font-semibold">{{ field.pricePerHour || field.price }}€/h</span>
               </div>
+              <div class="mb-4 text-xs">
+                <div class="rounded-lg bg-muted/40 px-3 py-2">
+                  <div class="text-muted-foreground">Feedbacks</div>
+                  <div class="font-bold">{{ feedbacksByField[field.id]?.length || 0 }}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                (click)="toggleFieldDetails(field.id)"
+                class="w-full mb-4 py-2 border border-border rounded-lg text-sm font-semibold hover:bg-muted transition-all">
+                {{ expandedFieldId === field.id ? 'Masquer les feedbacks' : 'Voir les feedbacks' }}
+              </button>
+              <div *ngIf="expandedFieldId === field.id" class="mb-4 space-y-4">
+                <div class="rounded-xl bg-muted/40 p-3">
+                  <h4 class="font-semibold text-sm mb-3">Feedbacks reçus</h4>
+                  <app-owner-feedback [sportSpaceId]="field.id"></app-owner-feedback>
+                </div>
+              </div>
               <div class="flex gap-2">
                 <a [routerLink]="['/app/fields', field.id]" class="flex-1 py-2 text-center text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">Détails</a>
                 <button (click)="deleteField(field)" class="p-2 bg-destructive/10 rounded-lg hover:bg-destructive/20 transition-all text-destructive" title="Supprimer">
@@ -85,22 +106,39 @@ export class FieldsListComponent implements OnInit {
   loading = true;
   notification = '';
   fields: any[] = [];
+  feedbacksByField: Record<string, any[]> = {};
+  expandedFieldId: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
-    const userId = localStorage.getItem('user_id');
-    const url = userId
-      ? `${environment.apiUrl}/sport-spaces/owner/${userId}`
-      : `${environment.apiUrl}/sport-spaces`;
-
-    this.http.get<any[]>(url).subscribe({
-      next: (data) => { this.fields = data; this.loading = false; },
+    this.http.get<any[]>(`${environment.apiUrl}/sport-spaces/owner/me`).subscribe({
+      next: (data) => {
+        this.fields = data;
+        this.loadFieldDetails();
+        this.cdr.detectChanges();
+      },
       error: () => {
-        // Fallback: load all fields if owner endpoint fails
-        this.http.get<any[]>(`${environment.apiUrl}/sport-spaces`).subscribe({
-          next: (data) => { this.fields = data; this.loading = false; },
-          error: () => { this.loading = false; }
+        const userId = localStorage.getItem('user_id');
+        if (!userId) {
+          this.loading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.http.get<any[]>(`${environment.apiUrl}/sport-spaces/owner/${userId}`).subscribe({
+          next: (data) => {
+            this.fields = data;
+            this.loadFieldDetails();
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            this.loading = false;
+            this.cdr.detectChanges();
+          }
         });
       }
     });
@@ -112,13 +150,51 @@ export class FieldsListComponent implements OnInit {
       next: () => {
         this.fields = this.fields.filter(f => f.id !== field.id);
         this.showNotification(`✅ Terrain "${field.name}" supprimé`);
+        this.cdr.detectChanges();
       },
-      error: () => this.showNotification('❌ Erreur lors de la suppression')
+      error: () => {
+        this.showNotification('❌ Erreur lors de la suppression');
+        this.cdr.detectChanges();
+      }
     });
   }
 
   private showNotification(msg: string) {
     this.notification = msg;
     setTimeout(() => { this.notification = ''; }, 3000);
+    this.cdr.detectChanges();
+  }
+
+  toggleFieldDetails(fieldId: string): void {
+    this.expandedFieldId = this.expandedFieldId === fieldId ? null : fieldId;
+  }
+
+  private loadFieldDetails(): void {
+    if (this.fields.length === 0) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const requests = this.fields.map(field =>
+      forkJoin({
+        feedbacks: this.http.get<any[]>(`${environment.apiUrl}/feedbacks/sport-space/${field.id}`).pipe(catchError(() => of([])))
+      })
+    );
+
+    forkJoin(requests).subscribe({
+      next: (results) => {
+        results.forEach((result, index) => {
+          const fieldId = String(this.fields[index].id);
+          this.feedbacksByField[fieldId] = result.feedbacks || [];
+        });
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

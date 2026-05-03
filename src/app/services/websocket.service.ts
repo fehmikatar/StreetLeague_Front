@@ -1,8 +1,10 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Stomp } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { Client, IMessage } from '@stomp/stompjs';
+import { ApiService } from './api.service';
 
 export interface WebSocketNotification {
     id?: string;
@@ -20,53 +22,74 @@ export interface WebSocketNotification {
     providedIn: 'root'
 })
 export class WebSocketService implements OnDestroy {
-    private stompClient: any = null;
+    private stompClient: Client | null = null;
+    private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     private notificationsSubject = new BehaviorSubject<WebSocketNotification[]>([]);
     public notifications$ = this.notificationsSubject.asObservable();
-    
+
     private connectionStatusSubject = new BehaviorSubject<boolean>(false);
     public connectionStatus$ = this.connectionStatusSubject.asObservable();
 
-    constructor() {
+    constructor(private http: HttpClient, private api: ApiService) {
+        this.loadUnreadNotifications();
         this.initializeConnection();
     }
 
+    private hasSession(): boolean {
+        return !!localStorage.getItem('auth_token') && !!localStorage.getItem('user_id');
+    }
+
+    private scheduleReconnect(): void {
+        if (this.reconnectTimer || !this.hasSession()) return;
+        this.reconnectTimer = setTimeout(() => {
+            this.reconnectTimer = null;
+            this.initializeConnection();
+        }, 5000);
+    }
+
     private initializeConnection(): void {
+        if (!this.hasSession() || this.stompClient?.connected || this.stompClient?.active) return;
+
         try {
-            const wsUrl = environment.wsUrl + '/ws' || 'http://localhost:8085/ws';
-            const socket = new SockJS(wsUrl);
-            
-            this.stompClient = Stomp.over(socket);
-            this.stompClient.debug = () => {}; // Disable debug logs
-            
-            this.stompClient.connect({}, (frame: any) => {
-                console.log('✅ WebSocket STOMP connecté:', frame);
-                this.connectionStatusSubject.next(true);
-                
-                const userId = localStorage.getItem('user_id');
-                if (userId) {
-                    // Subscribe to user-specific topic
-                    this.stompClient.subscribe(`/user/${userId}/queue/notifications`, (message: any) => {
-                        console.log('📬 Notification reçue:', message);
-                        this.handleNotification(message);
-                    });
-                }
-            }, (error: any) => {
-                console.error('❌ Erreur WebSocket STOMP:', error);
-                this.connectionStatusSubject.next(false);
-                // Retry connection in 5 seconds
-                setTimeout(() => this.initializeConnection(), 5000);
+            const wsBaseUrl = environment.wsUrl || 'http://localhost:8085';
+            const wsUrl = `${wsBaseUrl}/ws`;
+            const client = new Client({
+                webSocketFactory: () => new SockJS(wsUrl) as WebSocket,
+                reconnectDelay: 0,
+                debug: () => {},
             });
+
+            client.onConnect = () => {
+                this.connectionStatusSubject.next(true);
+                client.subscribe('/user/queue/notifications', (message: IMessage) => this.handleNotification(message));
+                client.subscribe('/topic/notifications', (message: IMessage) => this.handleNotification(message));
+            };
+
+            client.onStompError = () => {
+                this.connectionStatusSubject.next(false);
+                this.scheduleReconnect();
+            };
+
+            client.onWebSocketClose = () => {
+                this.connectionStatusSubject.next(false);
+                this.scheduleReconnect();
+            };
+
+            this.stompClient = client;
+            client.activate();
         } catch (error) {
-            console.error('Erreur lors de l\'initialisation de la connexion WebSocket:', error);
+            console.error('WebSocket initialization error:', error);
+            this.connectionStatusSubject.next(false);
+            this.scheduleReconnect();
         }
     }
 
-    private handleNotification(message: any): void {
+    private handleNotification(message: IMessage): void {
         try {
+            if (!message.body || !message.body.trim().startsWith('{')) return;
             const data = JSON.parse(message.body);
             this.addNotification({
-                type: data.type || 'message',
+                type: this.normalizeNotificationType(data.type),
                 title: data.title,
                 message: data.message,
                 fieldName: data.fieldName || '',
@@ -75,12 +98,19 @@ export class WebSocketService implements OnDestroy {
                 timestamp: data.timestamp || new Date().toISOString()
             });
         } catch (error) {
-            console.error('Erreur lors du parsing de la notification:', error);
+            console.error('Notification parsing error:', error);
         }
     }
 
     private addNotification(notification: WebSocketNotification): void {
         const currentNotifications = this.notificationsSubject.getValue();
+        const exists = currentNotifications.some((item) =>
+            item.id === notification.id ||
+            (item.title === notification.title && item.message === notification.message && item.timestamp === notification.timestamp)
+        );
+
+        if (exists) return;
+
         const newNotification: WebSocketNotification = {
             ...notification,
             id: notification.id || `notif-${Date.now()}`,
@@ -90,47 +120,73 @@ export class WebSocketService implements OnDestroy {
         this.notificationsSubject.next([newNotification, ...currentNotifications]);
     }
 
-    /**
-     * Obtenir toutes les notifications
-     */
-    public getNotifications(): Observable<WebSocketNotification[]> {
-        return this.notifications$;
+    private loadUnreadNotifications(): void {
+        const userId = this.api.getUserId();
+        if (!userId) return;
+
+        this.http.get<any[]>(`${this.api.base}/notifications/user/${userId}/unread`).subscribe({
+            next: (notifications) => {
+                notifications.forEach((notification) => {
+                    this.addNotification({
+                        id: String(notification.id),
+                        type: 'message',
+                        title: notification.title || 'Notification',
+                        message: notification.message || '',
+                        fieldName: notification.fieldName || '',
+                        date: this.formatDisplayDate(notification.createdAt),
+                        time: this.formatDisplayTime(notification.createdAt),
+                        timestamp: notification.createdAt || new Date().toISOString(),
+                        read: !!notification.isRead
+                    });
+                });
+            },
+            error: () => {}
+        });
     }
 
-    /**
-     * Marquer une notification comme lue
-     */
-    public markAsRead(notificationId: string): void {
-        const notifications = this.notificationsSubject.getValue();
-        const updated = notifications.map(n => 
-            n.id === notificationId ? { ...n, read: true } : n
-        );
-        this.notificationsSubject.next(updated);
+    public showNotification(notification: Partial<WebSocketNotification> & Pick<WebSocketNotification, 'title' | 'message'>): void {
+        this.addNotification({
+            type: notification.type || 'message',
+            title: notification.title,
+            message: notification.message,
+            fieldName: notification.fieldName || '',
+            date: notification.date || this.formatDisplayDate(),
+            time: notification.time || this.formatDisplayTime(),
+            timestamp: notification.timestamp || new Date().toISOString(),
+            read: false
+        });
     }
 
-    /**
-     * Supprimer une notification
-     */
-    public deleteNotification(notificationId: string): void {
-        const notifications = this.notificationsSubject.getValue();
-        const filtered = notifications.filter(n => n.id !== notificationId);
-        this.notificationsSubject.next(filtered);
+    private normalizeNotificationType(rawType: string | null | undefined): WebSocketNotification['type'] {
+        const normalized = (rawType || '').toLowerCase();
+        if (normalized.includes('cancel')) return 'cancellation';
+        if (normalized.includes('reservation') || normalized.includes('confirm')) return 'reservation';
+        if (normalized.includes('reminder')) return 'update';
+        return 'message';
     }
 
-    /**
-     * Nettoyer la connexion WebSocket
-     */
+    private formatDisplayDate(value?: string): string {
+        const date = value ? new Date(value) : new Date();
+        return isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    private formatDisplayTime(value?: string): string {
+        const date = value ? new Date(value) : new Date();
+        return isNaN(date.getTime()) ? '' : date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+
     public disconnect(): void {
-        if (this.stompClient && this.stompClient.connected) {
-            this.stompClient.disconnect(() => {
-                console.log('WebSocket disconnected');
-                this.connectionStatusSubject.next(false);
-            });
+        if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
         }
+        const client = this.stompClient;
+        this.stompClient = null;
+        if (client) void client.deactivate();
+        this.connectionStatusSubject.next(false);
     }
 
     ngOnDestroy(): void {
         this.disconnect();
     }
 }
-

@@ -1,0 +1,168 @@
+<div class="min-h-screen p-4 md:p-8 max-w-7xl mx-auto">
+  <div class="flex flex-col md:flex-row justify-between mb-8 gap-4">
+    <div>
+      <h1 class="text-3xl font-black flex items-center gap-3 mb-2">
+        <lucide-icon [name]="CalendarIcon" [size]="32" class="text-primary"></lucide-icon>
+        Mes Réservations
+      </h1>
+      <p class="text-muted-foreground">Suivez vos réservations actives, passées ou annulées.</p>
+    </div>
+  </div>
+
+  <div class="bg-card rounded-2xl p-4 border border-border mb-8 shadow-sm flex flex-wrap gap-4 items-center">
+    <select [(ngModel)]="fieldFilter" (change)="applyFilters()" class="h-11 px-4 bg-background border border-border rounded-xl font-medium flex-1 min-w-[200px]">
+      <option value="">Tous les terrains</option>
+      <option *ngFor="let fieldName of fieldOptions" [value]="fieldName">{{ fieldName }}</option>
+    </select>
+
+    <select [(ngModel)]="statusFilter" (change)="applyFilters()" class="h-11 px-4 bg-background border border-border rounded-xl font-medium w-[170px]">
+      <option value="">Tous les statuts</option>
+      <option value="pending_confirmation">En attente</option>
+      <option value="reminder_sent">Rappel</option>
+      <option value="confirmed">Confirmée</option>
+      <option value="completed">Terminée</option>
+      <option value="cancelled">Annulée</option>
+    </select>
+
+    <div class="flex items-center gap-2 border border-border rounded-xl bg-background px-3 h-11 w-40">
+      <lucide-icon [name]="CalendarIcon" [size]="16" class="text-muted-foreground"></lucide-icon>
+      <input type="date" [(ngModel)]="dateFilter" (change)="applyFilters()" class="bg-transparent border-none outline-none font-medium text-sm w-full">
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="flex flex-col items-center py-20 text-muted-foreground">
+    <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin text-primary/50 mb-3"></lucide-icon>
+    Chargement...
+  </div>
+
+  <div *ngIf="!loading && filteredReservations.length === 0" class="text-center py-20 text-muted-foreground">
+    Aucune réservation
+  </div>
+
+  <div *ngIf="!loading && filteredReservations.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div *ngFor="let reservation of filteredReservations" class="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/30 transition-all flex flex-col group">
+      <div class="h-1 w-full" [ngClass]="getStatusColor(reservation.status)"></div>
+
+      <div class="p-6">
+        <div class="flex justify-between items-start mb-6">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider" [ngClass]="getStatusBadge(reservation.status)">
+            {{ getStatusLabel(reservation.status) }}
+          </span>
+          <span class="text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-lg">{{ formatReservationDate(reservation) }}</span>
+        </div>
+
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex-1 text-center font-black text-lg line-clamp-2">{{ reservation.fieldName }}</div>
+          <div class="px-6 text-center">
+            <div class="text-4xl font-black tabular-nums tracking-tighter" [ngClass]="reservation.status === 'cancelled' ? 'text-red-500' : reservation.status === 'pending_confirmation' || reservation.status === 'reminder_sent' ? 'text-orange-500' : 'text-emerald-500'">
+              {{ getTotalPrice(reservation) | number:'1.0-0' }}€
+            </div>
+          </div>
+          <div class="flex-1 text-center font-black text-lg line-clamp-2">{{ getDurationLabel(reservation) }}</div>
+        </div>
+
+        <div class="space-y-2 mb-4 text-sm text-muted-foreground font-medium bg-muted/30 p-4 rounded-xl">
+          <div class="flex items-center gap-2">
+            <lucide-icon [name]="MapPinIcon" [size]="16" class="text-primary/70"></lucide-icon>
+            <span>{{ reservation.location || reservation.fieldName }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <lucide-icon [name]="CalendarIcon" [size]="16" class="text-primary/70"></lucide-icon>
+            <span>Début : {{ getStartLabel(reservation) }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <lucide-icon [name]="ClockIcon" [size]="16" class="text-primary/70"></lucide-icon>
+            <span>Fin : {{ getEndLabel(reservation) }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="isAwaitingConfirmation(reservation)" class="mt-3 mb-4 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700">
+          Confirmation de présence requise avant le créneau.
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            *ngIf="canConfirmReservation(reservation)"
+            type="button"
+            (click)="confirmReservationPresence(reservation)"
+            [disabled]="confirmingReservationId === reservation.id"
+            class="px-4 py-2.5 text-sm font-bold text-emerald-700 hover:bg-emerald-50 rounded-xl transition-all border border-emerald-200 bg-emerald-100 disabled:opacity-50">
+            {{ confirmingReservationId === reservation.id ? '...' : 'Confirmer' }}
+          </button>
+
+          <button
+            *ngIf="canCancelReservation(reservation)"
+            type="button"
+            (click)="cancelReservation(reservation)"
+            [disabled]="cancelingReservationId === reservation.id"
+            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border bg-red-100 text-red-700 border-red-200 hover:bg-red-200 disabled:opacity-50">
+            <lucide-icon *ngIf="cancelingReservationId !== reservation.id" [name]="XIcon" [size]="16"></lucide-icon>
+            <lucide-icon *ngIf="cancelingReservationId === reservation.id" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
+            {{ cancelingReservationId === reservation.id ? '...' : 'Annuler' }}
+          </button>
+
+          <button
+            *ngIf="canManageFeedback(reservation)"
+            type="button"
+            (click)="openFeedbackForm(reservation)"
+            class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-200">
+            <lucide-icon [name]="MessageSquareIcon" [size]="16"></lucide-icon>
+            {{ getFeedbackButtonLabel(reservation) }}
+          </button>
+        </div>
+
+        <article *ngIf="getExistingFeedback(reservation) as feedback" class="user-feedback-card">
+          <div class="user-feedback-header">
+            <div>
+              <div class="user-feedback-title">Votre avis</div>
+              <div class="user-feedback-date">{{ feedback.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+            </div>
+            <div class="user-feedback-meta">
+              <span class="user-feedback-rating">{{ '★'.repeat(feedback.rating) }}<span class="user-feedback-rating-empty">{{ '☆'.repeat(5 - feedback.rating) }}</span></span>
+              <span *ngIf="feedback.isToxic" class="user-feedback-toxic">⚠️ Commentaire censuré</span>
+            </div>
+          </div>
+          <p class="user-feedback-comment">{{ feedback.comment }}</p>
+        </article>
+
+        <div *ngIf="isFeedbackFormOpen(reservation)" class="feedback-form-card">
+          <div class="feedback-form-header">
+            <h4 class="feedback-form-title">{{ hasExistingFeedback(reservation) ? 'Modifier votre avis' : 'Donner un avis' }}</h4>
+            <p class="feedback-form-subtitle">Attribuez une note et partagez votre retour sur ce terrain.</p>
+          </div>
+
+          <div class="feedback-stars" [attr.aria-label]="'Note pour ' + reservation.fieldName">
+            <button
+              *ngFor="let value of ratingChoices; trackBy: trackByRatingValue"
+              type="button"
+              class="feedback-star-button"
+              [class.active]="getStarState(getFeedbackDraft(reservation.id).rating, value)"
+              (click)="selectFeedbackRating(reservation.id, value)">
+              {{ getStarState(getFeedbackDraft(reservation.id).rating, value) ? '★' : '☆' }}
+            </button>
+          </div>
+
+          <textarea
+            [(ngModel)]="getFeedbackDraft(reservation.id).comment"
+            class="feedback-textarea"
+            rows="4"
+            placeholder="Décrivez votre expérience sur ce terrain (minimum 10 caractères)"></textarea>
+
+          <div *ngIf="getFeedbackDraft(reservation.id).error" class="feedback-error">
+            {{ getFeedbackDraft(reservation.id).error }}
+          </div>
+
+          <div class="feedback-form-actions">
+            <button
+              type="button"
+              class="feedback-submit-button"
+              [disabled]="getFeedbackDraft(reservation.id).submitting"
+              (click)="submitFeedback(reservation)">
+              {{ getFeedbackDraft(reservation.id).submitting ? 'Envoi...' : (hasExistingFeedback(reservation) ? 'Mettre à jour mon avis' : 'Envoyer mon avis') }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

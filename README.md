@@ -1,59 +1,54 @@
-# StreetLeaguefrontAngular
+# Esprit-PIDEV_SE-4SE2-2526-streetleague (Frontend)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+<div align="center">
+  <img src="https://img.shields.io/badge/Angular_17+-DD0031?style=for-the-badge&logo=angular&logoColor=white" alt="Angular">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Jasmine-8A4182?style=for-the-badge&logo=jasmine&logoColor=white" alt="Jasmine">
+</div>
 
-## Development server
+---
 
-To start a local development server, run:
+## 📖 Description
 
-```bash
-ng serve
-```
+**StreetLeague** est une plateforme innovante dédiée à la gestion du sport amateur. L'application permet d'organiser des compétitions, de gérer la réservation de terrains (SportSpaces) et de récolter des feedbacks de la communauté. Ce repository contient l'**Application Frontend** (Angular) utilisée par les joueurs, propriétaires de terrains et administrateurs.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 👥 Membres de l'Équipe & Répartition
 
-## Code scaffolding
+- **Fehmi Katar** : Interfaces de réservation, Gestion des Terrains (SportSpace), Feedbacks, Interface d'Authentification , profils utilisateurs et Tests Unitaires 
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🏗️ Structure du Projet Angular
 
-```bash
-ng generate component component-name
-```
+* 📂 **`src/app/pages/`** : Les composants d'écrans principaux (UI).
+* 📂 **`src/app/services/`** : Services Angular qui communiquent avec l'API Spring Boot.
+* 📂 **`src/app/core/`** : Intercepteurs, guards (sécurité) et modèles métier.
+* 📂 **`src/`** : Fichiers statiques et configurations globales (styles, environnements).
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🛠️ Instructions de lancement
 
-```bash
-ng generate --help
-```
+### Pré-requis
+- Node.js (v18+)
+- Angular CLI
 
-## Building
+### Déploiement Local
+1. **Cloner le repository**
+   ```bash
+   git clone https://github.com/fehmikatar/Esprit-PIDEV_SE-4SE2-2526-streetleague.git
+   cd streetLeaguefront-angular
+   ```
+2. **Installer les dépendances**
+   ```bash
+   npm install
+   ```
+3. **Lancer l'application**
+   ```bash
+   ng serve
+   ```
+L'application sera accessible sur `http://localhost:4200/`. (Assurez-vous que le backend tourne sur le port `8080`).
 
-To build the project run:
+## ⚙️ Tests Unitaires
+Les tests ont été réalisés académiquement à l'aide de la syntaxe **Jasmine**. 
+Fichiers testés : `booking.service.spec.ts`, `user.service.spec.ts`, `notification.service.spec.ts`.
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+**Module de Projet Intégré (PI)** - École Supérieure Privée d'Ingénierie et de Technologies (ESPRIT)
