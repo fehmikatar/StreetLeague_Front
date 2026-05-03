@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { finalize, forkJoin, of } from 'rxjs';
-import { LucideAngularModule, Calendar, Clock, MapPin, Loader2, X, MessageSquare } from 'lucide-angular';
+import { LucideAngularModule, Calendar, Clock, MapPin, Loader2, X, MessageSquare, Users } from 'lucide-angular';
 import { BookingService, Reservation, FieldFeedback } from '../../services/booking.service';
 
 @Component({
@@ -20,91 +20,78 @@ export class MyBookingsComponent implements OnInit {
   readonly Loader2Icon = Loader2;
   readonly XIcon = X;
   readonly MessageSquareIcon = MessageSquare;
+  readonly UsersIcon = Users;
   readonly ratingChoices = [1, 2, 3, 4, 5];
 
-  reservations: Reservation[] = [];
-  filteredReservations: Reservation[] = [];
+  myReservations: Reservation[] = [];
+  teamReservations: Reservation[] = [];
+  filteredMyReservations: Reservation[] = [];
+  filteredTeamReservations: Reservation[] = [];
   userFeedbacks: FieldFeedback[] = [];
+
   loading = true;
   cancelingReservationId: number | null = null;
   confirmingReservationId: number | null = null;
-  activeFeedbackFormReservationId: number | null = null;
+  activeFeedbackFormKey: string | null = null;
 
   fieldFilter = '';
   statusFilter = '';
   dateFilter = '';
 
-  private feedbackByReservationId: Record<number, FieldFeedback> = {};
-  private feedbackDrafts: Record<number, { rating: number; comment: string; submitting: boolean; error: string }> = {};
+  private currentUserId = '';
+  private feedbackByFieldId: Record<string, FieldFeedback> = {};
+  private feedbackDrafts: Record<string, { rating: number; comment: string; submitting: boolean; error: string }> = {};
 
   constructor(private bookingService: BookingService) {}
 
   ngOnInit(): void {
+    this.currentUserId = localStorage.getItem('user_id') || '';
     this.bookingService.refreshFields();
     this.loadBookings();
   }
 
   get fieldOptions(): string[] {
-    return [...new Set(this.reservations.map((reservation) => reservation.fieldName).filter(Boolean))]
+    return [...new Set([...this.myReservations, ...this.teamReservations].map((reservation) => reservation.fieldName).filter(Boolean))]
       .sort((left, right) => left.localeCompare(right));
   }
 
   loadBookings(): void {
-    this.loading = true;
-    const userId = localStorage.getItem('user_id');
-    const feedbacks$ = userId ? this.bookingService.getUserFieldFeedbacks(userId) : of([]);
+    const feedbacks$ = this.currentUserId ? this.bookingService.getUserFieldFeedbacks(this.currentUserId) : of([]);
 
+    this.loading = true;
     forkJoin({
-      reservations: this.bookingService.getMyBookings(),
+      myReservations: this.bookingService.getMyBookings(),
+      teamReservations: this.bookingService.getMyTeamBookings(),
       feedbacks: feedbacks$
     })
       .pipe(finalize(() => { this.loading = false; }))
       .subscribe({
-        next: ({ reservations, feedbacks }) => {
-          this.reservations = reservations;
+        next: ({ myReservations, teamReservations, feedbacks }) => {
+          this.myReservations = myReservations;
+          this.teamReservations = teamReservations.filter((reservation) => reservation.userId !== this.currentUserId);
           this.userFeedbacks = feedbacks;
-          this.feedbackByReservationId = feedbacks.reduce<Record<number, FieldFeedback>>((accumulator, feedback) => {
-            accumulator[feedback.reservationId] = feedback;
+          this.feedbackByFieldId = feedbacks.reduce<Record<string, FieldFeedback>>((accumulator, feedback) => {
+            accumulator[feedback.fieldId] = feedback;
             return accumulator;
           }, {});
-          console.log('Réservations reçues:', this.reservations);
+          console.log('Réservations reçues:', this.myReservations);
+          console.log('Réservations équipe reçues:', this.teamReservations);
           this.applyFilters();
         },
         error: () => {
-          this.reservations = [];
-          this.filteredReservations = [];
+          this.myReservations = [];
+          this.teamReservations = [];
+          this.filteredMyReservations = [];
+          this.filteredTeamReservations = [];
           this.userFeedbacks = [];
-          this.feedbackByReservationId = {};
+          this.feedbackByFieldId = {};
         }
       });
   }
 
   applyFilters(): void {
-    let filtered = [...this.reservations];
-
-    if (this.fieldFilter) {
-      filtered = filtered.filter((reservation) => reservation.fieldName === this.fieldFilter);
-    }
-
-    if (this.statusFilter) {
-      filtered = filtered.filter((reservation) => reservation.status === this.statusFilter);
-    }
-
-    if (this.dateFilter) {
-      filtered = filtered.filter((reservation) => reservation.date === this.dateFilter);
-    }
-
-    filtered.sort((left, right) => {
-      const leftRank = this.getStatusPriority(left.status);
-      const rightRank = this.getStatusPriority(right.status);
-      if (leftRank !== rightRank) {
-        return leftRank - rightRank;
-      }
-
-      return this.getReservationStartTimestamp(right) - this.getReservationStartTimestamp(left);
-    });
-
-    this.filteredReservations = filtered;
+    this.filteredMyReservations = this.filterReservations(this.myReservations);
+    this.filteredTeamReservations = this.filterReservations(this.teamReservations);
   }
 
   cancelReservation(reservation: Reservation): void {
@@ -164,20 +151,21 @@ export class MyBookingsComponent implements OnInit {
   }
 
   hasExistingFeedback(reservation: Reservation): boolean {
-    return !!this.feedbackByReservationId[reservation.id];
+    return !!this.feedbackByFieldId[reservation.fieldId];
   }
 
   getExistingFeedback(reservation: Reservation): FieldFeedback | null {
-    return this.feedbackByReservationId[reservation.id] || null;
+    return this.feedbackByFieldId[reservation.fieldId] || null;
   }
 
-  isFeedbackFormOpen(reservation: Reservation): boolean {
-    return this.activeFeedbackFormReservationId === reservation.id;
+  isFeedbackFormOpen(section: 'mine' | 'team', reservation: Reservation): boolean {
+    return this.activeFeedbackFormKey === this.getFeedbackFormKey(section, reservation);
   }
 
-  openFeedbackForm(reservation: Reservation): void {
+  openFeedbackForm(section: 'mine' | 'team', reservation: Reservation): void {
+    const formKey = this.getFeedbackFormKey(section, reservation);
     const existingFeedback = this.getExistingFeedback(reservation);
-    const draft = this.getFeedbackDraft(reservation.id);
+    const draft = this.getFeedbackDraft(reservation.fieldId);
 
     if (existingFeedback) {
       draft.rating = existingFeedback.rating;
@@ -185,20 +173,19 @@ export class MyBookingsComponent implements OnInit {
       draft.error = '';
     }
 
-    this.activeFeedbackFormReservationId = this.activeFeedbackFormReservationId === reservation.id ? null : reservation.id;
+    this.activeFeedbackFormKey = this.activeFeedbackFormKey === formKey ? null : formKey;
   }
 
-  selectFeedbackRating(reservationId: number, rating: number): void {
-    const draft = this.getFeedbackDraft(reservationId);
+  selectFeedbackRating(fieldId: string, rating: number): void {
+    const draft = this.getFeedbackDraft(fieldId);
     draft.rating = rating;
   }
 
   submitFeedback(reservation: Reservation): void {
-    const userId = localStorage.getItem('user_id');
-    const draft = this.getFeedbackDraft(reservation.id);
+    const draft = this.getFeedbackDraft(reservation.fieldId);
     const existingFeedback = this.getExistingFeedback(reservation);
 
-    if (!userId) {
+    if (!this.currentUserId) {
       draft.error = 'Utilisateur introuvable.';
       return;
     }
@@ -213,7 +200,7 @@ export class MyBookingsComponent implements OnInit {
 
     const payload = {
       reservationId: reservation.id,
-      userId,
+      userId: this.currentUserId,
       fieldId: reservation.fieldId,
       fieldName: reservation.fieldName,
       rating: draft.rating,
@@ -228,15 +215,15 @@ export class MyBookingsComponent implements OnInit {
       .pipe(finalize(() => { draft.submitting = false; }))
       .subscribe({
         next: (feedback) => {
-          this.userFeedbacks = [feedback, ...this.userFeedbacks.filter((item) => item.reservationId !== feedback.reservationId)];
-          this.feedbackByReservationId[feedback.reservationId] = feedback;
-          this.activeFeedbackFormReservationId = null;
-          this.feedbackDrafts[reservation.id] = {
+          this.userFeedbacks = [feedback, ...this.userFeedbacks.filter((item) => item.fieldId !== feedback.fieldId)];
+          this.feedbackByFieldId[feedback.fieldId] = feedback;
+          this.feedbackDrafts[reservation.fieldId] = {
             rating: feedback.rating,
             comment: feedback.comment,
             submitting: false,
             error: ''
           };
+          this.activeFeedbackFormKey = null;
         },
         error: (err) => {
           draft.error = err?.error?.error || err?.error?.message || err?.message || 'Impossible d\'enregistrer votre avis.';
@@ -244,9 +231,9 @@ export class MyBookingsComponent implements OnInit {
       });
   }
 
-  getFeedbackDraft(reservationId: number): { rating: number; comment: string; submitting: boolean; error: string } {
-    if (!this.feedbackDrafts[reservationId]) {
-      this.feedbackDrafts[reservationId] = {
+  getFeedbackDraft(fieldId: string): { rating: number; comment: string; submitting: boolean; error: string } {
+    if (!this.feedbackDrafts[fieldId]) {
+      this.feedbackDrafts[fieldId] = {
         rating: 0,
         comment: '',
         submitting: false,
@@ -254,7 +241,7 @@ export class MyBookingsComponent implements OnInit {
       };
     }
 
-    return this.feedbackDrafts[reservationId];
+    return this.feedbackDrafts[fieldId];
   }
 
   getStarState(rating: number, value: number): boolean {
@@ -360,16 +347,44 @@ export class MyBookingsComponent implements OnInit {
     return `${reservation.duration}h`;
   }
 
-  getFeedbackButtonLabel(reservation: Reservation): string {
+  getFeedbackButtonLabel(section: 'mine' | 'team', reservation: Reservation): string {
     if (this.hasExistingFeedback(reservation)) {
-      return this.isFeedbackFormOpen(reservation) ? 'Fermer' : 'Modifier mon avis';
+      return this.isFeedbackFormOpen(section, reservation) ? 'Fermer' : 'Modifier mon avis';
     }
 
-    return this.isFeedbackFormOpen(reservation) ? 'Annuler' : 'Donner un avis';
+    return this.isFeedbackFormOpen(section, reservation) ? 'Annuler' : 'Donner mon avis';
   }
 
   trackByRatingValue(_: number, value: number): number {
     return value;
+  }
+
+  private filterReservations(source: Reservation[]): Reservation[] {
+    let filtered = [...source];
+
+    if (this.fieldFilter) {
+      filtered = filtered.filter((reservation) => reservation.fieldName === this.fieldFilter);
+    }
+
+    if (this.statusFilter) {
+      filtered = filtered.filter((reservation) => reservation.status === this.statusFilter);
+    }
+
+    if (this.dateFilter) {
+      filtered = filtered.filter((reservation) => reservation.date === this.dateFilter);
+    }
+
+    filtered.sort((left, right) => {
+      const leftRank = this.getStatusPriority(left.status);
+      const rightRank = this.getStatusPriority(right.status);
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+      }
+
+      return this.getReservationStartTimestamp(right) - this.getReservationStartTimestamp(left);
+    });
+
+    return filtered;
   }
 
   private getStatusPriority(status: Reservation['status']): number {
@@ -415,16 +430,16 @@ export class MyBookingsComponent implements OnInit {
     return new Date(startTime + reservation.duration * 60 * 60 * 1000);
   }
 
-  private formatDateTime(
-    date: string,
-    time: string,
-    options: Intl.DateTimeFormatOptions
-  ): string {
+  private formatDateTime(date: string, time: string, options: Intl.DateTimeFormatOptions): string {
     const value = new Date(`${date}T${time}:00`);
     if (Number.isNaN(value.getTime())) {
       return '';
     }
 
     return new Intl.DateTimeFormat('fr-FR', options).format(value);
+  }
+
+  private getFeedbackFormKey(section: 'mine' | 'team', reservation: Reservation): string {
+    return `${section}:${reservation.id}`;
   }
 }

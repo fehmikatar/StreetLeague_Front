@@ -249,6 +249,24 @@ export class BookingService {
         );
     }
 
+    public getMyTeamBookings(): Observable<Reservation[]> {
+        const token = localStorage.getItem('auth_token');
+        const requestUrl = `${this.apiUrl}/bookings/my-team-bookings?t=${Date.now()}`;
+        const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+
+        return this.http.get<any[]>(requestUrl, { headers }).pipe(
+            map(data => {
+                const payload = Array.isArray(data) ? data : [];
+                return payload.map(b => this.mapBackendToFrontendReservation(b)).sort((a, b) => {
+                    const timeA = new Date(`${a.date}T${a.time}:00`).getTime();
+                    const timeB = new Date(`${b.date}T${b.time}:00`).getTime();
+                    return timeB - timeA;
+                });
+            }),
+            catchError(() => of([]))
+        );
+    }
+
     public getUserReservations(userId: string): Observable<Reservation[]> {
         return this.http.get<any[]>(`${this.apiUrl}/bookings/user/${userId}?t=${Date.now()}`).pipe(
             map(data => data.map(b => this.mapBackendToFrontendReservation(b)).sort((a, b) => {
