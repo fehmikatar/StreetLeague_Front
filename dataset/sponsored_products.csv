@@ -1,0 +1,137 @@
+sponsored_product_id,sponsor_id,sponsor_name,product_id,product_name,category_name,bid_amount,daily_impression_limit,daily_click_limit,today_impressions,today_clicks,is_active,created_at
+1,1,Nike Football,5,Gants Gardien Pro,Football,3.31,3056,101,57,90,True,2024-06-03 00:00:00
+2,1,Nike Football,1,Ballon Match Pro,Football,3.11,546,293,129,251,True,2024-05-29 00:00:00
+3,1,Nike Football,2,Crampons Elite,Football,0.62,2429,250,1804,87,True,2024-09-02 00:00:00
+4,2,Adidas Soccer,5,Gants Gardien Pro,Football,9.44,4013,68,267,51,True,2025-02-24 00:00:00
+5,3,Puma Sport,3,Maillot Training,Football,1.92,4710,495,697,127,True,2024-06-04 00:00:00
+6,4,Under Armour,4,Protège-tibias Carbon,Football,4.78,3726,162,2410,109,True,2025-03-16 00:00:00
+7,4,Under Armour,7,Chaussettes Performance,Football,6.4,912,495,212,320,True,2025-01-25 00:00:00
+8,4,Under Armour,5,Gants Gardien Pro,Football,6.77,1386,132,1130,19,True,2024-03-29 00:00:00
+9,4,Under Armour,8,Sac Sport XL,Football,4.38,4964,250,267,59,True,2024-05-29 00:00:00
+10,5,New Balance FC,8,Sac Sport XL,Football,2.72,2267,413,810,217,True,2025-02-09 00:00:00
+11,5,New Balance FC,1,Ballon Match Pro,Football,2.64,1320,475,291,36,True,2024-05-16 00:00:00
+12,5,New Balance FC,6,Short Match,Football,8.03,4974,393,4662,147,True,2025-02-26 00:00:00
+13,6,Nike Basketball,13,Bandeau Élastique,Basketball,5.25,4145,234,326,227,True,2024-02-11 00:00:00
+14,6,Nike Basketball,14,Panier Portable,Basketball,3.56,2151,23,937,21,False,2024-02-16 00:00:00
+15,6,Nike Basketball,12,Short Respirant,Basketball,5.96,269,401,137,295,True,2024-12-10 00:00:00
+16,6,Nike Basketball,11,Maillot Réversible,Basketball,7.68,3954,275,1811,142,True,2024-11-29 00:00:00
+17,7,Jordan Brand,16,Sac à Dos Basket,Basketball,4.38,2730,353,658,168,True,2024-02-23 00:00:00
+18,7,Jordan Brand,9,Ballon Indoor/Outdoor,Basketball,5.21,3380,426,2253,18,True,2025-01-24 00:00:00
+19,7,Jordan Brand,12,Short Respirant,Basketball,3.49,2748,69,1655,65,False,2025-05-11 00:00:00
+20,7,Jordan Brand,11,Maillot Réversible,Basketball,0.51,4544,246,444,48,True,2024-07-30 00:00:00
+21,8,Spalding,16,Sac à Dos Basket,Basketball,3.04,1173,484,897,450,True,2024-05-27 00:00:00
+22,8,Spalding,15,Genouillères Pro,Basketball,1.65,2060,373,1272,282,True,2024-03-22 00:00:00
+23,8,Spalding,9,Ballon Indoor/Outdoor,Basketball,4.38,1940,440,232,236,False,2025-04-12 00:00:00
+24,8,Spalding,10,Chaussures High-Top,Basketball,6.65,1361,265,597,260,True,2025-04-22 00:00:00
+25,9,Wilson NBA,16,Sac à Dos Basket,Basketball,5.74,3242,107,2455,65,True,2025-04-16 00:00:00
+26,9,Wilson NBA,12,Short Respirant,Basketball,1.8,671,151,424,87,False,2025-01-30 00:00:00
+27,9,Wilson NBA,10,Chaussures High-Top,Basketball,5.32,121,154,38,150,True,2025-01-06 00:00:00
+28,9,Wilson NBA,15,Genouillères Pro,Basketball,6.77,1317,238,991,88,True,2024-10-02 00:00:00
+29,10,AND1,16,Sac à Dos Basket,Basketball,5.93,2013,448,841,22,True,2025-02-01 00:00:00
+30,10,AND1,11,Maillot Réversible,Basketball,4.99,3223,207,2670,38,True,2024-12-05 00:00:00
+31,10,AND1,10,Chaussures High-Top,Basketball,0.85,4214,312,822,225,True,2024-06-18 00:00:00
+32,10,AND1,14,Panier Portable,Basketball,9.15,225,379,104,335,False,2024-03-14 00:00:00
+33,11,Wilson Tennis,24,Casquette UV Protect,Tennis,7.92,2271,183,1628,166,True,2024-11-15 00:00:00
+34,12,Head Sport,23,Cordage Multifilament,Tennis,7.33,4097,456,294,316,True,2024-10-04 00:00:00
+35,12,Head Sport,19,Sac Raquettes 6R,Tennis,6.5,2454,126,370,55,False,2025-01-17 00:00:00
+36,12,Head Sport,22,Jupe/Short Sport,Tennis,7.72,923,237,710,76,False,2024-03-26 00:00:00
+37,13,Babolat,22,Jupe/Short Sport,Tennis,8.06,2503,193,1764,37,True,2024-07-10 00:00:00
+38,14,Yonex Tennis,19,Sac Raquettes 6R,Tennis,6.29,3233,327,986,254,False,2024-12-15 00:00:00
+39,14,Yonex Tennis,18,Balles Championship x4,Tennis,1.86,3877,336,1882,130,True,2024-05-10 00:00:00
+40,14,Yonex Tennis,23,Cordage Multifilament,Tennis,9.04,3911,471,2775,279,True,2024-05-27 00:00:00
+41,14,Yonex Tennis,17,Raquette Pro 300g,Tennis,4.7,2930,310,2617,217,True,2024-06-02 00:00:00
+42,15,Dunlop Sport,21,Chaussures Court Clay,Tennis,1.51,3224,302,2354,151,False,2024-07-02 00:00:00
+43,15,Dunlop Sport,18,Balles Championship x4,Tennis,3.3,3342,150,2318,12,False,2024-01-05 00:00:00
+44,15,Dunlop Sport,20,Grip Overgrip x3,Tennis,7.58,2444,407,942,310,False,2025-02-13 00:00:00
+45,15,Dunlop Sport,22,Jupe/Short Sport,Tennis,2.58,1657,327,1388,70,True,2024-05-08 00:00:00
+46,16,Nike Running,29,Ceinture Hydratation,Running,7.99,373,306,67,46,False,2024-07-05 00:00:00
+47,17,Asics,31,Chaussettes Anti-ampoules,Running,1.76,4518,458,2997,271,True,2025-05-12 00:00:00
+48,17,Asics,26,Montre GPS Sport,Running,3.09,1447,141,986,75,True,2025-04-12 00:00:00
+49,17,Asics,32,Lunettes Sport UV,Running,3.72,1043,249,154,36,True,2025-05-08 00:00:00
+50,18,New Balance Run,31,Chaussettes Anti-ampoules,Running,8.14,3096,56,1616,0,True,2025-02-08 00:00:00
+51,18,New Balance Run,32,Lunettes Sport UV,Running,1.67,3119,354,2753,134,True,2025-01-18 00:00:00
+52,19,Saucony,26,Montre GPS Sport,Running,4.98,4699,177,1813,165,True,2025-04-13 00:00:00
+53,19,Saucony,30,Veste Coupe-vent,Running,8.33,2575,342,477,71,True,2024-07-28 00:00:00
+54,19,Saucony,32,Lunettes Sport UV,Running,0.85,4135,69,1923,68,True,2024-02-19 00:00:00
+55,20,Brooks Running,30,Veste Coupe-vent,Running,4.48,1365,463,1341,50,False,2024-07-31 00:00:00
+56,20,Brooks Running,32,Lunettes Sport UV,Running,6.35,2391,26,1517,6,True,2024-12-19 00:00:00
+57,20,Brooks Running,31,Chaussettes Anti-ampoules,Running,9.53,3071,60,1504,34,False,2024-12-17 00:00:00
+58,20,Brooks Running,29,Ceinture Hydratation,Running,6.63,596,213,194,31,False,2024-05-21 00:00:00
+59,21,Speedo,34,Lunettes Miroir,Natation,9.73,514,412,249,64,True,2024-06-19 00:00:00
+60,21,Speedo,38,Palmes Courtes,Natation,2.45,4640,116,1769,104,False,2024-10-27 00:00:00
+61,21,Speedo,40,Sac Étanche 30L,Natation,3.62,1308,413,1220,1,True,2025-04-06 00:00:00
+62,21,Speedo,37,Pull Buoy Pro,Natation,9.85,1164,286,357,56,True,2024-05-08 00:00:00
+63,22,Arena,35,Bonnet Silicone,Natation,0.64,2049,311,64,89,True,2024-06-14 00:00:00
+64,23,TYR Sport,39,Serviette Microfibre XL,Natation,1.58,620,253,370,131,True,2024-08-17 00:00:00
+65,23,TYR Sport,37,Pull Buoy Pro,Natation,4.79,1914,494,88,372,True,2024-11-10 00:00:00
+66,24,Aqua Sphere,40,Sac Étanche 30L,Natation,1.08,4023,443,1746,351,True,2024-07-24 00:00:00
+67,24,Aqua Sphere,38,Palmes Courtes,Natation,7.27,3733,47,330,20,True,2025-04-05 00:00:00
+68,24,Aqua Sphere,33,Maillot Compétition,Natation,1.12,2352,329,2246,166,True,2024-11-20 00:00:00
+69,25,Finis Swim,40,Sac Étanche 30L,Natation,4.59,1037,446,440,220,True,2024-12-01 00:00:00
+70,25,Finis Swim,37,Pull Buoy Pro,Natation,2.67,2876,433,1633,212,True,2024-08-20 00:00:00
+71,25,Finis Swim,39,Serviette Microfibre XL,Natation,3.47,2660,350,1533,78,True,2024-05-10 00:00:00
+72,26,Shimano,42,Cuissard Gel Pad,Cyclisme,4.6,3152,425,2278,30,True,2024-03-07 00:00:00
+73,26,Shimano,41,Casque Aéro Route,Cyclisme,5.84,2800,353,1682,181,False,2024-03-03 00:00:00
+74,26,Shimano,47,Lumières LED Set,Cyclisme,9.44,3564,454,2953,26,False,2025-04-13 00:00:00
+75,26,Shimano,46,Bidon Isotherme,Cyclisme,6.2,2980,63,2078,27,True,2024-10-22 00:00:00
+76,27,Giant Bikes,44,Gants Cycliste,Cyclisme,8.53,3111,68,1141,28,False,2025-01-25 00:00:00
+77,27,Giant Bikes,47,Lumières LED Set,Cyclisme,8.53,4660,23,2190,0,True,2024-11-07 00:00:00
+78,27,Giant Bikes,41,Casque Aéro Route,Cyclisme,7.18,2631,481,1437,3,True,2024-06-22 00:00:00
+79,27,Giant Bikes,43,Maillot Respirant,Cyclisme,1.86,3383,45,3035,40,False,2024-03-13 00:00:00
+80,28,Trek Cycling,44,Gants Cycliste,Cyclisme,4.07,3816,184,1515,79,True,2024-03-21 00:00:00
+81,29,Specialized,41,Casque Aéro Route,Cyclisme,1.98,507,355,139,226,True,2024-02-11 00:00:00
+82,30,Cannondale,48,Pompe Portable,Cyclisme,7.67,1032,186,227,72,True,2024-08-08 00:00:00
+83,30,Cannondale,44,Gants Cycliste,Cyclisme,6.13,4416,351,372,112,True,2024-06-06 00:00:00
+84,30,Cannondale,43,Maillot Respirant,Cyclisme,6.19,162,114,54,98,True,2024-06-03 00:00:00
+85,30,Cannondale,42,Cuissard Gel Pad,Cyclisme,2.93,2787,71,2037,55,True,2024-01-04 00:00:00
+86,31,Everlast,52,Bandages 4.5m x2,Boxe,1.18,446,233,235,19,False,2024-01-10 00:00:00
+87,31,Everlast,53,Corde à Sauter Speed,Boxe,5.97,4797,217,3421,74,True,2024-12-29 00:00:00
+88,31,Everlast,55,Chaussures Boxe,Boxe,0.7,2760,97,2531,58,False,2025-02-14 00:00:00
+89,31,Everlast,51,Protège-dents Custom,Boxe,9.24,821,233,108,62,True,2025-03-08 00:00:00
+90,32,Venum,50,Sac de Frappe 120cm,Boxe,2.6,1477,49,1296,7,True,2024-09-18 00:00:00
+91,32,Venum,52,Bandages 4.5m x2,Boxe,2.34,2962,189,2643,37,True,2025-01-07 00:00:00
+92,32,Venum,51,Protège-dents Custom,Boxe,1.89,1716,98,313,97,True,2024-11-04 00:00:00
+93,32,Venum,54,Casque Sparring,Boxe,1.22,4147,247,3677,174,False,2025-01-21 00:00:00
+94,33,Rival Boxing,54,Casque Sparring,Boxe,1.15,3722,333,3261,140,True,2024-06-04 00:00:00
+95,33,Rival Boxing,50,Sac de Frappe 120cm,Boxe,3.84,707,168,462,9,True,2024-08-24 00:00:00
+96,33,Rival Boxing,52,Bandages 4.5m x2,Boxe,8.4,728,340,92,314,True,2025-03-18 00:00:00
+97,34,Cleto Reyes,56,Coquille Protection,Boxe,4.77,4783,343,2633,309,True,2024-04-06 00:00:00
+98,34,Cleto Reyes,53,Corde à Sauter Speed,Boxe,1.93,606,240,351,182,True,2024-02-22 00:00:00
+99,34,Cleto Reyes,55,Chaussures Boxe,Boxe,6.64,420,136,224,112,True,2024-12-28 00:00:00
+100,34,Cleto Reyes,49,Gants 12oz Pro,Boxe,6.29,3081,200,1158,99,True,2025-04-14 00:00:00
+101,35,Winning Co,49,Gants 12oz Pro,Boxe,6.65,639,178,571,173,True,2024-02-18 00:00:00
+102,35,Winning Co,55,Chaussures Boxe,Boxe,2.89,1331,180,1193,169,True,2024-02-11 00:00:00
+103,35,Winning Co,54,Casque Sparring,Boxe,3.82,3310,76,2903,10,True,2024-10-31 00:00:00
+104,36,Decathlon Fit,62,Banc Musculation,Fitness,1.39,3568,270,74,185,True,2024-07-04 00:00:00
+105,36,Decathlon Fit,63,Gants Musculation,Fitness,9.54,2899,495,1991,98,True,2025-01-27 00:00:00
+106,36,Decathlon Fit,58,Tapis Yoga Premium,Fitness,1.81,732,161,103,129,True,2025-03-08 00:00:00
+107,36,Decathlon Fit,61,Corde Battle Rope 12m,Fitness,8.43,4413,29,2758,28,True,2024-12-04 00:00:00
+108,37,Domyos,63,Gants Musculation,Fitness,2.04,1456,379,89,210,True,2024-08-12 00:00:00
+109,37,Domyos,58,Tapis Yoga Premium,Fitness,7.34,3738,322,3081,229,True,2024-05-25 00:00:00
+110,38,Technogym,61,Corde Battle Rope 12m,Fitness,7.95,1689,198,1168,112,True,2024-12-13 00:00:00
+111,38,Technogym,63,Gants Musculation,Fitness,3.18,3228,267,1714,82,False,2024-09-27 00:00:00
+112,39,Life Fitness,61,Corde Battle Rope 12m,Fitness,6.59,3140,293,420,264,False,2025-04-23 00:00:00
+113,39,Life Fitness,57,Haltères Réglables 20kg,Fitness,3.21,1413,149,1051,37,False,2024-08-18 00:00:00
+114,40,Rogue Fitness,60,Kettlebell 16kg,Fitness,8.26,2963,486,1699,27,True,2024-01-14 00:00:00
+115,41,Mikasa,68,Filet Compétition,Volleyball,4.06,330,173,50,166,True,2025-04-21 00:00:00
+116,41,Mikasa,72,Protège-doigts,Volleyball,1.89,413,156,241,35,True,2025-04-14 00:00:00
+117,41,Mikasa,65,Ballon Officiel V5,Volleyball,4.96,143,473,4,131,True,2024-02-10 00:00:00
+118,42,Molten Sport,71,Sac Ballons,Volleyball,7.87,2046,164,97,61,True,2024-03-03 00:00:00
+119,42,Molten Sport,65,Ballon Officiel V5,Volleyball,8.04,3844,42,3427,31,True,2024-02-26 00:00:00
+120,43,Mizuno Volley,68,Filet Compétition,Volleyball,7.33,2486,229,1445,61,True,2024-01-01 00:00:00
+121,44,Asics Volley,66,Genouillères Gel,Volleyball,9.76,654,498,557,259,True,2024-09-26 00:00:00
+122,44,Asics Volley,69,Maillot Équipe,Volleyball,5.32,266,209,240,11,True,2025-03-23 00:00:00
+123,45,Errea Sport,69,Maillot Équipe,Volleyball,3.89,653,186,643,26,True,2024-05-03 00:00:00
+124,45,Errea Sport,70,Short Léger,Volleyball,7.48,2823,78,1443,69,True,2024-01-23 00:00:00
+125,45,Errea Sport,65,Ballon Officiel V5,Volleyball,6.61,3906,366,2587,93,False,2024-09-02 00:00:00
+126,46,Hummel,80,Protège-dents Sport,Handball,0.85,1751,32,408,2,True,2025-02-09 00:00:00
+127,47,Kempa,79,Sac Sport 50L,Handball,5.0,399,395,97,146,True,2024-11-27 00:00:00
+128,47,Kempa,80,Protège-dents Sport,Handball,7.92,2819,149,1507,111,False,2024-03-04 00:00:00
+129,47,Kempa,77,Genouillères Impact,Handball,7.56,3267,183,765,127,True,2025-05-13 00:00:00
+130,48,Select Sport,77,Genouillères Impact,Handball,7.41,746,230,184,139,True,2024-11-04 00:00:00
+131,48,Select Sport,79,Sac Sport 50L,Handball,1.47,2786,348,1255,228,True,2024-05-31 00:00:00
+132,48,Select Sport,73,Ballon Résine T3,Handball,4.55,3736,189,173,186,False,2024-08-16 00:00:00
+133,49,Salming,79,Sac Sport 50L,Handball,9.81,569,48,415,23,True,2024-12-09 00:00:00
+134,49,Salming,75,Maillot Respirant,Handball,7.62,1410,497,292,434,True,2024-01-16 00:00:00
+135,49,Salming,78,Résine Grip 200ml,Handball,7.92,385,74,120,46,True,2024-02-04 00:00:00
+136,50,Adidas Handball,75,Maillot Respirant,Handball,6.95,3138,200,3125,19,True,2024-08-15 00:00:00

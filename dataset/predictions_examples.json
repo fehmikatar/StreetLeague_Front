@@ -1,0 +1,87 @@
+[
+  {
+    "scenario": {
+      "user_id": 1,
+      "product_id": 5,
+      "sponsor_id": 1,
+      "sponsored_position": 1,
+      "bid_amount": 5.0,
+      "relevance_score": 85.0,
+      "category": "Football",
+      "sponsor": "Nike Football",
+      "product": "Crampons Elite"
+    },
+    "prediction": "CLICK",
+    "confidence": 67.68,
+    "proba_no_click": 32.32,
+    "proba_click": 67.68
+  },
+  {
+    "scenario": {
+      "user_id": 25,
+      "product_id": 15,
+      "sponsor_id": 8,
+      "sponsored_position": 3,
+      "bid_amount": 2.0,
+      "relevance_score": 45.0,
+      "category": "Basketball",
+      "sponsor": "Wilson NBA",
+      "product": "Ballon Indoor/Outdoor"
+    },
+    "prediction": "NO CLICK",
+    "confidence": 66.17,
+    "proba_no_click": 66.17,
+    "proba_click": 33.83
+  },
+  {
+    "scenario": {
+      "user_id": 50,
+      "product_id": 30,
+      "sponsor_id": 15,
+      "sponsored_position": 5,
+      "bid_amount": 0.5,
+      "relevance_score": 15.0,
+      "category": "Tennis",
+      "sponsor": "Babolat",
+      "product": "Grip Overgrip x3"
+    },
+    "prediction": "NO CLICK",
+    "confidence": 82.54,
+    "proba_no_click": 82.54,
+    "proba_click": 17.46
+  },
+  {
+    "scenario": {
+      "user_id": 75,
+      "product_id": 55,
+      "sponsor_id": 35,
+      "sponsored_position": 1,
+      "bid_amount": 8.0,
+      "relevance_score": 92.0,
+      "category": "Boxe",
+      "sponsor": "Everlast",
+      "product": "Gants 12oz Pro"
+    },
+    "prediction": "CLICK",
+    "confidence": 76.9,
+    "proba_no_click": 23.1,
+    "proba_click": 76.9
+  },
+  {
+    "scenario": {
+      "user_id": 100,
+      "product_id": 70,
+      "sponsor_id": 42,
+      "sponsored_position": 2,
+      "bid_amount": 3.5,
+      "relevance_score": 60.0,
+      "category": "Fitness",
+      "sponsor": "Technogym",
+      "product": "Halteres Reglables 20kg"
+    },
+    "prediction": "NO CLICK",
+    "confidence": 55.06,
+    "proba_no_click": 55.06,
+    "proba_click": 44.94
+  }
+]

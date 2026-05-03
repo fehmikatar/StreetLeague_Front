@@ -319,16 +319,20 @@ export class ProductService {
   private sponsoredUrl = `${environment.apiUrl}/sponsored`;
 
 
-  getAIRecommendations(userId: number, limit: number = 20): Observable<{
+  getAIRecommendations(userId: number | null | undefined, limit: number = 20): Observable<{
     user_id: number;
     total: number;
     flask_available: boolean;
-    debug_favorite_products: number[];
-    debug_preferred_categories: number[];
-    ranked_products: { product_id: number; rank: number; recommendation_score: number; priority: string }[];
+    ranked_products: Array<{
+      product_id: number;
+      recommendation_score: number;
+      priority: string;
+      rank: number;
+    }>;
   }> {
+    const safeUserId = userId || 0;
     const params = new HttpParams()
-      .set('userId', userId.toString())
+      .set('userId', safeUserId.toString())
       .set('limit', limit.toString());
     return this.http.get<any>(`${this.sponsoredUrl}/recommendations/ai`, { params });
   }

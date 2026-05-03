@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -7,8 +7,7 @@ import {
    Search, ArrowRight, ArrowLeft, Tag, Star, X, Heart, Plus, Edit, Trash2, Package, Truck, CheckCircle
 } from 'lucide-angular';
 import { ProductService, Product, Category, ProductRequest } from '../services/product.service';
-import { RealTimeNotificationService } from '../services/real-time-notification.service';
-import { Subject, Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -18,19 +17,19 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
    template: `
     <div class="min-h-screen bg-background font-sans pb-20">
       
-      <!-- Top Banner -->
+ 
       <div class="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold text-center py-2.5 uppercase tracking-widest relative z-20 shadow-md">
         Livraison gratuite dès 300DT d'achat &nbsp;|&nbsp; Retours gratuits sous 30 jours
       </div>
 
-      <!-- Main Header -->
+   
       <div class="bg-card sticky top-0 z-40 shadow-sm border-b border-border">
         <div class="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <h1 (click)="selectCategory(null)" class="text-xl sm:text-3xl font-black tracking-tighter uppercase text-foreground cursor-pointer">STREETLEAGUE</h1>
+          <h1 class="text-xl sm:text-3xl font-black tracking-tighter uppercase text-foreground">STREETLEAGUE</h1>
           
           <div class="flex-1 max-w-xl mx-4 relative hidden md:block">
              <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="applyFilters()" placeholder="Search items, sports..." class="w-full h-10 bg-muted/50 rounded-full pl-5 pr-14 text-sm focus:outline-none focus:ring-2 ring-primary/50 transition-all border border-border focus:border-primary">
-             <button type="button" (click)="applyFilters(); cdr.detectChanges()" class="absolute right-0 top-0 h-10 w-12 bg-primary text-primary-foreground rounded-r-full flex items-center justify-center hover:opacity-90 transition-colors cursor-pointer">
+             <button (click)="applyFilters()" class="absolute right-0 top-0 h-10 w-12 bg-primary text-primary-foreground rounded-r-full flex items-center justify-center hover:opacity-90 transition-colors">
                <lucide-icon [img]="SearchIcon" [size]="16"></lucide-icon>
              </button>
           </div>
@@ -39,13 +38,13 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
              <a *ngIf="isAdmin" routerLink="/app/admin/orders" title="Admin Orders" class="relative group cursor-pointer hover:text-primary transition-colors text-foreground">
                 <lucide-icon [img]="PackageIcon" [size]="20"></lucide-icon>
              </a>
-             <button *ngIf="isAdmin" type="button" (click)="openAddModal(); cdr.detectChanges()" title="Add Product" class="relative group cursor-pointer hover:opacity-70 transition-opacity">
+             <button *ngIf="isAdmin" (click)="openAddModal()" title="Add Product" class="relative group cursor-pointer hover:opacity-70 transition-opacity">
                 <lucide-icon [img]="PlusIcon" [size]="20" class="text-primary"></lucide-icon>
              </button>
-             <button type="button" (click)="openOrders(); cdr.detectChanges()" class="hidden sm:block text-[11px] font-bold uppercase tracking-wider hover:text-primary transition-colors text-foreground cursor-pointer">
+             <button (click)="openOrders()" class="hidden sm:block text-[11px] font-bold uppercase tracking-wider hover:text-primary transition-colors text-foreground">
                 My Orders
              </button>
-             <button type="button" (click)="isCartOpen = true; cdr.detectChanges()" class="relative group cursor-pointer hover:text-primary transition-colors text-foreground">
+             <button (click)="isCartOpen = true" class="relative group cursor-pointer hover:text-primary transition-colors text-foreground">
                 <lucide-icon [img]="ShoppingBagIcon" [size]="22"></lucide-icon>
                 <div *ngIf="cartItemCount > 0" class="absolute -top-1.5 -right-2 h-4 w-4 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center font-bold text-[9px]">
                    {{ cartItemCount }}
@@ -54,28 +53,29 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
           </div>
         </div>
         <div class="md:hidden px-4 py-3 bg-card border-t border-border">
-              <div class="relative w-full">
-                 <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="applyFilters()" placeholder="Search..." class="w-full h-10 bg-muted/50 rounded-full pl-5 pr-14 text-sm focus:outline-none border border-border">
-                 <button type="button" (click)="applyFilters(); cdr.detectChanges()" class="absolute right-0 top-0 h-10 w-12 bg-primary text-primary-foreground rounded-r-full flex items-center justify-center cursor-pointer">
-                   <lucide-icon [img]="SearchIcon" [size]="16"></lucide-icon>
-                 </button>
-              </div>
+             <div class="relative w-full">
+                <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="applyFilters()" placeholder="Search..." class="w-full h-10 bg-muted/50 rounded-full pl-5 pr-14 text-sm focus:outline-none border border-border">
+                <button (click)="applyFilters()" class="absolute right-0 top-0 h-10 w-12 bg-primary text-primary-foreground rounded-r-full flex items-center justify-center">
+                  <lucide-icon [img]="SearchIcon" [size]="16"></lucide-icon>
+                </button>
+             </div>
         </div>
       </div>
 
       <div class="bg-background">
         
-        <!-- Category Bubbles -->
         <div *ngIf="!loadingCategories && categories.length > 0" class="py-6 px-4 bg-card border-b border-border overflow-x-auto hide-scrollbar relative z-30 pointer-events-auto">
           <div class="container mx-auto flex gap-6 lg:gap-10 justify-start min-w-max">
-            <button type="button" (click)="selectCategory(null); cdr.detectChanges()" class="flex flex-col items-center gap-2 group flex-shrink-0 cursor-pointer">
+            <button (click)="selectCategory(null)" class="flex flex-col items-center gap-2 group flex-shrink-0">
               <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-border p-1 group-hover:border-primary transition-colors" [class.border-primary]="selectedCategoryId === null" [class.ring-2]="selectedCategoryId === null" [class.ring-primary]="selectedCategoryId === null">
                 <div class="w-full h-full bg-gradient-to-br from-primary/10 to-accent/20 rounded-full flex items-center justify-center text-2xl shadow-inner">✨</div>
               </div>
               <span class="text-[11px] sm:text-[12px] font-bold text-muted-foreground pb-1" [class.text-primary]="selectedCategoryId === null && selectedGender === null" [class.border-b-2]="selectedCategoryId === null && selectedGender === null" [class.border-primary]="selectedCategoryId === null && selectedGender === null">TRENDING</span>
             </button>
 
-            <button *ngFor="let cat of categories; let i = index" type="button" (click)="selectCategory(cat.id!); cdr.detectChanges()" class="flex flex-col items-center gap-2 group flex-shrink-0 cursor-pointer">
+
+            
+            <button *ngFor="let cat of categories; let i = index" (click)="selectCategory(cat.id!)" class="flex flex-col items-center gap-2 group flex-shrink-0">
               <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-border p-1 group-hover:border-primary transition-colors" [class.border-primary]="selectedCategoryId === cat.id" [class.ring-2]="selectedCategoryId === cat.id" [class.ring-primary]="selectedCategoryId === cat.id">
                 <div class="w-full h-full bg-muted rounded-full overflow-hidden flex items-center justify-center shadow-inner">
                    <img *ngIf="$any(cat).image" [src]="$any(cat).image" class="w-full h-full object-cover">
@@ -90,31 +90,27 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
         </div>
 
          <div class="container mx-auto max-w-[1400px] px-4 py-8 relative z-30">
-           <!-- Hero Banner (Home only) -->
-           <div *ngIf="selectedCategoryId === null" (click)="selectCategory(null); cdr.detectChanges()" class="w-full h-[250px] sm:h-[400px] bg-gradient-to-r from-primary to-accent rounded-2xl mb-10 overflow-hidden relative group cursor-pointer shadow-lg border border-border">
-              <img src="https://images.unsplash.com/photo-1556817411-31ae72fa3ea8?q=80&w=2000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay group-hover:scale-105 transition-transform duration-1000">
-              <div class="absolute inset-x-6 sm:inset-x-12 bottom-8 sm:bottom-12 z-10 text-white">
-                 <div class="text-[10px] font-black tracking-[0.3em] mb-2 uppercase text-white/80">SUMMER COLLECTION 2026</div>
-                 <h2 class="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-none mb-6">Gear up for action!</h2>
-                 <button type="button" class="inline-flex bg-card text-foreground text-xs font-bold px-8 py-3.5 rounded-full hover:bg-white hover:text-black transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)] cursor-pointer">DISCOVER OFFERS &rarr;</button>
-              </div>
+           <div *ngIf="selectedCategoryId === null" class="w-full h-[250px] sm:h-[400px] bg-gradient-to-r from-primary to-accent rounded-2xl mb-10 overflow-hidden relative group cursor-pointer shadow-lg border border-border">
+             <img src="https://images.unsplash.com/photo-1556817411-31ae72fa3ea8?q=80&w=2000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay group-hover:scale-105 transition-transform duration-1000">
+             <div class="absolute inset-x-6 sm:inset-x-12 bottom-8 sm:bottom-12 z-10 text-white">
+                <div class="text-[10px] font-black tracking-[0.3em] mb-2 uppercase text-white/80">SUMMER COLLECTION 2026</div>
+                <h2 class="text-3xl sm:text-6xl font-black uppercase tracking-tighter leading-none mb-6">Gear up for action!</h2>
+                <div class="inline-flex bg-card text-foreground text-xs font-bold px-8 py-3.5 rounded-full hover:bg-white hover:text-black transition-colors shadow-[0_0_20px_rgba(255,255,255,0.3)]">DISCOVER OFFERS &rarr;</div>
+             </div>
            </div>
 
-           <!-- Filters & Gender Selection -->
            <div *ngIf="selectedCategoryId !== null" class="flex flex-col gap-4 mb-6 relative z-30 pointer-events-auto">
               
               <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
                  <button 
-                   type="button"
-                   (click)="selectGender(''); cdr.detectChanges()" 
+                   (click)="selectGender('')" 
                    class="px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all border cursor-pointer relative z-30"
                    [ngClass]="!selectedGender ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border hover:border-primary'">
                    SEE ALL
                  </button>
                  <button 
                    *ngFor="let g of ['Men', 'Women', 'Kids', 'Accessories']"
-                   type="button"
-                   (click)="selectGender(g); cdr.detectChanges()" 
+                   (click)="selectGender(g)" 
                    class="px-5 py-2 rounded-full text-[11px] font-black uppercase tracking-wider transition-all border cursor-pointer relative z-30"
                    [ngClass]="selectedGender === g ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border hover:border-primary'">
                    {{ g }}
@@ -128,14 +124,13 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                  <input type="text" [(ngModel)]="searchKeyword" (keyup.enter)="applyFilters()" placeholder="Keyword..." class="w-32 h-9 px-3 bg-background border border-border rounded-lg focus:border-primary outline-none shrink-0 transition-colors hidden sm:block">
                  <input type="number" [(ngModel)]="minPrice" (keyup.enter)="applyFilters()" placeholder="Min Price (DT)" class="w-24 h-9 px-3 bg-background border border-border rounded-lg focus:border-primary outline-none shrink-0 transition-colors">
                  <input type="number" [(ngModel)]="maxPrice" (keyup.enter)="applyFilters()" placeholder="Max Price (DT)" class="w-24 h-9 px-3 bg-background border border-border rounded-lg focus:border-primary outline-none shrink-0 transition-colors">
-                 <button type="button" (click)="applyFilters(); cdr.detectChanges()" class="h-9 px-6 bg-primary text-primary-foreground font-bold rounded-lg shrink-0 uppercase tracking-wider hover:opacity-90 transition-opacity cursor-pointer">Filter</button>
-                 <button *ngIf="isAdmin" type="button" (click)="openAddModal(); cdr.detectChanges()" class="h-9 px-4 bg-accent text-accent-foreground font-bold rounded-lg shrink-0 uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center gap-2 ml-2 relative z-30 cursor-pointer">
+                 <button (click)="applyFilters()" class="h-9 px-6 bg-primary text-primary-foreground font-bold rounded-lg shrink-0 uppercase tracking-wider hover:opacity-90 transition-opacity cursor-pointer">Filter</button>
+                 <button *ngIf="isAdmin" (click)="openAddModal()" class="h-9 px-4 bg-accent text-accent-foreground font-bold rounded-lg shrink-0 uppercase tracking-wider hover:opacity-90 transition-opacity flex items-center gap-2 ml-2 relative z-30">
                     <lucide-icon [img]="PlusIcon" [size]="14"></lucide-icon> Add
                  </button>
               </div>
            </div>
 
-           <!-- Section Title -->
            <div class="mb-6 flex items-center justify-between">
               <h2 class="text-xl sm:text-2xl font-black uppercase tracking-tighter text-foreground flex items-center gap-2">
                  {{ selectedCategoryId === null ? 'Great Deals' : 'SELECTION' }}
@@ -144,14 +139,14 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
               <div class="text-xs font-bold text-muted-foreground bg-muted px-3 py-1 rounded-full">{{ products.length }} Items</div>
            </div>
 
-            <!-- Empty State -->
+
+
             <div *ngIf="!loadingProducts && products.length === 0" class="bg-white border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center py-24 text-center px-4">
                <div class="text-5xl mb-4 opacity-50">📭</div>
                <h3 class="text-lg font-black mb-1 uppercase tracking-tighter">No items found</h3>
                <p class="text-gray-500 text-sm">We have no matching products.</p>
             </div>
 
-           <!-- Product Grid -->
            <div *ngIf="!loadingProducts && products.length > 0" class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-5">
               
               <div *ngFor="let prod of products" class="group relative flex flex-col bg-white hover:z-10 rounded-sm">
@@ -163,19 +158,27 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                     
                     <button 
                        *ngIf="!isAdmin"
-                       type="button"
-                       (click)="addToCart(prod); $event.stopPropagation(); cdr.detectChanges()"
+                       (click)="addToCart(prod); $event.stopPropagation()"
                        [disabled]="prod.stock === 0 || ($any(prod).status && $any(prod).status !== 'EN_STOCK' && $any(prod).status !== 'IN_STOCK') || addingToCartId === prod.id"
-                       class="absolute bottom-3 left-3 right-3 h-11 bg-primary/95 backdrop-blur-sm text-primary-foreground font-bold text-[11px] uppercase tracking-widest shadow-lg rounded-xl lg:opacity-0 lg:translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-20 flex items-center justify-center disabled:opacity-50 hover:bg-primary hover:shadow-primary/30 cursor-pointer">
+                       class="absolute bottom-3 left-3 right-3 h-11 bg-primary/95 backdrop-blur-sm text-primary-foreground font-bold text-[11px] uppercase tracking-widest shadow-lg rounded-xl lg:opacity-0 lg:translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-20 flex items-center justify-center disabled:opacity-50 hover:bg-primary hover:shadow-primary/30">
                        <span *ngIf="addingToCartId !== prod.id">{{ prod.stock === 0 ? 'Indisponible' : 'Ajout Rapide' }}</span>
                        <lucide-icon *ngIf="addingToCartId === prod.id" [img]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
                     </button>
+
+                  </div>
+
+                  <div *ngIf="isAdmin" class="absolute bottom-0 left-0 right-0 flex gap-2 p-2" style="z-index:50">
+                     <button type="button" (click)="editProduct(prod); $event.stopPropagation(); $event.preventDefault()" class="flex-1 h-10 bg-amber-500 text-white font-black text-xs uppercase tracking-tight rounded-xl shadow-xl flex items-center justify-center hover:bg-amber-600 active:scale-95 transition-all" style="position:relative;z-index:50">
+                        &#x270F;&#xFE0F; Modifier
+                     </button>
+                     <button type="button" (click)="deleteProduct(prod.id); $event.stopPropagation(); $event.preventDefault()" class="h-10 w-10 bg-red-600 text-white rounded-xl flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all shadow-xl" style="position:relative;z-index:50">
+                        &#x1F5D1;&#xFE0F;
+                     </button>
                   </div>
 
                  <button 
-                   type="button"
-                   (click)="toggleFavorite(prod); $event.stopPropagation(); cdr.detectChanges()"
-                   class="absolute top-3 right-3 p-2.5 rounded-full z-20 bg-card shadow-sm hover:scale-110 transition-transform cursor-pointer">
+                  (click)="toggleFavorite(prod); $event.stopPropagation()"
+                  class="absolute top-3 right-3 p-2.5 rounded-full z-20 bg-card shadow-sm hover:scale-110 transition-transform">
                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" 
                           [attr.fill]="isFavorite(prod.id) ? 'currentColor' : 'none'" 
                           [attr.stroke]="isFavorite(prod.id) ? 'transparent' : 'currentColor'" 
@@ -184,218 +187,205 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                      </svg>
-                  </button>
+                 </button>
 
                  <div *ngIf="prod.stock < 5 && prod.stock > 0" class="absolute top-3 left-0 bg-destructive text-destructive-foreground text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Fast Out</div>
                  <div *ngIf="prod.stock === 0 || $any(prod).status === 'RUPTURE_DE_STOCK'" class="absolute top-3 left-0 bg-muted-foreground text-white text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Épuisé</div>
                  <div *ngIf="$any(prod).status === 'ARRIVING_SOON' || $any(prod).status === 'EN_ARRIVAGE'" class="absolute top-3 left-0 bg-accent text-accent-foreground text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Bientôt</div>
 
+
+                 <!-- Info Details -->
                  <div class="py-4 px-4 flex flex-col flex-1">
+                    <!-- Color indicator -->
                     <div *ngIf="prod.category?.nom === 'Clothing' || prod.category?.name === 'Clothing'" class="flex gap-1.5 mb-2">
                        <div *ngFor="let col of CLOTHING_COLORS" class="relative group/color">
-                          <div [style.background-color]="col.hex" class="w-3.5 h-3.5 rounded-full border border-border/50 shadow-sm transition-transform group-hover/color:scale-110"></div>
-                          <div *ngIf="isColorOutOfStock(prod, col.name)" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div [style.background-color]="col.hex" 
+                             class="w-3.5 h-3.5 rounded-full border border-border/50 shadow-sm transition-transform group-hover/color:scale-110">
+                          </div>
+                          <!-- Out of stock indicator (slash) -->
+                          <div *ngIf="isColorOutOfStock(prod, col.name)" 
+                             class="absolute inset-0 flex items-center justify-center pointer-events-none">
                              <div class="w-[120%] h-[1.5px] bg-red-500 rotate-[45deg] shadow-sm"></div>
                           </div>
-                          <span class="absolute -top-6 left-1/2 -translate-x-1/2 bg-foreground text-background text-[8px] px-1.5 py-0.5 rounded opacity-0 group-hover/color:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-30 font-bold uppercase tracking-tighter">{{ col.name }}</span>
+                          <!-- Tooltip -->
+                          <span class="absolute -top-6 left-1/2 -translate-x-1/2 bg-foreground text-background text-[8px] px-1.5 py-0.5 rounded opacity-0 group-hover/color:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-30 font-bold uppercase tracking-tighter">
+                             {{ col.name }}
+                          </span>
                        </div>
                     </div>
-                    <div class="text-xs sm:text-sm font-semibold text-foreground line-clamp-2 leading-snug mb-2 group-hover:text-primary transition-colors">{{ prod.nom }}</div>
-                    <div class="flex items-center justify-between mb-4 mt-auto">
-                       <span class="text-lg sm:text-xl font-black text-foreground">{{ formatPrice(prod.prix) }}</span>
-                       <div class="text-[9px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{{ prod.stock }} in stock</div>
-                    </div>
-                    <div class="text-[10px] font-bold text-muted-foreground tracking-wider uppercase truncate mb-4">{{ prod.category?.nom || prod.category?.name || 'Clothing' }}</div>
 
-                    <div *ngIf="isAdmin" class="flex gap-2 pt-3 mt-auto border-t border-border/50">
-                       <button type="button" (click)="editProduct(prod); $event.stopPropagation(); $event.preventDefault(); cdr.detectChanges()" class="flex-1 h-9 bg-amber-500 text-white font-black text-[10px] uppercase tracking-tight rounded-lg shadow-sm flex items-center justify-center hover:bg-amber-600 active:scale-95 transition-all gap-2 cursor-pointer">
-                          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon> Modifier
-                       </button>
-                       <button type="button" (click)="deleteProduct(prod.id); $event.stopPropagation(); $event.preventDefault(); cdr.detectChanges()" class="h-9 w-9 bg-red-600 text-white rounded-lg flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all shadow-sm cursor-pointer">
-                          <lucide-icon [img]="Trash2Icon" [size]="14"></lucide-icon>
-                       </button>
+                    <!-- Title -->
+                    <div class="text-xs sm:text-sm font-semibold text-foreground line-clamp-2 leading-snug mb-2 group-hover:text-primary transition-colors">{{ prod.nom }}</div>
+                    
+                    <!-- Price -->
+                    <div class="flex items-center gap-2 mb-2 mt-auto">
+                       <span class="text-lg sm:text-xl font-black text-foreground">{{ formatPrice(prod.prix) }}</span>
                     </div>
+
+                    <!-- Category indicator -->
+                    <div class="text-[10px] font-bold text-muted-foreground tracking-wider uppercase truncate">{{ prod.category?.nom || prod.category?.name || 'Clothing' }}</div>
                  </div>
               </div>
+              
            </div>
-  
+ 
+           <!-- Loading state -->
+           <div *ngIf="loadingProducts" class="flex flex-col items-center justify-center py-20 gap-4 text-gray-400">
+              <lucide-icon [img]="Loader2Icon" [size]="40" class="animate-spin"></lucide-icon>
+           </div>
+
            <!-- Pagination -->
            <div *ngIf="totalPages > 1" class="flex items-center justify-center gap-4 mt-16 mb-8 pt-8 border-t border-border">
-             <button type="button" (click)="prevPage(); cdr.detectChanges()" [disabled]="currentPage === 0" class="w-12 h-12 border-2 border-primary rounded-xl flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer">
+             <button (click)="prevPage()" [disabled]="currentPage === 0" class="w-12 h-12 border-2 border-primary rounded-xl flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none transition-colors">
                <lucide-icon [img]="ArrowLeftIcon" [size]="20"></lucide-icon>
              </button>
              <span class="text-xs font-black tracking-[0.2em] uppercase text-foreground">{{ currentPage + 1 }} / {{ totalPages }}</span>
-             <button type="button" (click)="nextPage(); cdr.detectChanges()" [disabled]="currentPage >= totalPages - 1" class="w-12 h-12 border-2 border-primary rounded-xl flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer">
+             <button (click)="nextPage()" [disabled]="currentPage >= totalPages - 1" class="w-12 h-12 border-2 border-primary rounded-xl flex items-center justify-center text-primary hover:bg-primary/10 disabled:opacity-30 disabled:pointer-events-none transition-colors">
                <lucide-icon [img]="ArrowRightIcon" [size]="20"></lucide-icon>
              </button>
            </div>
+           
         </div>
+      </div>
 
-      <!-- Add Product Modal (Admin Only) -->
+      <!-- Quick Add Product Modal (Admin Only) -->
       <div *ngIf="isAddModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-         <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="closeAddModal()"></div>
-         <div class="relative bg-card border border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
-            <div class="bg-green-500 px-8 py-6 flex items-center justify-between text-white relative">
-               <h2 class="text-2xl font-black">{{ editingId ? 'Modifier le produit' : 'Add un produit' }}</h2>
-               <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="h-10 w-10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer text-white">
-                  <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
-               </button>
+         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="closeAddModal()"></div>
+         <div class="relative bg-card border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between mb-6">
+               <h2 class="text-xl font-bold">{{ editingId ? 'Modifier le produit' : 'Add un produit' }}</h2>
+               <button (click)="closeAddModal()" class="p-2 hover:bg-muted rounded-full transition-colors"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
             </div>
-            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
-               <form class="space-y-6">
-                  <!-- Nom & Brand -->
-                  <div class="grid grid-cols-2 gap-6">
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Nom</label>
-                        <input type="text" [(ngModel)]="newProduct.nom" name="nom" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ex: pull taraji">
-                     </div>
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Brand</label>
-                        <input type="text" [(ngModel)]="newProduct.marque" name="marque" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ex: taraji store">
-                     </div>
+            <form class="space-y-4">
+               <div class="grid grid-cols-2 gap-4">
+                  <div>
+                     <label class="text-sm font-semibold">Nom</label>
+                     <input type="text" [(ngModel)]="newProduct.nom" name="nom" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
-
-                  <!-- Description -->
-                  <div class="space-y-2">
-                     <label class="text-sm font-bold text-foreground ml-1">Description</label>
-                     <textarea [(ngModel)]="newProduct.description" name="desc" rows="3" class="w-full p-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none resize-none" placeholder="Description du produit..."></textarea>
+                  <div>
+                     <label class="text-sm font-semibold">Brand</label>
+                     <input type="text" [(ngModel)]="newProduct.marque" name="marque" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
-
-                  <!-- Price & Stock Global -->
-                  <div class="grid grid-cols-2 gap-6">
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Price (DT)</label>
-                        <input type="number" [(ngModel)]="newProduct.prix" name="prix" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none">
-                     </div>
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Stock Global</label>
-                        <input type="number" [(ngModel)]="newProduct.stock" name="stock" readonly class="w-full h-12 px-4 bg-muted/20 border border-border rounded-xl text-sm font-medium outline-none cursor-not-allowed opacity-80">
-                     </div>
+               </div>
+               <div>
+                  <label class="text-sm font-semibold">Description</label>
+                  <textarea [(ngModel)]="newProduct.description" name="desc" rows="3" class="w-full p-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary"></textarea>
+               </div>
+              <div class="grid grid-cols-2 gap-4">
+                  <div>
+                     <label class="text-sm font-semibold">Price (DT)</label>
+                     <input type="number" [(ngModel)]="newProduct.prix" name="prix" step="0.01" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                   </div>
+                  <div>
+                     <label class="text-sm font-semibold">Stock Global</label>
+                     <input type="number" [(ngModel)]="newProduct.stock" name="stock" [readonly]="selectedSizes.length > 0 || selectedColors.length > 0" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary disabled:opacity-50" [placeholder]="(selectedSizes.length > 0 || selectedColors.length > 0) ? 'Calculé à partir des variantes' : 'Stock total'">
+                  </div>
+               </div>
+               <div class="grid grid-cols-2 gap-4">
+                  <div>
+                     <label class="text-sm font-semibold">Category</label>
+                     <select [(ngModel)]="newProduct.categoryId" name="catId" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                        <option *ngFor="let cat of categories" [ngValue]="cat.id">{{ cat.nom || cat.name }}</option>
+                     </select>
+                  </div>
+                  <div>
+                     <label class="text-sm font-semibold">Status du Produit</label>
+                     <select [(ngModel)]="newProduct.status" name="status" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                        <option value="EN_STOCK">EN STOCK</option>
+                        <option value="RUPTURE_DE_STOCK">RUPTURE DE STOCK</option>
+                        <option value="EN_ARRIVAGE">EN ARRIVAGE</option>
+                     </select>
+                  </div>
+               </div>
 
-                  <!-- Category & Status -->
-                  <div class="grid grid-cols-2 gap-6">
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Category</label>
-                        <select [(ngModel)]="newProduct.categoryId" name="cat" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                           <option [ngValue]="null">Select Category...</option>
-                           <option *ngFor="let c of categories" [value]="c.id">{{ c.nom || c.name }}</option>
+               <!-- Sélecteur de Sizes Dynamique -->
+               <div class="p-4 bg-muted/20 border border-border rounded-xl space-y-4">
+                  <h3 class="text-sm font-bold border-b border-border pb-2">Variantes (Sizes & Pointures)</h3>
+                  <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label class="text-xs font-semibold text-muted-foreground">Type d'Article</label>
+                        <select [(ngModel)]="productType" (change)="onTypeChange()" name="pType" class="w-full h-9 px-3 mt-1 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary">
+                           <option value="">Sélectionner un type...</option>
+                           <option value="chaussure">Shoes</option>
+                           <option value="vetement">Clothing (Pull, Short, Tenue...)</option>
                         </select>
                      </div>
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Status du Produit</label>
-                        <select [(ngModel)]="newProduct.status" name="status" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                           <option value="EN_STOCK">EN STOCK</option>
-                           <option value="EN_ARRIVAGE">EN ARRIVAGE</option>
-                           <option value="RUPTURE_DE_STOCK">RUPTURE DE STOCK</option>
+                     <div *ngIf="productType === 'chaussure'">
+                        <label class="text-xs font-semibold text-muted-foreground">Gender</label>
+                        <select [(ngModel)]="productGender" (change)="onGenderChange()" name="pGender" class="w-full h-9 px-3 mt-1 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary">
+                           <option value="">Sélectionner...</option>
+                           <option value="homme">Men</option>
+                           <option value="femme">Women</option>
+                           <option value="enfant">Kids</option>
                         </select>
                      </div>
                   </div>
-
-                  <!-- Variantes Section -->
-                  <div class="border border-border rounded-2xl p-6 space-y-6">
-                     <h3 class="font-bold text-foreground border-b border-border pb-4">Variantes (Sizes & Pointures)</h3>
-                     
-                     <div class="space-y-4">
-                        <div class="space-y-2">
-                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Type d'Article</label>
-                           <select [(ngModel)]="productType" name="type" (change)="onTypeChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                              <option value="">Sélectionner un type...</option>
-                              <option value="vetement">Clothing (Pull, Short, Tenue)</option>
-                              <option value="chaussure">Footwear (Crampons, Baskets)</option>
-                           </select>
-                        </div>
-
-                        <div *ngIf="productType === 'chaussure'" class="space-y-2">
-                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Genre / Categorie</label>
-                           <select [(ngModel)]="productGender" name="gender" (change)="onGenderChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                              <option value="">Genre...</option>
-                              <option value="homme">Homme</option>
-                              <option value="femme">Femme</option>
-                              <option value="enfant">Enfant</option>
-                           </select>
-                        </div>
-
-                        <!-- Sizes Selection -->
-                        <div *ngIf="productType" class="space-y-3">
-                           <label class="text-xs font-bold text-muted-foreground">Cochez les tailles disponibles :</label>
-                           <div class="flex flex-wrap gap-2">
-                              <button *ngFor="let size of availableSizes" type="button" 
-                                 (click)="toggleSize(size)"
-                                 class="h-10 px-4 rounded-full text-xs font-black transition-all border flex items-center justify-center cursor-pointer"
-                                 [ngClass]="selectedSizes.includes(size) ? 'bg-green-500 text-white border-green-500' : 'bg-muted/20 text-muted-foreground border-border hover:border-primary'">
-                                 {{ size }}
-                              </button>
-                           </div>
-                        </div>
-
-                        <!-- Colors Selection -->
-                        <div *ngIf="productType === 'vetement'" class="space-y-3">
-                           <label class="text-xs font-bold text-muted-foreground">Couleurs disponibles :</label>
-                           <div class="flex flex-wrap gap-4">
-                              <button *ngFor="let col of CLOTHING_COLORS" type="button" 
-                                 (click)="toggleColor(col.name)"
-                                 class="flex flex-col items-center gap-1 group cursor-pointer">
-                                 <div [style.background-color]="col.hex" 
-                                    class="w-10 h-10 rounded-full border-2 shadow-sm flex items-center justify-center transition-all group-hover:scale-110"
-                                    [class.border-green-500]="selectedColors.includes(col.name)"
-                                    [class.border-border]="!selectedColors.includes(col.name)">
-                                    <div *ngIf="selectedColors.includes(col.name)" class="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white">
-                                       <lucide-icon [img]="CheckIcon" [size]="14"></lucide-icon>
-                                    </div>
-                                 </div>
-                                 <span class="text-[10px] font-bold uppercase tracking-tighter" [class.text-green-600]="selectedColors.includes(col.name)">{{ col.name }}</span>
-                              </button>
-                           </div>
-                        </div>
-
-                        <!-- Stock for each size -->
-                        <div *ngIf="selectedSizes.length > 0" class="space-y-3 pt-4 border-t border-border/50">
-                           <label class="text-xs font-bold text-muted-foreground">Stock pour chaque taille :</label>
-                           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                              <div *ngFor="let size of selectedSizes" class="flex items-center gap-2 bg-muted/10 border border-border p-2 rounded-xl">
-                                 <span class="text-xs font-black w-8 text-center text-primary">{{ size }}</span>
-                                 <input type="number" [(ngModel)]="variantStocks[size]" [name]="'stock-'+size" (ngModelChange)="calculateTotalStock()" class="w-full bg-transparent border-none outline-none text-right text-sm font-bold" placeholder="0">
-                              </div>
-                           </div>
-                           <p class="text-[10px] text-muted-foreground italic">* Mettez le stock à 0 pour afficher la taille en "rupture de stock".</p>
-                        </div>
-
-                        <!-- Stock for each color -->
-                        <div *ngIf="selectedColors.length > 0" class="space-y-3 pt-4 border-t border-border/50">
-                           <label class="text-xs font-bold text-muted-foreground">Stock pour chaque couleur :</label>
-                           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                              <div *ngFor="let col of selectedColors" class="flex items-center gap-2 bg-muted/10 border border-border p-2 rounded-xl">
-                                 <span class="text-[10px] font-black w-12 truncate text-primary uppercase">{{ col }}</span>
-                                 <input type="number" [(ngModel)]="colorStocks[col]" [name]="'cstock-'+col" (ngModelChange)="calculateTotalStock()" class="w-full bg-transparent border-none outline-none text-right text-sm font-bold" placeholder="0">
-                              </div>
-                           </div>
-                        </div>
+                  
+                  <div *ngIf="availableSizes.length > 0" class="pt-2">
+                     <label class="text-xs font-semibold text-muted-foreground mb-2 block">Cochez les tailles disponibles :</label>
+                     <div class="flex flex-wrap gap-2">
+                        <button type="button" *ngFor="let size of availableSizes" (click)="toggleSize(size)" 
+                           [class.bg-primary]="selectedSizes.includes(size)" [class.text-primary-foreground]="selectedSizes.includes(size)" [class.border-primary]="selectedSizes.includes(size)"
+                           class="w-10 h-10 rounded-lg border border-border flex items-center justify-center text-sm font-bold transition-colors hover:border-primary bg-background text-foreground">
+                           {{ size }}
+                        </button>
                      </div>
                   </div>
+                  
+                  <!-- Sélecteur de Couleurs (Vetement Only) -->
+                  <div *ngIf="productType === 'vetement'" class="pt-4 border-t border-border/30">
+                      <label class="text-xs font-semibold text-muted-foreground mb-2 block">Couleurs disponibles :</label>
+                      <div class="flex flex-wrap gap-3">
+                         <button type="button" *ngFor="let col of CLOTHING_COLORS" (click)="toggleColor(col.name)"
+                            class="group relative flex flex-col items-center gap-1">
+                            <div [style.background-color]="col.hex" 
+                               [class.ring-2]="selectedColors.includes(col.name)"
+                               class="w-8 h-8 rounded-full border border-border ring-offset-2 ring-primary transition-all group-hover:scale-110 shadow-sm">
+                               <lucide-icon *ngIf="selectedColors.includes(col.name)" [img]="CheckIcon" [size]="14" class="text-white absolute inset-0 m-auto drop-shadow-md"></lucide-icon>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase" [class.text-primary]="selectedColors.includes(col.name)">{{ col.name }}</span>
+                         </button>
+                      </div>
+                   </div>
 
-                  <!-- Image Section -->
-                  <div class="space-y-2">
-                     <label class="text-sm font-bold text-foreground ml-1">Image (URL ou Fichier)</label>
-                     <div class="flex items-center gap-4">
-                        <input type="text" [(ngModel)]="newImageUrl" name="imgUrl" class="flex-1 h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="https://...">
-                        <span class="text-xs font-black text-muted-foreground">OU</span>
-                        <div class="relative">
-                           <input type="file" (change)="onFileSelected($event)" class="absolute inset-0 opacity-0 cursor-pointer z-10">
-                           <button type="button" class="h-12 px-6 bg-muted/30 hover:bg-muted/50 text-green-600 font-bold rounded-xl transition-all flex items-center gap-2">
-                              Choisir un fichier
-                           </button>
-                        </div>
-                        <div *ngIf="isUploading" class="animate-spin text-primary">
-                           <lucide-icon [img]="Loader2Icon" [size]="20"></lucide-icon>
-                        </div>
-                     </div>
+                   <div *ngIf="selectedSizes.length > 0" class="mt-4 border-t border-border/50 pt-4">
+                      <label class="text-xs font-semibold text-muted-foreground mb-2 block">Stock pour chaque taille :</label>
+                      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                         <div *ngFor="let size of selectedSizes" class="flex items-center gap-2 bg-background border border-border rounded-lg px-2 py-1 focus-within:border-primary transition-colors">
+                            <span class="text-sm font-bold w-10 text-center text-muted-foreground border-r border-border pr-2">{{ size }}</span>
+                            <input type="number" [(ngModel)]="variantStocks[size]" [name]="'stock_'+size" min="0" class="w-full h-8 bg-transparent text-sm focus:outline-none text-right font-bold" placeholder="0">
+                         </div>
+                      </div>
+                      <div class="text-[10px] text-muted-foreground mt-2">
+                         * Mettez le stock à 0 pour afficher la taille en "rupture de stock" (grisée avec un /).
+                      </div>
+                   </div>
+ 
+                   <div *ngIf="selectedColors.length > 0" class="mt-4 border-t border-border/50 pt-4">
+                      <label class="text-xs font-semibold text-muted-foreground mb-2 block">Stock pour chaque couleur :</label>
+                      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                         <div *ngFor="let color of selectedColors" class="flex items-center gap-2 bg-background border border-border rounded-lg px-2 py-1 focus-within:border-primary transition-colors">
+                            <span class="text-[10px] font-bold w-14 truncate text-muted-foreground border-r border-border pr-2">{{ color }}</span>
+                            <input type="number" [(ngModel)]="colorStocks[color]" [name]="'cstock_'+color" min="0" class="w-full h-8 bg-transparent text-sm focus:outline-none text-right font-bold" placeholder="0">
+                         </div>
+                      </div>
+                   </div>
+               </div>
+               <div>
+                  <label class="text-sm font-semibold">Image (URL ou Fichier)</label>
+                  <div class="flex gap-2 items-center mt-1">
+                     <input type="text" [(ngModel)]="newImageUrl" name="img" placeholder="https://..." class="flex-1 h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                     <span class="text-sm font-bold text-muted-foreground">OU</span>
+                     <input type="file" (change)="onFileSelected($event)" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors">
                   </div>
-               </form>
-            </div>
-            <div class="p-6 bg-white border-t border-border flex items-center justify-end gap-4">
-               <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="px-8 py-3 font-bold text-sm hover:bg-muted rounded-2xl transition-all cursor-pointer">Cancel</button>
-               <button type="button" (click)="submitNewProduct(); cdr.detectChanges()" [disabled]="addingProduct || isUploading" class="px-10 h-14 bg-green-500 text-white font-black uppercase text-sm tracking-tighter rounded-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer">
+                  <div *ngIf="isUploading" class="text-xs text-primary mt-1 flex items-center gap-1">
+                     <lucide-icon [img]="Loader2Icon" [size]="14" class="animate-spin"></lucide-icon> Téléchargement en cours...
+                  </div>
+               </div>
+            </form>
+            <div class="mt-6 flex justify-end gap-3 border-t border-border pt-4">
+               <button (click)="closeAddModal()" class="px-5 py-2.5 font-bold hover:bg-muted rounded-xl transition-colors">Cancel</button>
+               <button (click)="submitNewProduct()" [disabled]="addingProduct" class="px-5 py-2.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 flex items-center gap-2">
                   <lucide-icon *ngIf="addingProduct" [img]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
                   {{ editingId ? 'Enregistrer les modifications' : 'Add le produit' }}
                </button>
@@ -403,254 +393,299 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
          </div>
       </div>
 
+      <!-- Toast Notification -->
+      <div *ngIf="toast" class="fixed bottom-6 right-6 bg-card border border-border rounded-xl px-5 py-4 shadow-2xl flex items-center gap-3 z-50 animate-in slide-in-from-bottom-5">
+        <div [ngClass]="isToastError ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'" class="h-8 w-8 rounded-full flex items-center justify-center shrink-0">
+          {{ isToastError ? '❌' : '✓' }}
+        </div>
+        <p class="text-sm font-medium pr-4">{{ toast }}</p>
+      </div>
+
       <!-- Floating Mobile Cart Button -->
       <button 
         *ngIf="cartItemCount > 0"
-        type="button"
-        (click)="isCartOpen = true; cdr.detectChanges()" 
+        (click)="isCartOpen = true" 
         class="md:hidden fixed bottom-24 right-6 h-14 w-14 bg-primary text-primary-foreground rounded-full shadow-2xl flex items-center justify-center z-40 hover:scale-105 transition-transform cursor-pointer">
         <lucide-icon [img]="ShoppingCartIcon" [size]="24"></lucide-icon>
-        <span class="absolute top-0 right-0 translate-x-1 -translate-y-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-primary">{{ cartItemCount }}</span>
+        <span class="absolute top-0 right-0 translate-x-1 -translate-y-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-primary">
+          {{ cartItemCount }}
+        </span>
       </button>
 
       <!-- Cart Drawer Overlay -->
-      <div *ngIf="isCartOpen" (click)="isCartOpen = false; cdr.detectChanges()" class="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] animate-in fade-in transition-all"></div>
+      <div *ngIf="isCartOpen" 
+           (click)="isCartOpen = false"
+           class="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] animate-in fade-in transition-all"></div>
       
       <!-- Cart Drawer Panel -->
-      <div *ngIf="isCartOpen" class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card border-l border-border shadow-2xl z-[101] flex flex-col animate-in slide-in-from-right transition-all duration-300">
+      <div *ngIf="isCartOpen"
+           class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-card border-l border-border shadow-2xl z-[101] flex flex-col animate-in slide-in-from-right transition-all duration-300">
+        
+        <!-- Drawer Header -->
         <div class="flex items-center justify-between p-6 border-b border-border">
            <div class="flex items-center gap-3">
-              <div class="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary"><lucide-icon [img]="ShoppingCartIcon" [size]="20"></lucide-icon></div>
+              <div class="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                 <lucide-icon [img]="ShoppingCartIcon" [size]="20"></lucide-icon>
+              </div>
               <h2 class="text-xl font-bold">My Cart</h2>
+              <span class="bg-muted text-muted-foreground px-2 py-0.5 rounded-full text-xs font-bold">{{ cartItemCount }}</span>
            </div>
-           <button type="button" (click)="isCartOpen = false; cdr.detectChanges()" class="h-10 w-10 bg-muted/50 rounded-full flex items-center justify-center hover:bg-muted cursor-pointer"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
+           <button (click)="isCartOpen = false" class="h-10 w-10 bg-muted/50 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+              <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+           </button>
         </div>
+
+        <!-- Drawer Content (Items) -->
         <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
            <div *ngIf="!cart || !cart.items || cart.items.length === 0" class="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-4">
+              <lucide-icon [img]="ShoppingBagIcon" [size]="48" class="opacity-20"></lucide-icon>
               <p>Your cart is empty.</p>
-              <button type="button" (click)="isCartOpen = false; cdr.detectChanges()" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl mt-2 font-medium cursor-pointer">Continue Shopping</button>
+              <button (click)="isCartOpen = false" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl mt-2 font-medium">
+                 Continue Shopping
+              </button>
            </div>
-           <div *ngFor="let item of cart?.items" class="flex gap-4 bg-muted/20 p-3 rounded-2xl border border-border/50 relative group">
-              <div class="h-20 w-20 bg-card rounded-xl border border-border/50 overflow-hidden shrink-0"><img *ngIf="item.productImage" [src]="item.productImage" class="object-cover h-full w-full"></div>
-              <div class="flex flex-col flex-1 py-1">
-                <h4 class="font-bold text-sm line-clamp-2 leading-tight pr-6">{{ item.productName }}</h4>
-                <div class="flex items-center gap-3 mt-2 mb-auto">
-                   <button type="button" (click)="decreaseQuantity(item); cdr.detectChanges()" class="h-7 w-7 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted cursor-pointer">-</button>
-                   <span class="text-sm font-bold w-4 text-center">{{ item.quantity }}</span>
-                   <button type="button" (click)="increaseQuantity(item); cdr.detectChanges()" class="h-7 w-7 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted cursor-pointer">+</button>
+           
+           <ng-container *ngIf="cart && cart.items && cart.items.length > 0">
+             <div *ngFor="let item of cart.items" class="flex gap-4 bg-muted/20 p-3 rounded-2xl border border-border/50 relative group">
+                <div class="h-20 w-20 bg-card rounded-xl border border-border/50 flex items-center justify-center overflow-hidden shrink-0">
+                  <img *ngIf="item.productImage" [src]="item.productImage" class="object-cover h-full w-full">
+                  <span *ngIf="!item.productImage">🛒</span>
                 </div>
-                <div class="font-black text-primary mt-1">{{ formatPrice(item.price * item.quantity) }}</div>
-              </div>
-              <button type="button" (click)="removeFromCart(item.id); cdr.detectChanges()" class="absolute top-3 right-3 text-muted-foreground hover:text-destructive p-1 bg-card rounded-full cursor-pointer"><lucide-icon [img]="XIcon" [size]="16"></lucide-icon></button>
-           </div>
+                <div class="flex flex-col flex-1 py-1">
+                  <h4 class="font-bold text-sm line-clamp-2 leading-tight pr-6">{{ item.productName || 'Article' }}</h4>
+                  <div class="flex items-center gap-3 mt-2 mb-auto">
+                     <button (click)="decreaseQuantity(item)" class="h-7 w-7 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted font-bold transition-colors">-</button>
+                     <span class="text-sm font-bold w-4 text-center">{{ item.quantity }}</span>
+                     <button (click)="increaseQuantity(item)" class="h-7 w-7 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted font-bold transition-colors">+</button>
+                  </div>
+                  <div class="font-black text-primary mt-1">{{ formatPrice(item.price * item.quantity) }}</div>
+                </div>
+                <!-- Remove item button -->
+                <button (click)="removeFromCart(item.id)" class="absolute top-3 right-3 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100 p-1 bg-card rounded-full shadow-sm hover:bg-background">
+                   <lucide-icon [img]="XIcon" [size]="16"></lucide-icon>
+                </button>
+             </div>
+           </ng-container>
         </div>
-        <div *ngIf="cart?.items?.length > 0" class="p-6 border-t border-border bg-card">
-           <div class="flex items-center justify-between mb-4"><span class="text-muted-foreground">Total to pay</span><span class="text-2xl font-black">{{ formatPrice(cartTotal) }}</span></div>
-           <button type="button" (click)="openCheckout(); cdr.detectChanges()" class="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all cursor-pointer">Checkout now <lucide-icon [img]="ArrowRightIcon" [size]="20"></lucide-icon></button>
+
+        <!-- Drawer Footer (Total & Checkout) -->
+        <div *ngIf="cart && cart.items && cart.items.length > 0" class="p-6 border-t border-border bg-card">
+           <div class="flex items-center justify-between mb-4">
+              <span class="text-muted-foreground">Total to pay</span>
+              <span class="text-2xl font-black">{{ formatPrice(cart?.total || cartTotal) }}</span>
+           </div>
+           <button (click)="openCheckout()" class="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all hover:shadow-lg shadow-primary/25 hover:-translate-y-1">
+              Checkout now <lucide-icon [img]="ArrowRightIcon" [size]="20"></lucide-icon>
+           </button>
         </div>
       </div>
 
+      <!-- Checkout Drawer/Modal -->
       <div *ngIf="isCheckoutOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
-         <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="isCheckoutOpen = false; cdr.detectChanges()"></div>
-         <div class="relative bg-card border border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2rem] w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-            <div class="flex items-center justify-between p-8 border-b border-border bg-white relative z-10">
+         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="isCheckoutOpen = false"></div>
+         <div class="relative bg-card border border-border shadow-2xl rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b border-border bg-card relative z-10">
                <h2 class="text-2xl font-black">Finalize Order</h2>
-               <button type="button" (click)="isCheckoutOpen = false; cdr.detectChanges()" class="h-10 w-10 bg-muted/50 rounded-full flex items-center justify-center hover:bg-muted cursor-pointer transition-all active:scale-90"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
+               <button (click)="isCheckoutOpen = false" class="p-2 hover:bg-muted rounded-full transition-colors"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
             </div>
             
-            <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar bg-white">
-               <!-- Delivery Information -->
-               <div class="space-y-6">
-                  <h3 class="font-bold text-foreground border-b border-border pb-3">Delivery Information</h3>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Full Name</label>
-                        <input type="text" [(ngModel)]="checkoutData.clientName" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ibtihel baccari">
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+               <form class="space-y-4">
+                  <h3 class="font-bold text-lg border-b border-border pb-2">Delivery Information</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                        <label class="text-sm font-semibold">Full Name</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientName" name="cName" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                      </div>
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Phone Number</label>
-                        <input type="text" [(ngModel)]="checkoutData.clientPhone" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="94385191">
+                     <div>
+                        <label class="text-sm font-semibold">Phone Number</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientPhone" name="cPhone" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                      </div>
-                  </div>
-                  <div class="space-y-2">
-                     <label class="text-sm font-bold text-foreground ml-1">Full Address</label>
-                     <input type="text" [(ngModel)]="checkoutData.clientAddress" (ngModelChange)="onAddressChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="sfax">
-                  </div>
-                  <div class="grid grid-cols-2 gap-6">
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Postal Code</label>
-                        <input type="text" [(ngModel)]="checkoutData.clientPostalCode" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none">
+                     <div class="md:col-span-2">
+                        <label class="text-sm font-semibold">Full Address</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientAddress" name="cAddress" (ngModelChange)="onAddressChange()" placeholder="Ex: Avenue Habib Bourguiba, Tunis" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
                      </div>
-                     <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">City / Governorate</label>
-                        <select [(ngModel)]="checkoutData.clientCity" (change)="onAddressChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
+                     <div>
+                        <label class="text-sm font-semibold">Postal Code</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientPostalCode" name="cPostal" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                     </div>
+                     <div>
+                        <label class="text-sm font-semibold">City / Gouvernorat</label>
+                        <select [(ngModel)]="checkoutData.clientCity" name="cCity" (ngModelChange)="onAddressChange()" class="w-full h-11 px-3 mt-1 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary cursor-pointer">
                            <option *ngFor="let gov of governorates" [value]="gov.name">{{ gov.name }}</option>
                         </select>
                      </div>
                   </div>
-               </div>
 
-               <!-- Delivery Mode -->
-               <div class="space-y-6">
-                  <h3 class="font-bold text-foreground border-b border-border pb-3">Delivery Mode</h3>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div (click)="checkoutData.deliveryMode = 'LIVRAISON_DOMICILE'; onAddressChange()" 
-                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
-                        [class.border-green-500]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'"
-                        [class.bg-green-500/5]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'">
-                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
-                           [class.border-green-500]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'"
-                           [class.border-muted-foreground/30]="checkoutData.deliveryMode !== 'LIVRAISON_DOMICILE'">
-                           <div *ngIf="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <h3 class="font-bold text-lg border-b border-border pb-2 mt-6">Delivery Mode</h3>
+                  <div class="flex gap-4 flex-col sm:flex-row">
+                     <label class="flex-1 p-4 border rounded-xl flex items-center gap-3 cursor-pointer transition-colors hover:border-primary" 
+                            [ngClass]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE' ? 'border-primary bg-primary/10' : 'border-border'">
+                        <input type="radio" name="deliveryMode" [(ngModel)]="checkoutData.deliveryMode" value="LIVRAISON_DOMICILE" class="hidden">
+                        <div class="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                           <div *ngIf="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'" class="w-2.5 h-2.5 bg-primary rounded-full"></div>
                         </div>
-                        <div class="flex flex-col">
-                           <span class="font-bold text-sm">Home Delivery</span>
-                           <span class="text-[10px] font-bold" [class.text-green-600]="cartTotal >= 300" [class.text-muted-foreground]="cartTotal < 300">
-                              {{ cartTotal >= 300 ? 'Free (Order >= 300 DT)' : backendDeliveryFee + ',000 DT Fee' }}
-                           </span>
+                        <div>
+                           <div class="font-bold">Home Delivery</div>
+                           <div class="text-xs text-muted-foreground">{{ (cart?.total || cartTotal) >= 300 ? 'Free (Over 300DT)' : (isCalculatingFee ? 'Calculating...' : (backendDeliveryFee > 0 ? formatPrice(backendDeliveryFee) + ' Fee' : 'Address required')) }}</div>
                         </div>
-                     </div>
-                     <div (click)="checkoutData.deliveryMode = 'RETRAIT_MAGASIN'; onAddressChange()" 
-                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
-                        [class.border-green-500]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'"
-                        [class.bg-green-500/5]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'">
-                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
-                           [class.border-green-500]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'"
-                           [class.border-muted-foreground/30]="checkoutData.deliveryMode !== 'RETRAIT_MAGASIN'">
-                           <div *ngIf="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'" class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        </div>
-                        <div class="flex flex-col">
-                           <span class="font-bold text-sm">Store Pickup</span>
-                           <span class="text-[10px] font-bold text-muted-foreground">Free</span>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+                     </label>
 
-               <!-- Payment Mode -->
-               <div class="space-y-6">
-                  <h3 class="font-bold text-foreground border-b border-border pb-3">Payment</h3>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div (click)="checkoutData.paymentMode = 'ESPECE'" 
-                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
-                        [class.border-green-500]="checkoutData.paymentMode === 'ESPECE'"
-                        [class.bg-green-500/5]="checkoutData.paymentMode === 'ESPECE'">
-                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
-                           [class.border-green-500]="checkoutData.paymentMode === 'ESPECE'"
-                           [class.border-muted-foreground/30]="checkoutData.paymentMode !== 'ESPECE'">
-                           <div *ngIf="checkoutData.paymentMode === 'ESPECE'" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                     
+                     <label class="flex-1 p-4 border rounded-xl flex items-center gap-3 cursor-pointer transition-colors hover:border-primary" 
+                            [ngClass]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN' ? 'border-primary bg-primary/10' : 'border-border'">
+                        <input type="radio" name="deliveryMode" [(ngModel)]="checkoutData.deliveryMode" value="RETRAIT_MAGASIN" class="hidden">
+                        <div class="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                           <div *ngIf="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'" class="w-2.5 h-2.5 bg-primary rounded-full"></div>
                         </div>
-                        <div class="flex flex-col">
-                           <span class="font-bold text-sm">{{ checkoutData.deliveryMode === 'RETRAIT_MAGASIN' ? 'Cash in Store' : 'Cash on Delivery' }}</span>
-                           <span class="text-[10px] font-bold text-muted-foreground uppercase">{{ checkoutData.deliveryMode === 'RETRAIT_MAGASIN' ? 'Espece en magasin' : 'Espece à la livraison' }}</span>
+                        <div>
+                           <div class="font-bold">Store Pickup</div>
+                           <div class="text-xs text-muted-foreground">Free</div>
                         </div>
-                     </div>
-                     <div (click)="checkoutData.paymentMode = 'CARTE'" 
-                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
-                        [class.border-green-500]="checkoutData.paymentMode === 'CARTE'"
-                        [class.bg-green-500/5]="checkoutData.paymentMode === 'CARTE'">
-                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
-                           [class.border-green-500]="checkoutData.paymentMode === 'CARTE'"
-                           [class.border-muted-foreground/30]="checkoutData.paymentMode !== 'CARTE'">
-                           <div *ngIf="checkoutData.paymentMode === 'CARTE'" class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        </div>
-                        <div class="flex flex-col">
-                           <span class="font-bold text-sm">Credit Card</span>
-                           <span class="text-[10px] font-bold text-muted-foreground uppercase">Paiement sécurisé</span>
-                        </div>
-                     </div>
+                     </label>
                   </div>
 
-                  <!-- Card Fields -->
-                  <div *ngIf="checkoutData.paymentMode === 'CARTE'" class="p-6 bg-muted/20 rounded-2xl border border-border space-y-4 animate-in slide-in-from-top-2">
-                     <div class="space-y-2">
-                        <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Card Number</label>
-                        <input type="text" [(ngModel)]="checkoutData.cardNumber" name="cnum" class="w-full h-12 px-4 bg-white border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="xxxx xxxx xxxx xxxx">
-                     </div>
-                     <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Expiry Date</label>
-                           <input type="text" [(ngModel)]="checkoutData.expiryDate" name="exp" class="w-full h-12 px-4 bg-white border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="MM/YY">
+                  <h3 class="font-bold text-lg border-b border-border pb-2 mt-6">Payment</h3>
+                  <div class="flex gap-4 flex-col sm:flex-row">
+                     <label class="flex-1 p-4 border rounded-xl flex items-center gap-3 cursor-pointer transition-colors hover:border-primary" 
+                            [ngClass]="checkoutData.paymentMode === 'ESPECE' ? 'border-primary bg-primary/10' : 'border-border'">
+                        <input type="radio" name="paymentMode" [(ngModel)]="checkoutData.paymentMode" value="ESPECE" class="hidden">
+                        <div class="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                           <div *ngIf="checkoutData.paymentMode === 'ESPECE'" class="w-2.5 h-2.5 bg-primary rounded-full"></div>
                         </div>
-                        <div class="space-y-2">
-                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">CVV</label>
-                           <input type="password" [(ngModel)]="checkoutData.cvv" name="cvv" class="w-full h-12 px-4 bg-white border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="xxx">
+                        <div class="font-bold">{{ checkoutData.deliveryMode === 'RETRAIT_MAGASIN' ? 'Cash in Store' : 'Cash on Delivery' }}</div>
+                     </label>
+                     <label class="flex-1 p-4 border rounded-xl flex items-center gap-3 cursor-pointer transition-colors hover:border-primary" 
+                            [ngClass]="checkoutData.paymentMode === 'CARTE' ? 'border-primary bg-primary/10' : 'border-border'">
+                        <input type="radio" name="paymentMode" [(ngModel)]="checkoutData.paymentMode" value="CARTE" class="hidden">
+                        <div class="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center shrink-0">
+                           <div *ngIf="checkoutData.paymentMode === 'CARTE'" class="w-2.5 h-2.5 bg-primary rounded-full"></div>
                         </div>
-                     </div>
+                        <div class="font-bold">Online (Card)</div>
+                     </label>
                   </div>
-               </div>
 
-               <!-- Promo Code -->
-               <div class="space-y-6">
-                  <h3 class="font-bold text-foreground border-b border-border pb-3">Promo Code</h3>
-                  <div class="flex items-center gap-3">
-                     <input type="text" [(ngModel)]="promoCodeInput" name="promo" class="flex-1 h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ENTER PROMO CODE">
-                     <button type="button" (click)="applyPromoCode()" class="h-12 px-8 bg-green-500 text-white font-black rounded-xl hover:bg-green-600 transition-all active:scale-95 text-xs uppercase cursor-pointer">Apply</button>
+                  <!-- Credit Card Details Form -->
+                  <div *ngIf="checkoutData.paymentMode === 'CARTE'" class="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-2xl space-y-4 animate-in slide-in-from-top-2 duration-300">
+                     <div class="flex items-center gap-2 text-primary mb-2">
+                        <lucide-icon [img]="ShoppingCartIcon" [size]="18"></lucide-icon>
+                        <span class="font-bold text-sm">Payment Details</span>
+                     </div>
+                     <div class="space-y-1">
+                        <label class="text-sm font-semibold opacity-70">Card Number</label>
+                        <input type="text" [(ngModel)]="checkoutData.cardNumber" name="cardNumber" placeholder="0000 0000 0000 0000" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                     </div>
+                     <div class="flex gap-4">
+                        <div class="flex-1 space-y-1">
+                           <label class="text-sm font-semibold opacity-70">Expiry Date</label>
+                           <input type="text" [(ngModel)]="checkoutData.expiryDate" name="expiryDate" placeholder="MM/YY" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="flex-1 space-y-1">
+                           <label class="text-sm font-semibold opacity-70">CVV (8 digits)</label>
+                           <input type="password" [(ngModel)]="checkoutData.cvv" name="cvv" placeholder="********" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                        </div>
+                     </div>
+                     <div class="space-y-1">
+                        <label class="text-sm font-semibold opacity-70">Confirmation Email</label>
+                        <input type="email" [(ngModel)]="checkoutData.clientEmail" name="clientEmail" placeholder="client@example.com" class="w-full h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                     </div>
                   </div>
-               </div>
+                  
+                  <div class="mt-6 pt-4 border-t border-border">
+                     <label class="text-sm font-semibold">Promo Code</label>
+                     <div class="flex gap-2 mt-1">
+                        <input type="text" [(ngModel)]="promoCodeInput" name="promo" placeholder="Have a code?" class="flex-1 h-11 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary">
+                        <button (click)="applyPromoCode()" type="button" class="px-4 bg-muted hover:bg-muted/80 rounded-xl font-semibold">Apply</button>
+                     </div>
+                     <div *ngIf="cart?.appliedPromoCode" class="text-xs text-green-500 font-bold bg-green-500/10 px-3 py-1.5 rounded-md mt-2 inline-block">
+                        Code {{ cart.appliedPromoCode }} applied! (-{{ formatPrice(cart.discount) }})
+                     </div>
+                  </div>
+               </form>
             </div>
-
-            <!-- Footer Details -->
-            <div class="p-8 border-t border-border bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] relative z-10">
-               <div class="space-y-3 mb-6">
-                  <div class="flex items-center justify-between text-sm font-bold text-muted-foreground/60">
-                     <span>Subtotal</span>
-                     <span>{{ formatPrice(cartTotal) }}</span>
-                  </div>
-                  <div class="flex items-center justify-between text-sm font-bold text-muted-foreground/60">
-                     <span>Delivery Fee</span>
-                     <span>+ {{ formatPrice(checkoutDeliveryFee) }}</span>
-                  </div>
+            
+            <div class="p-6 border-t border-border bg-card shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] relative z-10">
+               <div class="flex justify-between text-sm text-muted-foreground mb-1">
+                  <span>Subtotal</span>
+                  <span>{{ formatPrice(cart?.subtotal || cartTotal) }}</span>
                </div>
-               <div class="flex items-center justify-between mb-8">
-                  <span class="text-xl font-black">Final Total</span>
-                  <div class="flex flex-col items-end">
-                     <span class="text-3xl font-black text-green-500">{{ formatPrice(finalTotal) }}</span>
-                     <span *ngIf="isCalculatingFee" class="text-[10px] text-green-600 animate-pulse font-bold uppercase tracking-widest">Calculating fee...</span>
-                  </div>
+               <div *ngIf="cart?.discount > 0" class="flex justify-between text-sm text-green-500 mb-1">
+                  <span>Discount</span>
+                  <span>-{{ formatPrice(cart.discount) }}</span>
                </div>
-               <button type="button" (click)="confirmCheckout(); cdr.detectChanges()" class="w-full h-16 bg-green-500 text-white font-black uppercase text-sm tracking-tighter rounded-2xl shadow-xl shadow-green-500/20 hover:bg-green-600 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer">
-                  <lucide-icon [img]="ShoppingCartIcon" [size]="20"></lucide-icon>
-                  Confirm Order
+               <div class="flex justify-between text-sm text-muted-foreground mb-3">
+                  <span>Delivery Fee</span>
+                  <span>{{ checkoutDeliveryFee > 0 ? '+ ' + formatPrice(checkoutDeliveryFee) : 'Free' }}</span>
+               </div>
+               <div class="flex items-center justify-between mb-4">
+                  <span class="text-lg font-bold">Final Total</span>
+                  <span class="text-2xl font-black text-primary">{{ formatPrice(finalTotal) }}</span>
+               </div>
+               <button (click)="confirmCheckout()" class="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl text-lg flex items-center justify-center gap-2 hover:bg-primary/90 hover:-translate-y-1 transition-all shadow-xl shadow-primary/25">
+                  <lucide-icon [img]="ShoppingCartIcon" [size]="20"></lucide-icon> Confirm Order
                </button>
             </div>
          </div>
       </div>
 
-
-      <!-- Orders Tracker -->
+      <!-- Orders Tracker Drawer -->
       <div *ngIf="isOrdersOpen" class="fixed inset-0 z-[120] flex justify-end">
-         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="isOrdersOpen = false; cdr.detectChanges()"></div>
-         <div class="relative w-full max-w-md bg-card h-full shadow-2xl flex flex-col animate-in slide-in-from-right border-l border-border">
+         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" (click)="isOrdersOpen = false"></div>
+         <div class="relative w-full max-w-md bg-card h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 border-l border-border">
             <div class="flex items-center justify-between p-6 border-b border-border bg-card/50 backdrop-blur-md">
-               <h2 class="text-xl font-black">My Orders</h2>
-               <button type="button" (click)="isOrdersOpen = false; cdr.detectChanges()" class="p-2 hover:bg-muted rounded-full cursor-pointer"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-               <div *ngFor="let order of myOrders" class="p-4 border border-border rounded-2xl bg-background shadow-sm hover:border-primary/30 transition-colors">
-                  <div class="flex items-center justify-between mb-3">
-                      <div class="text-[10px] font-black text-primary uppercase tracking-wider">#{{ order.orderCode }}</div>
-                      <div class="px-3 py-1 text-xs font-black rounded-full border" 
-                           [class.bg-yellow-500/10]="order.deliveryStatus === 'PENDING'"
-                           [class.text-yellow-600]="order.deliveryStatus === 'PENDING'"
-                           [class.bg-green-500/10]="order.deliveryStatus === 'DELIVERED'"
-                           [class.text-green-600]="order.deliveryStatus === 'DELIVERED'">
-                           {{ order.deliveryStatus }}
-                      </div>
+               <div class="flex items-center gap-3">
+                  <div class="p-2 bg-primary/10 rounded-xl">
+                     <lucide-icon [img]="PackageIcon" [size]="24" class="text-primary"></lucide-icon>
                   </div>
-                  <div class="text-lg font-black mb-1">{{ formatPrice(order.totalAmount) }}</div>
-                  <div class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{{ order.orderDate | date:'medium' }}</div>
+                  <h2 class="text-xl font-black">My Orders</h2>
+               </div>
+               <button (click)="isOrdersOpen = false" class="p-2 hover:bg-muted rounded-full transition-colors">
+                  <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
+               </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+               <div *ngIf="myOrders.length === 0" class="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                  <lucide-icon [img]="PackageIcon" [size]="48" class="opacity-20 mb-4"></lucide-icon>
+                  <p class="font-bold">No orders yet.</p>
+               </div>
+               <div *ngFor="let order of myOrders" class="p-4 border border-border rounded-2xl bg-background shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between mb-3">
+                      <div class="flex-1 min-w-0">
+                         <div class="text-[10px] font-black text-primary uppercase tracking-wider truncate mb-0.5">#{{ order.orderCode || 'COMMANDE' }}</div>
+                         <div class="text-[10px] text-muted-foreground">{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+                         <div class="font-black text-foreground mt-1">{{ formatPrice(order.total) }}</div>
+                         <div *ngIf="order.deliveryStatus === 'EXPEDIE'" class="mt-2 text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                            <lucide-icon [img]="TruckIcon" [size]="10"></lucide-icon>
+                            Code: <span class="text-primary">{{ order.deliveryConfirmationCode?.substring(0, 8).toUpperCase() }}</span>
+                         </div>
+                      </div>
+                     <div class="px-3 py-1 text-xs font-black rounded-full border" 
+                          [ngClass]="{
+                            'bg-yellow-500/10 text-yellow-600 border-yellow-500/20': order.deliveryStatus === 'EN_COURS_DE_TRAITEMENT',
+                            'bg-blue-500/10 text-blue-600 border-blue-500/20': order.deliveryStatus === 'EXPEDIE',
+                            'bg-green-500/10 text-green-600 border-green-500/20': order.deliveryStatus === 'LIVRE'
+                          }">
+                        {{ 
+                          order.deliveryStatus === 'EN_COURS_DE_TRAITEMENT' ? 'Processing' : 
+                          order.deliveryStatus === 'EXPEDIE' ? 'Shipped' : 
+                          order.deliveryStatus === 'LIVRE' ? 'Delivered' : order.deliveryStatus 
+                        }}
+                     </div>
+                  </div>
+                  <div class="space-y-2">
+                     <div *ngFor="let item of order.items" class="flex items-center justify-between text-sm">
+                        <span class="flex-1 truncate pr-4 text-muted-foreground">{{ item.quantity }}x {{ item.productName }}</span>
+                     </div>
+                  </div>
+                  <div class="mt-4 pt-3 border-t border-border flex flex-col gap-1 text-xs text-muted-foreground bg-muted/30 p-3 rounded-xl">
+                     <div class="font-bold text-foreground">{{ order.clientName }}</div>
+                     <div class="flex items-start gap-1"><span class="font-semibold w-16">Delivery:</span> <span class="flex-1">{{ order.clientAddress }}, {{ order.clientPostalCode }} {{ order.clientCity }}</span></div>
+                     <div class="flex items-start gap-1"><span class="font-semibold w-16">Mode:</span> <span class="flex-1">{{ order.deliveryMode === 'RETRAIT_MAGASIN' ? 'Pickup' : 'Home' }} (Payment: {{ order.paymentMode }})</span></div>
+                  </div>
                </div>
             </div>
          </div>
-      </div>
-
-      <!-- Toast -->
-      <div *ngIf="toast" class="fixed bottom-6 right-6 bg-card border border-border rounded-xl px-5 py-4 shadow-2xl flex items-center gap-3 z-[200] animate-in slide-in-from-bottom-5">
-        <div class="h-8 w-8 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
-           <lucide-icon [img]="CheckIcon" [size]="16"></lucide-icon>
-        </div>
-        <p class="text-sm font-medium pr-4">{{ toast }}</p>
       </div>
 
     </div>
@@ -669,22 +704,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
       -webkit-box-orient: vertical;  
       overflow: hidden;
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #e2e8f0;
-      border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #cbd5e1;
-    }
   `]
 })
-export class SponsorsComponent implements OnInit, OnDestroy {
+export class SponsorsComponent implements OnInit {
    readonly ShoppingBagIcon = ShoppingBag;
    readonly ShoppingCartIcon = ShoppingCart;
    readonly Loader2Icon = Loader2;
@@ -701,8 +723,6 @@ export class SponsorsComponent implements OnInit, OnDestroy {
    readonly PackageIcon = Package;
    readonly TruckIcon = Truck;
    readonly CheckIcon = CheckCircle;
-
-   private notificationSubscription: Subscription | null = null;
 
    categories: Category[] = [];
    products: Product[] = [];
@@ -724,7 +744,7 @@ export class SponsorsComponent implements OnInit, OnDestroy {
    maxPrice: number | null = null;
    currentPage: number = 0;
    totalPages: number = 1;
-   pageSize: number = 50; 
+   pageSize: number = 50; // Augmente a 50 pour que le tri IA fonctionne sur tout le catalogue
 
    // Cart & Favorites State
    isCartOpen = false;
@@ -780,7 +800,7 @@ export class SponsorsComponent implements OnInit, OnDestroy {
 
    // Admin Add Product State
    isAddModalOpen = false;
-   isEditMode = false;
+   isEditMode = false; // Added missing property
    addingProduct = false;
    newImageUrl = '';
    isUploading = false;
@@ -843,8 +863,6 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             this.colorStocks[col.name] = (this.newProduct.stock && this.newProduct.stock > 0) ? this.newProduct.stock : 15;
          });
       }
-      this.calculateTotalStock();
-      this.cdr.detectChanges();
    }
 
    onGenderChange() {
@@ -877,8 +895,6 @@ export class SponsorsComponent implements OnInit, OnDestroy {
          }
       }
       this.selectedColors = [...this.selectedColors];
-      this.calculateTotalStock();
-      this.cdr.detectChanges();
    }
 
    toggleSize(size: string) {
@@ -893,8 +909,6 @@ export class SponsorsComponent implements OnInit, OnDestroy {
          }
       }
       this.selectedSizes = [...this.selectedSizes];
-      this.calculateTotalStock();
-      this.cdr.detectChanges();
    }
 
    onFileSelected(event: any) {
@@ -920,11 +934,7 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       }
    }
 
-   constructor(
-      private productService: ProductService, 
-      public cdr: ChangeDetectorRef,
-      private realTimeNotifService: RealTimeNotificationService
-   ) { }
+   constructor(private productService: ProductService, private cdr: ChangeDetectorRef) { }
 
    get isAdmin(): boolean {
       return localStorage.getItem('user_type') === 'ROLE_ADMIN';
@@ -936,7 +946,6 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       this.loadCart();
       this.loadFavorites();
       this.loadAIRecommendations();
-      this.listenForUpdates();
 
       // Setup debounced address calculation
       this.addressSubject.pipe(
@@ -952,6 +961,7 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       this.addressSubject.next(full);
    }
 
+   /** Charge le classement IA depuis Flask via Spring Boot */
    loadAIRecommendations() {
       const userIdStr = localStorage.getItem('user_id');
       if (!userIdStr) return;
@@ -965,6 +975,7 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             (res.ranked_products || []).forEach(r => {
                this.aiRankMap.set(Number(r.product_id), { rank: r.rank, score: r.recommendation_score, priority: r.priority });
             });
+            // Re-trier les produits déjà chargés selon le score IA
             this.sortProductsByAI();
             this.cdr.detectChanges();
          },
@@ -972,35 +983,44 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       });
    }
 
+   /** Trie le tableau products selon le score IA (HIGH en premier) */
    sortProductsByAI() {
       if (this.aiRankMap.size === 0) return;
+      console.log('Current User ID in LocalStorage:', localStorage.getItem('user_id'));
+      console.log('Ranked Products Array length:', this.products.length);
       this.products = [...this.products].sort((a, b) => {
          const ra = this.aiRankMap.get(Number(a.id));
          const rb = this.aiRankMap.get(Number(b.id));
          const scoreA = ra ? ra.score : 0;
          const scoreB = rb ? rb.score : 0;
-         return scoreB - scoreA; 
+         return scoreB - scoreA; // décroissant
       });
    }
 
+   /** Retourne la priorité IA d'un produit (HIGH / MEDIUM / LOW / undefined) */
    getAIPriority(productId: number | string): string | undefined {
       return this.aiRankMap.get(Number(productId))?.priority;
    }
 
+   /** Retourne le score IA brut d'un produit (0-100) */
    getAIScore(productId: number | string): number {
       return this.aiRankMap.get(Number(productId))?.score ?? 0;
    }
 
+   /** Rang IA du produit (1 = meilleur) */
    getAIRank(productId: number | string): number {
       return this.aiRankMap.get(Number(productId))?.rank ?? 999;
    }
 
+   /** Vérifie si une couleur spécifique est en rupture de stock pour un produit */
    isColorOutOfStock(prod: any, colorName: string): boolean {
+      // Si le produit n'a pas de variants, on considère tout en stock par défaut ou selon le stock global
       if (!prod.variants || prod.variants.length === 0) {
          return prod.stock === 0;
       }
+      // On cherche si un variant possède cette couleur et un stock > 0
       const variantWithColor = prod.variants.find((v: any) => v.color?.toLowerCase() === colorName.toLowerCase());
-      if (!variantWithColor) return true; 
+      if (!variantWithColor) return true; // Pas de variant = pas disponible
       return variantWithColor.stock === 0;
    }
 
@@ -1039,10 +1059,12 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             } else {
                this.categories = [];
             }
+
             this.loadingCategories = false;
          },
          error: (err: any) => {
             console.error('Error loading categories', err);
+            this.showToast('HTTP Error: ' + err.message);
             this.loadingCategories = false;
          }
       });
@@ -1050,14 +1072,18 @@ export class SponsorsComponent implements OnInit, OnDestroy {
 
    loadProducts() {
       this.loadingProducts = true;
+
+      // Failsafe: force loading state to false after 10s if request hangs
       const failsafe = setTimeout(() => {
          if (this.loadingProducts) {
+            console.warn('Backend request timed out. Forcing UI unblock.');
             this.loadingProducts = false;
             this.cdr.detectChanges();
          }
       }, 10000);
 
       const keywordToUse = [this.selectedGender, this.searchKeyword].filter(Boolean).join(' ') || null;
+
       const criteria = {
          categoryId: this.selectedCategoryId,
          keyword: keywordToUse,
@@ -1065,19 +1091,27 @@ export class SponsorsComponent implements OnInit, OnDestroy {
          maxPrice: this.maxPrice
       };
 
-      this.productService.searchProducts(criteria, this.currentPage, this.pageSize).subscribe({
+      const requestArgs = this.productService.searchProducts(criteria, this.currentPage, this.pageSize);
+
+      requestArgs.subscribe({
          next: (res: any) => {
             clearTimeout(failsafe);
             let fetched = res.content || res as any;
-            if (!fetched) fetched = [];
-            if (res.totalPages !== undefined) this.totalPages = res.totalPages;
+            if (!fetched) {
+               fetched = [];
+            }
+            if (res.totalPages !== undefined) {
+               this.totalPages = res.totalPages;
+            }
             this.products = fetched;
+            // Appliquer le tri IA si déjà chargé
             this.sortProductsByAI();
             this.loadingProducts = false;
             this.cdr.detectChanges();
          },
          error: (err: any) => {
             clearTimeout(failsafe);
+            console.error('Error loading products', err);
             this.loadingProducts = false;
             this.products = [];
             this.cdr.detectChanges();
@@ -1086,30 +1120,49 @@ export class SponsorsComponent implements OnInit, OnDestroy {
    }
 
    selectCategory(categoryId: number | null) {
-      this.selectedCategoryId = categoryId;
-      this.selectedGender = null;
-      this.searchKeyword = '';
-      this.minPrice = null;
-      this.maxPrice = null;
-      this.currentPage = 0;
-      this.loadProducts();
+      console.log('Interaction: selectCategory', categoryId);
+      try {
+         this.selectedCategoryId = categoryId;
+         this.selectedGender = null;
+         this.searchKeyword = '';
+         this.minPrice = null;
+         this.maxPrice = null;
+         this.currentPage = 0;
+         this.cdr.detectChanges();
+         this.loadProducts();
+         this.showToast('Filtering sport...');
+      } catch (e) {
+         console.error('Error in selectCategory:', e);
+      }
    }
 
    selectGender(genre: string) {
-      if (!genre) {
-         this.selectedGender = null;
-      } else if (this.selectedGender === genre) {
-         this.selectedGender = null;
-      } else {
-         this.selectedGender = genre;
+      console.log('Interaction: selectGender', genre);
+      try {
+         if (!genre) {
+            this.selectedGender = null;
+         } else if (this.selectedGender === genre) {
+            this.selectedGender = null;
+         } else {
+            this.selectedGender = genre;
+         }
+         this.currentPage = 0;
+         this.cdr.detectChanges();
+         this.loadProducts();
+         this.showToast('Filtering gender...');
+      } catch (e) {
+         console.error('Error in selectGender:', e);
       }
-      this.currentPage = 0;
-      this.loadProducts();
    }
 
    applyFilters() {
       this.currentPage = 0;
       this.loadProducts();
+   }
+
+   forceRefresh() {
+      console.log('Forcing refresh...');
+      this.cdr.detectChanges();
    }
 
    nextPage() {
@@ -1125,6 +1178,8 @@ export class SponsorsComponent implements OnInit, OnDestroy {
          this.loadProducts();
       }
    }
+
+
 
    addToCart(product: Product) {
       const status = (product as any).status;
@@ -1142,8 +1197,10 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             this.loadCart();
          },
          error: (err: any) => {
+            console.error('Cart add error:', err);
             this.addingToCartId = null;
-            this.showToast("❌ Error adding to cart");
+            const msg = err.error?.message || err.message || "Error adding to cart";
+            this.showToast("❌ " + msg);
          }
       });
    }
@@ -1154,7 +1211,10 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             this.showToast('Item removed from cart');
             this.loadCart();
          },
-         error: (err) => this.showToast('Error during removal')
+         error: (err) => {
+            console.error('Error removing from cart', err);
+            this.showToast('Error during removal');
+         }
       });
    }
 
@@ -1166,15 +1226,24 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       if (this.isFavorite(product.id)) {
          this.favoriteProductIds.delete(product.id);
          this.productService.removeFromFavorites(product.id).subscribe({
-            error: () => this.favoriteProductIds.add(product.id)
+            next: () => this.showToast(`${product.nom} removed from favorites`),
+            error: () => {
+               this.favoriteProductIds.add(product.id);
+               this.showToast('Error removing from favorites');
+            }
          });
       } else {
          this.favoriteProductIds.add(product.id);
          this.productService.addToFavorites(product.id).subscribe({
             next: (res) => {
-               if (res !== null) this.showToast(`${product.nom} added to wishlist ❤️`);
+               if (res !== null) {
+                  this.showToast(`${product.nom} added to wishlist ❤️`);
+               }
             },
-            error: () => this.favoriteProductIds.delete(product.id)
+            error: () => {
+               this.favoriteProductIds.delete(product.id);
+               this.showToast('Error adding to favorites');
+            }
          });
       }
    }
@@ -1200,7 +1269,7 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       if (this.cartItemCount === 0) return;
       this.isCartOpen = false;
       this.isCheckoutOpen = true;
-      this.backendDeliveryFee = 7;
+      this.backendDeliveryFee = 7; // Initial fallback
    }
 
    calculateBackendDelivery() {
@@ -1215,25 +1284,51 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             this.cdr.detectChanges();
          },
          error: (err) => {
+            console.error('Delivery calculation error:', err);
             this.isCalculatingFee = false;
-            this.backendDeliveryFee = 7; 
+            this.backendDeliveryFee = 7; // Default
          }
+      });
+   }
+
+   applyPromoCode() {
+      if (!this.promoCodeInput) return;
+      this.productService.applyPromoCodeCart(this.promoCodeInput).subscribe({
+         next: () => {
+            this.showToast('Promo code applied!');
+            this.promoCodeInput = '';
+            this.loadCart();
+         },
+         error: () => this.showToast('Invalid promo code')
       });
    }
 
    confirmCheckout() {
       if (!this.checkoutData.clientName || !this.checkoutData.clientAddress || !this.checkoutData.clientPhone || !this.checkoutData.clientPostalCode || !this.checkoutData.clientCity) {
-         this.showToast('Please fill in your delivery information');
+         this.showToast('Please fill in your delivery information (name, address, phone, postal code, city)');
          return;
       }
       this.productService.checkoutCart(this.checkoutData).subscribe({
          next: () => {
             this.showToast('Order confirmed successfully 🎉');
             this.isCheckoutOpen = false;
-            this.loadCart();
-            this.openOrders();
+            this.loadCart(); // Reload cart, it should be empty now
+            this.openOrders(); // Open tracking
          },
-         error: (err: any) => this.showToast('Error validating the order')
+         error: (err: any) => {
+            console.error('Confirm checkout error:', err);
+            let msg = 'Error validating the order';
+            if (err.error && typeof err.error === 'string') {
+               msg = err.error;
+            } else if (err.error && err.error.error) {
+               msg = err.error.error;
+            } else if (err.error && err.error.message) {
+               msg = err.error.message;
+            } else if (err.status === 400) {
+               msg = 'Please check your input fields (Name, Address, Postal Code, etc).';
+            }
+            this.showToast(msg);
+         }
       });
    }
 
@@ -1249,12 +1344,19 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(price).replace('TND', 'DT');
    }
 
+   // --- Admin Methods ---
    openAddModal() {
       this.editingId = null;
       this.newProduct = {
-         nom: '', marque: '', description: '', prix: 0, stock: 10,
+         nom: '',
+         marque: '',
+         description: '',
+         prix: 0,
+         stock: 10,
          categoryId: this.selectedCategoryId || (this.categories && this.categories.length > 0 && this.categories[0].id ? this.categories[0].id : null),
-         images: [], status: 'EN_STOCK', variants: []
+         images: [],
+         status: 'EN_STOCK',
+         variants: []
       };
       this.newImageUrl = '';
       this.productType = '';
@@ -1263,32 +1365,18 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       this.selectedColors = [];
       this.variantStocks = {};
       this.colorStocks = {};
-      this.isEditMode = false;
       this.isAddModalOpen = true;
    }
 
    closeAddModal() {
       this.isAddModalOpen = false;
       this.editingId = null;
-      this.isEditMode = false;
-      this.cdr.detectChanges();
    }
 
    editProduct(product: Product) {
       this.editingId = product.id;
-      this.isEditMode = true;
       this.isAddModalOpen = true;
-      
-      // Auto-detect product type based on category
-      const catName = (product.category?.nom || product.category?.name || '').toLowerCase();
-      if (catName.includes('shoe') || catName.includes('chaussure') || catName.includes('crampon') || catName.includes('basket')) {
-         this.productType = 'chaussure';
-      } else if (catName.includes('cloth') || catName.includes('vêtement') || catName.includes('habit') || catName.includes('pull')) {
-         this.productType = 'vetement';
-      } else {
-         this.productType = '';
-      }
-
+      // Always fetch full product details to ensure description and all fields are populated
       this.productService.getProductById(product.id).subscribe({
          next: (fullProduct: Product) => {
             this.newProduct = {
@@ -1297,25 +1385,30 @@ export class SponsorsComponent implements OnInit, OnDestroy {
                description: fullProduct.description || product.description || '',
                prix: fullProduct.prix || product.prix || 0,
                stock: fullProduct.stock ?? product.stock ?? 0,
-               categoryId: fullProduct.category?.id || product.category?.id,
-               images: [...(fullProduct.images || [])],
-               status: fullProduct.status || 'EN_STOCK',
-               variants: fullProduct.variants || []
+               categoryId: fullProduct.category?.id || product.category?.id || (this.categories && this.categories.length > 0 ? this.categories[0].id : null),
+               images: [...(fullProduct.images || product.images || [])],
+               status: fullProduct.status || product.status || 'EN_STOCK',
+               variants: fullProduct.variants || product.variants || []
             };
             this.newImageUrl = (this.newProduct.images.length > 0) ? this.newProduct.images[0] : '';
-            
-            // Auto-detect gender if it's a shoe
-            if (this.productType === 'chaussure' && fullProduct.variants && fullProduct.variants.length > 0) {
-               const firstSize = fullProduct.variants[0].size;
-               if (firstSize) {
-                  if (this.SIZES_CHAUSSURE_HOMME.includes(firstSize)) this.productGender = 'homme';
-                  else if (this.SIZES_CHAUSSURE_FEMME.includes(firstSize)) this.productGender = 'femme';
-                  else if (this.SIZES_CHAUSSURE_ENFANT.includes(firstSize)) this.productGender = 'enfant';
-               }
-            }
-
             this.autoDetectSizesFromVariants();
-            this.calculateTotalStock();
+            this.cdr.detectChanges();
+         },
+         error: () => {
+            // Fallback to data from the list if API call fails
+            this.newProduct = {
+               nom: product.nom || '',
+               marque: product.marque || '',
+               description: product.description || '',
+               prix: product.prix || 0,
+               stock: product.stock || 0,
+               categoryId: product.category?.id || (this.categories && this.categories.length > 0 ? this.categories[0].id : null),
+               images: [...(product.images || [])],
+               status: product.status || 'EN_STOCK',
+               variants: product.variants || []
+            };
+            this.newImageUrl = (this.newProduct.images.length > 0) ? this.newProduct.images[0] : '';
+            this.autoDetectSizesFromVariants();
             this.cdr.detectChanges();
          }
       });
@@ -1336,10 +1429,31 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             if (v.color && v.color !== 'null') {
                const standard = this.CLOTHING_COLORS.find(c => c.name.toLowerCase() === v.color.toLowerCase());
                const colorKey = standard ? standard.name : v.color;
+               
                if (!this.selectedColors.includes(colorKey)) this.selectedColors.push(colorKey);
                this.colorStocks[colorKey] = Math.max(this.colorStocks[colorKey] || 0, v.stock || 0);
             }
          });
+
+         const firstSize = this.selectedSizes[0];
+         if (this.SIZES_VETEMENT.includes(firstSize)) {
+            this.productType = 'vetement';
+         } else if (this.SIZES_CHAUSSURE_HOMME.includes(firstSize)) {
+            this.productType = 'chaussure';
+            this.productGender = 'homme';
+         } else if (this.SIZES_CHAUSSURE_FEMME.includes(firstSize)) {
+            this.productType = 'chaussure';
+            this.productGender = 'femme';
+         } else if (this.SIZES_CHAUSSURE_ENFANT.includes(firstSize)) {
+            this.productType = 'chaussure';
+            this.productGender = 'enfant';
+         } else {
+            this.productType = '';
+            this.productGender = '';
+         }
+      } else {
+         this.productType = '';
+         this.productGender = '';
       }
    }
 
@@ -1349,44 +1463,115 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             next: () => {
                this.showToast('Product deleted successfully');
                this.loadProducts();
+            },
+            error: (err) => {
+               console.error('Error deleting product', err);
+               this.showToast('Error during deletion');
             }
          });
       }
    }
 
    submitNewProduct() {
-      if (!this.newProduct.nom || !this.newProduct.description || this.newProduct.prix <= 0 || !this.newProduct.categoryId) {
-         alert("Please fill all required fields correctly.");
+      // Frontend validation
+      if (!this.newProduct.nom) {
+         alert("Le nom du produit est obligatoire.");
+         return;
+      }
+      if (!this.newProduct.description) {
+         alert("La description est obligatoire.");
+         return;
+      }
+      if (this.newProduct.prix <= 0) {
+         alert("Le prix doit être strictement positif.");
+         return;
+      }
+      if (!this.newProduct.categoryId || this.newProduct.categoryId === 0) {
+         alert("Veuillez sélectionner une catégorie.");
          return;
       }
 
-      if (this.newImageUrl) this.newProduct.images = [this.newImageUrl];
+      if (this.newImageUrl) {
+         this.newProduct.images = [this.newImageUrl];
+      } else if (!this.editingId) {
+         // Only clear if adding a new product without image
+         this.newProduct.images = [];
+      }
 
+      // Map selected sizes and colors to variants
       if (this.selectedSizes.length > 0 || this.selectedColors.length > 0) {
+         const currentVariants = this.newProduct.variants || [];
          const newVariants: any[] = [];
+
          const sizes = this.selectedSizes.length > 0 ? this.selectedSizes : ['Unique'];
          const colors = this.selectedColors.length > 0 ? this.selectedColors : [''];
 
          sizes.forEach(size => {
             colors.forEach(color => {
-               const sStock = Number(this.variantStocks[size] || 0);
-               const cStock = Number(this.colorStocks[color] || 0);
-               const finalStock = (size !== 'Unique' && color !== '') ? Math.min(sStock, cStock) : Math.max(sStock, cStock);
+               const sVal: any = this.variantStocks[size];
+               const sStock = (sVal !== undefined && sVal !== null) ? Number(sVal) : 0;
                
-               newVariants.push({
-                  size: size,
-                  color: color,
-                  sku: (this.newProduct.nom.replace(/\s+/g, '-').toUpperCase() + '-' + size + '-' + (color || 'U') + '-' + Math.floor(Math.random() * 1000)),
-                  stock: finalStock,
-                  priceAdjustment: 0
+               const cVal: any = this.colorStocks[color];
+               const cStock = (cVal !== undefined && cVal !== null) ? Number(cVal) : 0;
+               
+               let finalStock = 0;
+               if (size !== 'Unique' && color !== '') {
+                  finalStock = Math.min(sStock, cStock);
+               } else if (size !== 'Unique') {
+                  finalStock = sStock;
+               } else if (color !== '') {
+                  finalStock = cStock;
+               } else {
+                  finalStock = Math.min(sStock, cStock);
+               }
+               
+               // Normalize for comparison
+               const normalizedSize = size;
+               const normalizedColor = color || '';
+
+               const existingVariant = currentVariants.find((v: any) => {
+                  const dbSize = (!v.size || v.size === 'null') ? 'Unique' : String(v.size).trim();
+                  const dbColor = (!v.color || v.color === 'null') ? '' : String(v.color).trim();
+                  return dbSize === String(normalizedSize).trim() && dbColor === String(normalizedColor).trim();
                });
+
+               if (existingVariant) {
+                  existingVariant.stock = finalStock;
+                  if (!existingVariant.sku || existingVariant.sku.trim() === '') {
+                      existingVariant.sku = (this.newProduct.nom.replace(/\s+/g, '-').toUpperCase() + '-' + size + '-' + (color || 'U') + '-' + Math.floor(Math.random() * 1000)).replace('--', '-').replace(/-$/, '');
+                  }
+                  newVariants.push(existingVariant);
+               } else {
+                  const generatedSku = (this.newProduct.nom.replace(/\s+/g, '-').toUpperCase() + '-' + size + '-' + (color || 'U') + '-' + Math.floor(Math.random() * 1000)).replace('--', '-').replace(/-$/, '');
+                  newVariants.push({
+                     size: size,
+                     color: color,
+                     sku: generatedSku,
+                     stock: finalStock,
+                     priceAdjustment: 0
+                  });
+               }
             });
          });
          this.newProduct.variants = newVariants;
-         this.newProduct.stock = newVariants.reduce((sum, v) => sum + v.stock, 0);
+
+         // Automatically update global stock as the sum of all variant stocks
+         const totalStock = newVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+         this.newProduct.stock = totalStock;
+
+         // If total stock is 0, set status to OUT_OF_STOCK
+         if (totalStock === 0) {
+            this.newProduct.status = 'RUPTURE_DE_STOCK';
+         } else if (this.newProduct.status === 'RUPTURE_DE_STOCK') {
+            // If it was out of stock but now has items, set to EN_STOCK
+            this.newProduct.status = 'EN_STOCK';
+         }
+      } else {
+         this.newProduct.variants = [];
       }
 
       this.addingProduct = true;
+
       const obs = this.editingId
          ? this.productService.updateProduct(this.editingId, this.newProduct)
          : this.productService.createProduct(this.newProduct);
@@ -1395,26 +1580,39 @@ export class SponsorsComponent implements OnInit, OnDestroy {
          next: () => {
             this.addingProduct = false;
             this.closeAddModal();
-            this.showToast('Product saved successfully!');
-            
-            // Recharger les produits et forcer la détection de changements
-            this.loadProducts();
-            this.cdr.detectChanges();
+            this.showToast(this.editingId ? 'Product updated successfully!' : 'Product added successfully!');
+            this.loadProducts(); // Refresh list to show the new/updated product immediately
          },
          error: (err) => {
+            console.error("Error saving product:", err);
             this.addingProduct = false;
-            console.error('Error saving product:', err);
-            this.showToast('❌ Error saving product');
-            this.cdr.detectChanges();
+
+            let errorMessage = "Une erreur est survenue lors de l'enregistrement du produit.";
+
+            // Extract validation details if available
+            if (err.error && err.error.error === 'Validation failed' && err.error.details) {
+               const details = err.error.details;
+               const detailMsgs = Object.keys(details).map(key => `${key}: ${details[key]}`);
+               errorMessage = "Erreur de validation :\n" + detailMsgs.join("\n");
+            } else if (err.error && err.error.error) {
+               errorMessage = err.error.error;
+            }
+
+            alert(errorMessage);
          }
       });
    }
 
    decreaseQuantity(item: any) {
       if (item.quantity > 1) {
-         item.quantity--;
+         // Optimistic update: update UI immediately
+         item.quantity = item.quantity - 1;
          this.productService.updateCartItem(item.id, item.quantity).subscribe({
-            next: () => this.loadCart()
+            next: () => this.loadCart(),
+            error: () => {
+               item.quantity = item.quantity + 1; // rollback
+               this.showToast("Error updating quantity");
+            }
          });
       } else {
          this.removeFromCart(item.id);
@@ -1422,57 +1620,27 @@ export class SponsorsComponent implements OnInit, OnDestroy {
    }
 
    increaseQuantity(item: any) {
-      item.quantity++;
+      // Optimistic update: update UI immediately
+      item.quantity = item.quantity + 1;
       this.productService.updateCartItem(item.id, item.quantity).subscribe({
          next: () => this.loadCart(),
          error: () => {
-            item.quantity--;
-            this.showToast("Insufficient stock");
+            item.quantity = item.quantity - 1; // rollback
+            this.showToast("Insufficient stock for this item");
          }
       });
    }
 
    showToast(msg: string) {
       this.toast = msg;
-      this.cdr.detectChanges();
-      setTimeout(() => {
-         this.toast = null;
-         this.cdr.detectChanges();
-      }, 3000);
+      // Add logic to hide the toast later
+      setTimeout(() => this.toast = null, 3000);
    }
 
-   listenForUpdates(): void {
-      this.notificationSubscription = this.realTimeNotifService.messages$.subscribe(msg => {
-         if (msg && (msg.type === 'ORDER_UPDATE' || msg.type === 'PRODUCT_UPDATE' || msg.type === 'LOW_STOCK')) {
-            this.loadProducts(); 
-            this.loadCart();
-         }
-      });
+   get isToastError(): boolean {
+      if (!this.toast) return false;
+      const errorKeywords = ['Error', 'Error', 'Failed', 'Please', 'insufficient'];
+      return errorKeywords.some(key => this.toast!.toLowerCase().includes(key.toLowerCase()));
    }
 
-   applyPromoCode() {
-      if (!this.promoCodeInput.trim()) {
-         this.showToast('Please enter a promo code');
-         return;
-      }
-      this.showToast('Applying promo code...');
-      setTimeout(() => {
-         this.showToast('Promo code applied successfully! 🎉');
-         this.cdr.detectChanges();
-      }, 1000);
-   }
-
-   ngOnDestroy(): void {
-      if (this.notificationSubscription) this.notificationSubscription.unsubscribe();
-   }
-
-   calculateTotalStock() {
-      let total = 0;
-      if (this.selectedSizes.length > 0) {
-         Object.values(this.variantStocks).forEach(v => total += (Number(v) || 0));
-      } else if (this.selectedColors.length > 0) {
-         Object.values(this.colorStocks).forEach(v => total += (Number(v) || 0));
-      }
-      this.newProduct.stock = total;
-   }
 }

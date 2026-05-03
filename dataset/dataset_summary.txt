@@ -1,0 +1,69 @@
+
+
+VOLUMES:
+  Sponsors:          50
+  Produits:          80
+  Profils Users:     150
+  Interactions:      3044
+
+METRIQUES:
+  CTR:               52.66%
+  CVR:               25.14%
+  Total clics:       1603
+  Total achats:      403
+  Total favoris:     930
+
+PAR CATEGORIE:
+
+  [Football]
+    Interactions: 264 | Clics: 149 | Favoris: 73 | Pref: 192
+
+  [Basketball]
+    Interactions: 353 | Clics: 187 | Favoris: 114 | Pref: 271
+
+  [Tennis]
+    Interactions: 249 | Clics: 131 | Favoris: 91 | Pref: 183
+
+  [Running]
+    Interactions: 399 | Clics: 224 | Favoris: 145 | Pref: 337
+
+  [Natation]
+    Interactions: 392 | Clics: 219 | Favoris: 117 | Pref: 324
+
+  [Cyclisme]
+    Interactions: 223 | Clics: 97 | Favoris: 46 | Pref: 157
+
+  [Boxe]
+    Interactions: 329 | Clics: 162 | Favoris: 94 | Pref: 268
+
+  [Fitness]
+    Interactions: 296 | Clics: 153 | Favoris: 98 | Pref: 229
+
+  [Volleyball]
+    Interactions: 300 | Clics: 139 | Favoris: 67 | Pref: 216
+
+  [Handball]
+    Interactions: 239 | Clics: 142 | Favoris: 85 | Pref: 181
+
+
+
+  interaction_id              - ID unique
+  user_id                     - ID utilisateur
+  product_id                  - ID produit
+  product_name                - Nom du produit
+  category_id/name            - Categorie sportive
+  product_type                - vetement/chaussure/accessoire/equipement
+  searched_size               - Taille recherchee par l'utilisateur
+  size_available              - La taille est disponible (True/False)
+  is_preferred_category       - Categorie preferee de l'utilisateur
+  search_frequency_in_category- Nb fois que l'user cherche cette categorie
+  is_in_favorites             - Produit dans les favoris
+  added_to_favorites          - Ajoute aux favoris pendant cette session
+  prix                        - Prix du produit
+  stock                       - Stock disponible
+  product_status              - EN_STOCK/RUPTURE/EN_ARRIVAGE
+  is_clicked                  - Click effectue (True/False)
+  click_duration_seconds      - Duree du clic
+  is_purchased                - Achat effectue (True/False)
+  recommendation_score        - SCORE DE RECOMMANDATION (0-100) = TARGET
+  interaction_time            - Date/heure

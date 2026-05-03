@@ -1,0 +1,51 @@
+sponsor_id,name,email,company_name,daily_budget,remaining_budget,cpc_bid,target_category_id,target_category_name,is_active,created_at,total_clicks,total_spent
+1,Nike Football,contact@nikefootballcorp.com,NikeFootballCorp,187.79,117.07,2.42,1,Football,True,2024-08-05 00:00:00,4508,7980.78
+2,Adidas Soccer,contact@adidassoccercorp.com,AdidasSoccerCorp,366.28,125.94,1.33,1,Football,True,2024-04-08 00:00:00,2584,2005.97
+3,Puma Sport,contact@pumasportcorp.com,PumaSportCorp,291.14,228.83,1.01,1,Football,True,2024-09-04 00:00:00,2265,2304.14
+4,Under Armour,contact@underarmourcorp.com,UnderArmourCorp,489.47,280.06,1.49,1,Football,True,2024-04-09 00:00:00,2426,2382.97
+5,New Balance FC,contact@newbalancefccorp.com,NewBalanceFCCorp,130.75,14.74,2.72,1,Football,True,2025-05-13 00:00:00,446,1076.46
+6,Nike Basketball,contact@nikebasketballcorp.com,NikeBasketballCorp,363.84,77.73,4.36,2,Basketball,True,2025-03-22 00:00:00,100,393.2
+7,Jordan Brand,contact@jordanbrandcorp.com,JordanBrandCorp,261.23,129.68,1.0,2,Basketball,True,2025-04-26 00:00:00,3913,2269.0
+8,Spalding,contact@spaldingcorp.com,SpaldingCorp,79.4,43.08,2.93,2,Basketball,True,2024-03-18 00:00:00,1222,3823.21
+9,Wilson NBA,contact@wilsonnbacorp.com,WilsonNBACorp,477.11,84.29,1.32,2,Basketball,True,2024-08-01 00:00:00,4966,6012.94
+10,AND1,contact@and1corp.com,AND1Corp,328.29,262.02,1.96,2,Basketball,False,2024-06-01 00:00:00,4821,11273.05
+11,Wilson Tennis,contact@wilsontenniscorp.com,WilsonTennisCorp,187.42,123.5,3.09,3,Tennis,True,2025-04-30 00:00:00,1702,4932.38
+12,Head Sport,contact@headsportcorp.com,HeadSportCorp,169.09,29.26,1.28,3,Tennis,True,2024-03-21 00:00:00,21,21.13
+13,Babolat,contact@babolatcorp.com,BabolatCorp,360.22,188.37,0.26,3,Tennis,True,2024-05-24 00:00:00,3719,531.65
+14,Yonex Tennis,contact@yonextenniscorp.com,YonexTennisCorp,155.04,52.42,3.98,3,Tennis,True,2025-02-15 00:00:00,1620,5142.59
+15,Dunlop Sport,contact@dunlopsportcorp.com,DunlopSportCorp,295.05,201.48,4.55,3,Tennis,True,2024-02-06 00:00:00,488,1368.09
+16,Nike Running,contact@nikerunningcorp.com,NikeRunningCorp,188.43,145.86,2.89,4,Running,True,2024-03-04 00:00:00,3839,10895.83
+17,Asics,contact@asicscorp.com,AsicsCorp,364.88,346.06,2.55,4,Running,True,2024-02-11 00:00:00,4899,6594.8
+18,New Balance Run,contact@newbalanceruncorp.com,NewBalanceRunCorp,244.41,95.34,1.33,4,Running,True,2025-05-07 00:00:00,4712,5709.11
+19,Saucony,contact@sauconycorp.com,SauconyCorp,59.34,46.78,4.12,4,Running,True,2025-01-25 00:00:00,1435,4903.29
+20,Brooks Running,contact@brooksrunningcorp.com,BrooksRunningCorp,343.18,317.26,0.99,4,Running,True,2024-11-21 00:00:00,4028,4698.88
+21,Speedo,contact@speedocorp.com,SpeedoCorp,261.5,122.25,1.67,5,Natation,True,2024-03-23 00:00:00,2701,3555.09
+22,Arena,contact@arenacorp.com,ArenaCorp,272.96,190.07,2.06,5,Natation,True,2024-01-19 00:00:00,3725,4309.76
+23,TYR Sport,contact@tyrsportcorp.com,TYRSportCorp,163.58,33.42,3.89,5,Natation,False,2025-02-26 00:00:00,9,33.62
+24,Aqua Sphere,contact@aquaspherecorp.com,AquaSphereCorp,294.17,138.83,1.02,5,Natation,True,2025-01-22 00:00:00,4083,3905.56
+25,Finis Swim,contact@finisswimcorp.com,FinisSwimCorp,392.0,111.02,2.79,5,Natation,False,2024-08-12 00:00:00,3970,6479.62
+26,Shimano,contact@shimanocorp.com,ShimanoCorp,487.92,316.16,1.27,6,Cyclisme,True,2024-10-09 00:00:00,112,126.11
+27,Giant Bikes,contact@giantbikescorp.com,GiantBikesCorp,91.94,91.3,4.57,6,Cyclisme,True,2024-03-01 00:00:00,1261,4891.8
+28,Trek Cycling,contact@trekcyclingcorp.com,TrekCyclingCorp,372.47,207.83,1.44,6,Cyclisme,True,2024-08-29 00:00:00,1996,2356.16
+29,Specialized,contact@specializedcorp.com,SpecializedCorp,115.09,31.25,3.04,6,Cyclisme,True,2024-03-10 00:00:00,571,1203.58
+30,Cannondale,contact@cannondalecorp.com,CannondaleCorp,405.5,191.98,4.68,6,Cyclisme,True,2025-02-24 00:00:00,21,68.6
+31,Everlast,contact@everlastcorp.com,EverlastCorp,184.35,115.82,4.99,7,Boxe,True,2024-03-17 00:00:00,3658,16008.37
+32,Venum,contact@venumcorp.com,VenumCorp,205.31,122.51,2.76,7,Boxe,True,2024-06-13 00:00:00,1545,5059.65
+33,Rival Boxing,contact@rivalboxingcorp.com,RivalBoxingCorp,157.46,70.02,4.29,7,Boxe,True,2024-06-11 00:00:00,3874,16514.08
+34,Cleto Reyes,contact@cletoreyescorp.com,CletoReyesCorp,415.13,185.76,3.35,7,Boxe,True,2024-03-18 00:00:00,4057,15974.49
+35,Winning Co,contact@winningcocorp.com,WinningCoCorp,106.81,103.48,1.73,7,Boxe,True,2025-03-08 00:00:00,3606,3554.62
+36,Decathlon Fit,contact@decathlonfitcorp.com,DecathlonFitCorp,459.7,52.32,0.81,8,Fitness,False,2025-05-11 00:00:00,1264,565.55
+37,Domyos,contact@domyoscorp.com,DomyosCorp,401.69,135.98,3.15,8,Fitness,True,2024-02-11 00:00:00,2691,9295.82
+38,Technogym,contact@technogymcorp.com,TechnogymCorp,436.7,193.03,1.65,8,Fitness,True,2025-01-23 00:00:00,3997,7324.91
+39,Life Fitness,contact@lifefitnesscorp.com,LifeFitnessCorp,66.15,10.69,3.19,8,Fitness,False,2024-04-26 00:00:00,740,1897.4
+40,Rogue Fitness,contact@roguefitnesscorp.com,RogueFitnessCorp,94.3,63.22,4.38,8,Fitness,True,2024-12-21 00:00:00,2453,12166.63
+41,Mikasa,contact@mikasacorp.com,MikasaCorp,70.7,57.73,1.54,9,Volleyball,True,2024-03-15 00:00:00,2000,2685.19
+42,Molten Sport,contact@moltensportcorp.com,MoltenSportCorp,304.67,247.78,0.93,9,Volleyball,True,2025-03-21 00:00:00,3133,2720.8
+43,Mizuno Volley,contact@mizunovolleycorp.com,MizunoVolleyCorp,158.37,145.95,0.8,9,Volleyball,True,2024-05-10 00:00:00,3764,2043.79
+44,Asics Volley,contact@asicsvolleycorp.com,AsicsVolleyCorp,54.23,44.69,4.52,9,Volleyball,True,2024-03-21 00:00:00,605,2212.87
+45,Errea Sport,contact@erreasportcorp.com,ErreaSportCorp,205.5,129.22,3.23,9,Volleyball,True,2024-05-08 00:00:00,3742,13195.16
+46,Hummel,contact@hummelcorp.com,HummelCorp,139.65,62.32,2.47,10,Handball,True,2024-10-19 00:00:00,2940,6552.82
+47,Kempa,contact@kempacorp.com,KempaCorp,496.71,181.65,4.89,10,Handball,True,2024-05-20 00:00:00,66,289.22
+48,Select Sport,contact@selectsportcorp.com,SelectSportCorp,358.61,276.2,0.34,10,Handball,True,2024-09-11 00:00:00,2344,831.24
+49,Salming,contact@salmingcorp.com,SalmingCorp,153.55,126.18,1.17,10,Handball,True,2024-05-08 00:00:00,1120,1231.48
+50,Adidas Handball,contact@adidashandballcorp.com,AdidasHandballCorp,456.53,311.22,1.61,10,Handball,True,2024-10-23 00:00:00,2988,4871.54

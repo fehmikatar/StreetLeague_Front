@@ -1,0 +1,36 @@
+{
+  "best_model": "RandomForest",
+  "best_r2": 93.89,
+  "feature_columns": [
+    "user_id",
+    "product_id",
+    "category_id",
+    "category_name_encoded",
+    "product_type_encoded",
+    "searched_size_encoded",
+    "size_available",
+    "is_preferred_category",
+    "search_frequency_in_category",
+    "is_in_favorites",
+    "prix",
+    "stock",
+    "product_status_encoded"
+  ],
+  "models": {
+    "RandomForest": {
+      "MAE": 3.81,
+      "RMSE": 4.9,
+      "R2": 93.89
+    },
+    "GradientBoosting": {
+      "MAE": 3.9,
+      "RMSE": 5.07,
+      "R2": 93.46
+    },
+    "LinearRegression": {
+      "MAE": 4.58,
+      "RMSE": 5.99,
+      "R2": 90.85
+    }
+  }
+}

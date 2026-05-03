@@ -1,0 +1,452 @@
+[
+  {
+    "category": "Basketball",
+    "product": "Maillot Reversible",
+    "predicted_score": 98.68,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L",
+    "size_available": true
+  },
+  {
+    "category": "Basketball",
+    "product": "Maillot Reversible",
+    "predicted_score": 98.62,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XL",
+    "size_available": true
+  },
+  {
+    "category": "Basketball",
+    "product": "Maillot Reversible",
+    "predicted_score": 98.54,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XXL",
+    "size_available": true
+  },
+  {
+    "category": "Basketball",
+    "product": "Maillot Reversible",
+    "predicted_score": 98.37,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L",
+    "size_available": true
+  },
+  {
+    "category": "Basketball",
+    "product": "Maillot Reversible",
+    "predicted_score": 97.99,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XXL",
+    "size_available": true
+  },
+  {
+    "category": "Boxe",
+    "product": "Bandages 4.5m x2",
+    "predicted_score": 97.93,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Boxe",
+    "product": "Bandages 4.5m x2",
+    "predicted_score": 97.59,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Boxe",
+    "product": "Bandages 4.5m x2",
+    "predicted_score": 97.31,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Boxe",
+    "product": "Bandages 4.5m x2",
+    "predicted_score": 97.26,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Unique",
+    "size_available": true
+  },
+  {
+    "category": "Boxe",
+    "product": "Bandages 4.5m x2",
+    "predicted_score": 97.11,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Cyclisme",
+    "product": "Bidon Isotherme",
+    "predicted_score": 96.48,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Cyclisme",
+    "product": "Lumieres LED Set",
+    "predicted_score": 95.44,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Cyclisme",
+    "product": "Lumieres LED Set",
+    "predicted_score": 95.17,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Cyclisme",
+    "product": "Gants Cycliste",
+    "predicted_score": 93.7,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Cyclisme",
+    "product": "Lumieres LED Set",
+    "predicted_score": 92.04,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Fitness",
+    "product": "Gants Musculation",
+    "predicted_score": 98.52,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Unique",
+    "size_available": true
+  },
+  {
+    "category": "Fitness",
+    "product": "Gants Musculation",
+    "predicted_score": 98.5,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Fitness",
+    "product": "Gants Musculation",
+    "predicted_score": 98.15,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Unique",
+    "size_available": true
+  },
+  {
+    "category": "Fitness",
+    "product": "Gants Musculation",
+    "predicted_score": 98.13,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Unique",
+    "size_available": true
+  },
+  {
+    "category": "Fitness",
+    "product": "Gants Musculation",
+    "predicted_score": 98.1,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Football",
+    "product": "Ballon Match Pro",
+    "predicted_score": 96.16,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Junior",
+    "size_available": true
+  },
+  {
+    "category": "Football",
+    "product": "Chaussettes Performance",
+    "predicted_score": 95.55,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XS",
+    "size_available": true
+  },
+  {
+    "category": "Football",
+    "product": "Chaussettes Performance",
+    "predicted_score": 95.39,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "M",
+    "size_available": true
+  },
+  {
+    "category": "Football",
+    "product": "Ballon Match Pro",
+    "predicted_score": 94.76,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Junior",
+    "size_available": true
+  },
+  {
+    "category": "Football",
+    "product": "Short Match",
+    "predicted_score": 94.61,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XS",
+    "size_available": true
+  },
+  {
+    "category": "Handball",
+    "product": "Genouilleres Impact",
+    "predicted_score": 97.14,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Handball",
+    "product": "Genouilleres Impact",
+    "predicted_score": 96.95,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Handball",
+    "product": "Sac Sport 50L",
+    "predicted_score": 96.81,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Handball",
+    "product": "Short Stretch",
+    "predicted_score": 96.69,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L",
+    "size_available": true
+  },
+  {
+    "category": "Handball",
+    "product": "Sac Sport 50L",
+    "predicted_score": 96.58,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Natation",
+    "product": "Lunettes Miroir",
+    "predicted_score": 97.74,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Unique",
+    "size_available": true
+  },
+  {
+    "category": "Natation",
+    "product": "Palmes Courtes",
+    "predicted_score": 97.71,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Junior",
+    "size_available": true
+  },
+  {
+    "category": "Natation",
+    "product": "Palmes Courtes",
+    "predicted_score": 97.68,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Standard",
+    "size_available": true
+  },
+  {
+    "category": "Natation",
+    "product": "Palmes Courtes",
+    "predicted_score": 97.6,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Pro",
+    "size_available": true
+  },
+  {
+    "category": "Natation",
+    "product": "Palmes Courtes",
+    "predicted_score": 97.38,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Pro",
+    "size_available": true
+  },
+  {
+    "category": "Running",
+    "product": "Ceinture Hydratation",
+    "predicted_score": 98.49,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Running",
+    "product": "Ceinture Hydratation",
+    "predicted_score": 98.38,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Running",
+    "product": "Ceinture Hydratation",
+    "predicted_score": 98.17,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Running",
+    "product": "Legging Compression",
+    "predicted_score": 97.99,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XXL",
+    "size_available": true
+  },
+  {
+    "category": "Running",
+    "product": "Legging Compression",
+    "predicted_score": 97.84,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XXL",
+    "size_available": true
+  },
+  {
+    "category": "Tennis",
+    "product": "Cordage Multifilament",
+    "predicted_score": 97.73,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Tennis",
+    "product": "Jupe/Short Sport",
+    "predicted_score": 97.47,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S",
+    "size_available": true
+  },
+  {
+    "category": "Tennis",
+    "product": "Cordage Multifilament",
+    "predicted_score": 97.43,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "L/XL",
+    "size_available": true
+  },
+  {
+    "category": "Tennis",
+    "product": "Jupe/Short Sport",
+    "predicted_score": 97.38,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S",
+    "size_available": true
+  },
+  {
+    "category": "Tennis",
+    "product": "Cordage Multifilament",
+    "predicted_score": 97.34,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Unique",
+    "size_available": true
+  },
+  {
+    "category": "Volleyball",
+    "product": "Protege-doigts",
+    "predicted_score": 97.31,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Volleyball",
+    "product": "Genouilleres Gel",
+    "predicted_score": 96.42,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  },
+  {
+    "category": "Volleyball",
+    "product": "Ballon Officiel V5",
+    "predicted_score": 95.82,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "Standard",
+    "size_available": true
+  },
+  {
+    "category": "Volleyball",
+    "product": "Short Leger",
+    "predicted_score": 95.41,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "XS",
+    "size_available": true
+  },
+  {
+    "category": "Volleyball",
+    "product": "Protege-doigts",
+    "predicted_score": 94.97,
+    "is_favorite": true,
+    "is_preferred_category": true,
+    "searched_size": "S/M",
+    "size_available": true
+  }
+]

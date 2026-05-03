@@ -1,0 +1,81 @@
+product_id,nom,marque,description,prix,stock,category_id,category_name,product_type,available_sizes,status,deleted,created_at
+1,Ballon Match Pro,Adidas Soccer,Ballon Match Pro de haute qualite pour football,38.86,75,1,Football,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-07-31 00:00:00
+2,Crampons Elite,New Balance FC,Crampons Elite de haute qualite pour football,117.04,138,1,Football,chaussure,38|39|40|41|42|43|44|45,EN_ARRIVAGE,False,2024-07-06 00:00:00
+3,Maillot Training,Under Armour,Maillot Training de haute qualite pour football,63.04,69,1,Football,vetement,XS|S|M|L|XL|XXL,RUPTURE_DE_STOCK,False,2024-05-11 00:00:00
+4,Protege-tibias Carbon,Nike Football,Protege-tibias Carbon de haute qualite pour football,44.92,75,1,Football,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-06-22 00:00:00
+5,Gants Gardien Pro,Adidas Soccer,Gants Gardien Pro de haute qualite pour football,82.72,19,1,Football,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2025-05-09 00:00:00
+6,Short Match,New Balance FC,Short Match de haute qualite pour football,36.89,185,1,Football,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-07-22 00:00:00
+7,Chaussettes Performance,Nike Football,Chaussettes Performance de haute qualite pour football,14.73,101,1,Football,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-10-01 00:00:00
+8,Sac Sport XL,New Balance FC,Sac Sport XL de haute qualite pour football,51.36,172,1,Football,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-05-14 00:00:00
+9,Ballon Indoor/Outdoor,Jordan Brand,Ballon Indoor/Outdoor de haute qualite pour basketball,39.61,163,2,Basketball,equipement,Junior|Standard|Pro,EN_ARRIVAGE,False,2024-02-25 00:00:00
+10,Chaussures High-Top,Spalding,Chaussures High-Top de haute qualite pour basketball,155.35,158,2,Basketball,chaussure,38|39|40|41|42|43|44|45,EN_ARRIVAGE,False,2024-10-14 00:00:00
+11,Maillot Reversible,Wilson NBA,Maillot Reversible de haute qualite pour basketball,56.58,56,2,Basketball,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-11-21 00:00:00
+12,Short Respirant,Jordan Brand,Short Respirant de haute qualite pour basketball,43.9,77,2,Basketball,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-02-29 00:00:00
+13,Bandeau Elastique,Nike Basketball,Bandeau Elastique de haute qualite pour basketball,8.22,9,2,Basketball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-09-09 00:00:00
+14,Panier Portable,Spalding,Panier Portable de haute qualite pour basketball,169.71,137,2,Basketball,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-08-20 00:00:00
+15,Genouilleres Pro,Wilson NBA,Genouilleres Pro de haute qualite pour basketball,28.37,190,2,Basketball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-10-03 00:00:00
+16,Sac a Dos Basket,Nike Basketball,Sac a Dos Basket de haute qualite pour basketball,60.14,186,2,Basketball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-07-31 00:00:00
+17,Raquette Pro 300g,Babolat,Raquette Pro 300g de haute qualite pour tennis,231.19,157,3,Tennis,equipement,Junior|Standard|Pro,EN_STOCK,False,2025-05-02 00:00:00
+18,Balles Championship x4,Head Sport,Balles Championship x4 de haute qualite pour tennis,10.6,94,3,Tennis,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-08-15 00:00:00
+19,Sac Raquettes 6R,Dunlop Sport,Sac Raquettes 6R de haute qualite pour tennis,98.21,25,3,Tennis,accessoire,Unique|S/M|L/XL,EN_ARRIVAGE,False,2024-07-07 00:00:00
+20,Grip Overgrip x3,Babolat,Grip Overgrip x3 de haute qualite pour tennis,11.25,165,3,Tennis,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-07-22 00:00:00
+21,Chaussures Court Clay,Yonex Tennis,Chaussures Court Clay de haute qualite pour tennis,107.38,31,3,Tennis,chaussure,38|39|40|41|42|43|44|45,EN_ARRIVAGE,False,2025-02-25 00:00:00
+22,Jupe/Short Sport,Wilson Tennis,Jupe/Short Sport de haute qualite pour tennis,33.83,54,3,Tennis,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-11-01 00:00:00
+23,Cordage Multifilament,Dunlop Sport,Cordage Multifilament de haute qualite pour tennis,16.5,85,3,Tennis,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-03-05 00:00:00
+24,Casquette UV Protect,Head Sport,Casquette UV Protect de haute qualite pour tennis,22.56,195,3,Tennis,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-10-27 00:00:00
+25,Chaussures Amorti Max,Brooks Running,Chaussures Amorti Max de haute qualite pour running,193.03,59,4,Running,chaussure,38|39|40|41|42|43|44|45,EN_STOCK,False,2024-03-16 00:00:00
+26,Montre GPS Sport,New Balance Run,Montre GPS Sport de haute qualite pour running,200.35,37,4,Running,accessoire,Unique|S/M|L/XL,EN_ARRIVAGE,False,2024-10-03 00:00:00
+27,Legging Compression,Asics,Legging Compression de haute qualite pour running,71.94,28,4,Running,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-01-14 00:00:00
+28,Brassiere Running,Asics,Brassiere Running de haute qualite pour running,28.25,60,4,Running,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-01-09 00:00:00
+29,Ceinture Hydratation,Nike Running,Ceinture Hydratation de haute qualite pour running,27.97,32,4,Running,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-09-26 00:00:00
+30,Veste Coupe-vent,Brooks Running,Veste Coupe-vent de haute qualite pour running,105.54,121,4,Running,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-07-04 00:00:00
+31,Chaussettes Anti-ampoules,Brooks Running,Chaussettes Anti-ampoules de haute qualite pour running,18.64,115,4,Running,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2025-04-29 00:00:00
+32,Lunettes Sport UV,Brooks Running,Lunettes Sport UV de haute qualite pour running,36.97,200,4,Running,accessoire,Unique|S/M|L/XL,EN_ARRIVAGE,False,2024-12-03 00:00:00
+33,Maillot Competition,Aqua Sphere,Maillot Competition de haute qualite pour natation,66.55,164,5,Natation,vetement,XS|S|M|L|XL|XXL,EN_ARRIVAGE,False,2024-02-01 00:00:00
+34,Lunettes Miroir,Aqua Sphere,Lunettes Miroir de haute qualite pour natation,36.7,109,5,Natation,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-09-08 00:00:00
+35,Bonnet Silicone,Speedo,Bonnet Silicone de haute qualite pour natation,8.36,20,5,Natation,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-03-16 00:00:00
+36,Plaquettes Nage,TYR Sport,Plaquettes Nage de haute qualite pour natation,17.25,159,5,Natation,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-10-07 00:00:00
+37,Pull Buoy Pro,Finis Swim,Pull Buoy Pro de haute qualite pour natation,14.85,152,5,Natation,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-08-20 00:00:00
+38,Palmes Courtes,Finis Swim,Palmes Courtes de haute qualite pour natation,44.1,25,5,Natation,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-02-28 00:00:00
+39,Serviette Microfibre XL,Arena,Serviette Microfibre XL de haute qualite pour natation,29.0,55,5,Natation,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2025-03-30 00:00:00
+40,Sac Etanche 30L,Speedo,Sac Etanche 30L de haute qualite pour natation,35.23,116,5,Natation,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2025-01-08 00:00:00
+41,Casque Aero Route,Giant Bikes,Casque Aero Route de haute qualite pour cyclisme,143.43,80,6,Cyclisme,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-07-10 00:00:00
+42,Cuissard Gel Pad,Shimano,Cuissard Gel Pad de haute qualite pour cyclisme,102.9,121,6,Cyclisme,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2025-03-01 00:00:00
+43,Maillot Respirant,Giant Bikes,Maillot Respirant de haute qualite pour cyclisme,59.25,24,6,Cyclisme,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-07-09 00:00:00
+44,Gants Cycliste,Trek Cycling,Gants Cycliste de haute qualite pour cyclisme,32.33,150,6,Cyclisme,accessoire,Unique|S/M|L/XL,EN_ARRIVAGE,False,2024-10-14 00:00:00
+45,Compteur GPS Velo,Specialized,Compteur GPS Velo de haute qualite pour cyclisme,226.99,105,6,Cyclisme,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-12-06 00:00:00
+46,Bidon Isotherme,Cannondale,Bidon Isotherme de haute qualite pour cyclisme,18.5,184,6,Cyclisme,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-05-27 00:00:00
+47,Lumieres LED Set,Giant Bikes,Lumieres LED Set de haute qualite pour cyclisme,33.46,26,6,Cyclisme,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-04-18 00:00:00
+48,Pompe Portable,Cannondale,Pompe Portable de haute qualite pour cyclisme,28.2,57,6,Cyclisme,accessoire,Unique|S/M|L/XL,RUPTURE_DE_STOCK,False,2024-06-28 00:00:00
+49,Gants 12oz Pro,Cleto Reyes,Gants 12oz Pro de haute qualite pour boxe,88.53,195,7,Boxe,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-04-25 00:00:00
+50,Sac de Frappe 120cm,Winning Co,Sac de Frappe 120cm de haute qualite pour boxe,183.37,196,7,Boxe,equipement,Junior|Standard|Pro,RUPTURE_DE_STOCK,False,2024-11-10 00:00:00
+51,Protege-dents Custom,Everlast,Protege-dents Custom de haute qualite pour boxe,16.25,168,7,Boxe,accessoire,Unique|S/M|L/XL,RUPTURE_DE_STOCK,False,2024-05-16 00:00:00
+52,Bandages 4.5m x2,Rival Boxing,Bandages 4.5m x2 de haute qualite pour boxe,11.56,179,7,Boxe,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2025-04-16 00:00:00
+53,Corde a Sauter Speed,Cleto Reyes,Corde a Sauter Speed de haute qualite pour boxe,24.38,46,7,Boxe,equipement,Junior|Standard|Pro,EN_ARRIVAGE,False,2024-10-16 00:00:00
+54,Casque Sparring,Everlast,Casque Sparring de haute qualite pour boxe,58.43,189,7,Boxe,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-01-16 00:00:00
+55,Chaussures Boxe,Rival Boxing,Chaussures Boxe de haute qualite pour boxe,117.29,55,7,Boxe,chaussure,38|39|40|41|42|43|44|45,EN_STOCK,False,2024-08-20 00:00:00
+56,Coquille Protection,Winning Co,Coquille Protection de haute qualite pour boxe,26.35,79,7,Boxe,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2025-02-01 00:00:00
+57,Halteres Reglables 20kg,Rogue Fitness,Halteres Reglables 20kg de haute qualite pour fitness,142.74,13,8,Fitness,equipement,Junior|Standard|Pro,EN_STOCK,False,2025-01-21 00:00:00
+58,Tapis Yoga Premium,Life Fitness,Tapis Yoga Premium de haute qualite pour fitness,41.24,20,8,Fitness,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-12-04 00:00:00
+59,Bandes Resistance Set,Rogue Fitness,Bandes Resistance Set de haute qualite pour fitness,31.27,113,8,Fitness,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-04-20 00:00:00
+60,Kettlebell 16kg,Rogue Fitness,Kettlebell 16kg de haute qualite pour fitness,51.41,110,8,Fitness,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-12-13 00:00:00
+61,Corde Battle Rope 12m,Life Fitness,Corde Battle Rope 12m de haute qualite pour fitness,83.45,170,8,Fitness,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-04-22 00:00:00
+62,Banc Musculation,Domyos,Banc Musculation de haute qualite pour fitness,258.43,14,8,Fitness,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-06-03 00:00:00
+63,Gants Musculation,Decathlon Fit,Gants Musculation de haute qualite pour fitness,23.66,195,8,Fitness,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-06-16 00:00:00
+64,Shaker Proteine 700ml,Life Fitness,Shaker Proteine 700ml de haute qualite pour fitness,10.44,191,8,Fitness,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-03-07 00:00:00
+65,Ballon Officiel V5,Mizuno Volley,Ballon Officiel V5 de haute qualite pour volleyball,53.3,58,9,Volleyball,equipement,Junior|Standard|Pro,EN_STOCK,False,2025-03-02 00:00:00
+66,Genouilleres Gel,Asics Volley,Genouilleres Gel de haute qualite pour volleyball,25.07,189,9,Volleyball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-01-10 00:00:00
+67,Chaussures Indoor,Asics Volley,Chaussures Indoor de haute qualite pour volleyball,113.44,80,9,Volleyball,chaussure,38|39|40|41|42|43|44|45,EN_STOCK,False,2024-10-20 00:00:00
+68,Filet Competition,Mikasa,Filet Competition de haute qualite pour volleyball,173.2,106,9,Volleyball,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-07-26 00:00:00
+69,Maillot Equipe,Asics Volley,Maillot Equipe de haute qualite pour volleyball,51.31,43,9,Volleyball,vetement,XS|S|M|L|XL|XXL,RUPTURE_DE_STOCK,False,2024-11-12 00:00:00
+70,Short Leger,Mikasa,Short Leger de haute qualite pour volleyball,30.39,92,9,Volleyball,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2025-03-08 00:00:00
+71,Sac Ballons,Asics Volley,Sac Ballons de haute qualite pour volleyball,32.25,150,9,Volleyball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-02-10 00:00:00
+72,Protege-doigts,Molten Sport,Protege-doigts de haute qualite pour volleyball,18.52,190,9,Volleyball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-06-19 00:00:00
+73,Ballon Resine T3,Kempa,Ballon Resine T3 de haute qualite pour handball,33.52,162,10,Handball,equipement,Junior|Standard|Pro,EN_STOCK,False,2024-09-18 00:00:00
+74,Chaussures Indoor Pro,Kempa,Chaussures Indoor Pro de haute qualite pour handball,137.81,89,10,Handball,chaussure,38|39|40|41|42|43|44|45,EN_STOCK,False,2025-05-05 00:00:00
+75,Maillot Respirant,Adidas Handball,Maillot Respirant de haute qualite pour handball,41.31,37,10,Handball,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-03-29 00:00:00
+76,Short Stretch,Salming,Short Stretch de haute qualite pour handball,26.28,194,10,Handball,vetement,XS|S|M|L|XL|XXL,EN_STOCK,False,2024-03-31 00:00:00
+77,Genouilleres Impact,Adidas Handball,Genouilleres Impact de haute qualite pour handball,36.11,144,10,Handball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-08-17 00:00:00
+78,Resine Grip 200ml,Select Sport,Resine Grip 200ml de haute qualite pour handball,11.2,159,10,Handball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2025-05-12 00:00:00
+79,Sac Sport 50L,Select Sport,Sac Sport 50L de haute qualite pour handball,39.39,17,10,Handball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-11-19 00:00:00
+80,Protege-dents Sport,Hummel,Protege-dents Sport de haute qualite pour handball,17.96,151,10,Handball,accessoire,Unique|S/M|L/XL,EN_STOCK,False,2024-09-16 00:00:00
