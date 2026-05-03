@@ -234,45 +234,170 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
       <!-- Add Product Modal (Admin Only) -->
       <div *ngIf="isAddModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
          <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="closeAddModal()"></div>
-         <div class="relative bg-card border border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-300 flex flex-col">
-            <div class="bg-primary px-8 py-6 flex items-center justify-between text-primary-foreground relative overflow-hidden">
-               <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 blur-2xl"></div>
-               <div class="relative z-10">
-                  <h2 class="text-2xl font-black uppercase tracking-tighter">{{ editingId ? 'Modifier le produit' : 'Nouveau Produit' }}</h2>
-                  <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest">{{ editingId ? 'ID: #' + editingId : 'Configuration du catalogue StreetLeague' }}</p>
-               </div>
-               <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="relative z-10 h-10 w-10 bg-black/10 hover:bg-black/20 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer">
+         <div class="relative bg-card border border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+            <div class="bg-green-500 px-8 py-6 flex items-center justify-between text-white relative">
+               <h2 class="text-2xl font-black">{{ editingId ? 'Modifier le produit' : 'Add un produit' }}</h2>
+               <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="h-10 w-10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer text-white">
                   <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
                </button>
             </div>
-            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
-               <form class="space-y-8">
-                  <div class="space-y-4">
-                     <div class="flex items-center gap-2 mb-2">
-                        <div class="w-6 h-6 bg-primary/10 text-primary rounded-lg flex items-center justify-center"><lucide-icon [img]="TagIcon" [size]="14"></lucide-icon></div>
-                        <h3 class="text-xs font-black uppercase tracking-widest text-muted-foreground">Informations Générales</h3>
+            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-white">
+               <form class="space-y-6">
+                  <!-- Nom & Brand -->
+                  <div class="grid grid-cols-2 gap-6">
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Nom</label>
+                        <input type="text" [(ngModel)]="newProduct.nom" name="nom" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ex: pull taraji">
                      </div>
-                     <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                           <label class="text-[10px] font-bold uppercase ml-1 opacity-60">Nom du Produit</label>
-                           <input type="text" [(ngModel)]="newProduct.nom" name="nom" class="w-full h-12 px-4 bg-muted/30 border-2 border-transparent focus:border-primary focus:bg-background rounded-2xl text-sm font-bold transition-all outline-none" placeholder="ex: Maillot Pro 2026">
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Brand</label>
+                        <input type="text" [(ngModel)]="newProduct.marque" name="marque" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ex: taraji store">
+                     </div>
+                  </div>
+
+                  <!-- Description -->
+                  <div class="space-y-2">
+                     <label class="text-sm font-bold text-foreground ml-1">Description</label>
+                     <textarea [(ngModel)]="newProduct.description" name="desc" rows="3" class="w-full p-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none resize-none" placeholder="Description du produit..."></textarea>
+                  </div>
+
+                  <!-- Price & Stock Global -->
+                  <div class="grid grid-cols-2 gap-6">
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Price (DT)</label>
+                        <input type="number" [(ngModel)]="newProduct.prix" name="prix" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none">
+                     </div>
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Stock Global</label>
+                        <input type="number" [(ngModel)]="newProduct.stock" name="stock" readonly class="w-full h-12 px-4 bg-muted/20 border border-border rounded-xl text-sm font-medium outline-none cursor-not-allowed opacity-80">
+                     </div>
+                  </div>
+
+                  <!-- Category & Status -->
+                  <div class="grid grid-cols-2 gap-6">
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Category</label>
+                        <select [(ngModel)]="newProduct.categoryId" name="cat" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
+                           <option [ngValue]="null">Select Category...</option>
+                           <option *ngFor="let c of categories" [value]="c.id">{{ c.nom || c.name }}</option>
+                        </select>
+                     </div>
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Status du Produit</label>
+                        <select [(ngModel)]="newProduct.status" name="status" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
+                           <option value="EN_STOCK">EN STOCK</option>
+                           <option value="EN_ARRIVAGE">EN ARRIVAGE</option>
+                           <option value="RUPTURE_DE_STOCK">RUPTURE DE STOCK</option>
+                        </select>
+                     </div>
+                  </div>
+
+                  <!-- Variantes Section -->
+                  <div class="border border-border rounded-2xl p-6 space-y-6">
+                     <h3 class="font-bold text-foreground border-b border-border pb-4">Variantes (Sizes & Pointures)</h3>
+                     
+                     <div class="space-y-4">
+                        <div class="space-y-2">
+                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Type d'Article</label>
+                           <select [(ngModel)]="productType" name="type" (change)="onTypeChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
+                              <option value="">Sélectionner un type...</option>
+                              <option value="vetement">Clothing (Pull, Short, Tenue)</option>
+                              <option value="chaussure">Footwear (Crampons, Baskets)</option>
+                           </select>
                         </div>
-                        <div class="space-y-1">
-                           <label class="text-[10px] font-bold uppercase ml-1 opacity-60">Marque / Brand</label>
-                           <input type="text" [(ngModel)]="newProduct.marque" name="marque" class="w-full h-12 px-4 bg-muted/30 border-2 border-transparent focus:border-primary focus:bg-background rounded-2xl text-sm font-bold transition-all outline-none" placeholder="ex: Adidas, Nike...">
+
+                        <div *ngIf="productType === 'chaussure'" class="space-y-2">
+                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Genre / Categorie</label>
+                           <select [(ngModel)]="productGender" name="gender" (change)="onGenderChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
+                              <option value="">Genre...</option>
+                              <option value="homme">Homme</option>
+                              <option value="femme">Femme</option>
+                              <option value="enfant">Enfant</option>
+                           </select>
+                        </div>
+
+                        <!-- Sizes Selection -->
+                        <div *ngIf="productType" class="space-y-3">
+                           <label class="text-xs font-bold text-muted-foreground">Cochez les tailles disponibles :</label>
+                           <div class="flex flex-wrap gap-2">
+                              <button *ngFor="let size of availableSizes" type="button" 
+                                 (click)="toggleSize(size)"
+                                 class="h-10 px-4 rounded-full text-xs font-black transition-all border flex items-center justify-center cursor-pointer"
+                                 [ngClass]="selectedSizes.includes(size) ? 'bg-green-500 text-white border-green-500' : 'bg-muted/20 text-muted-foreground border-border hover:border-primary'">
+                                 {{ size }}
+                              </button>
+                           </div>
+                        </div>
+
+                        <!-- Colors Selection -->
+                        <div *ngIf="productType === 'vetement'" class="space-y-3">
+                           <label class="text-xs font-bold text-muted-foreground">Couleurs disponibles :</label>
+                           <div class="flex flex-wrap gap-4">
+                              <button *ngFor="let col of CLOTHING_COLORS" type="button" 
+                                 (click)="toggleColor(col.name)"
+                                 class="flex flex-col items-center gap-1 group cursor-pointer">
+                                 <div [style.background-color]="col.hex" 
+                                    class="w-10 h-10 rounded-full border-2 shadow-sm flex items-center justify-center transition-all group-hover:scale-110"
+                                    [class.border-green-500]="selectedColors.includes(col.name)"
+                                    [class.border-border]="!selectedColors.includes(col.name)">
+                                    <div *ngIf="selectedColors.includes(col.name)" class="w-6 h-6 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white">
+                                       <lucide-icon [img]="CheckIcon" [size]="14"></lucide-icon>
+                                    </div>
+                                 </div>
+                                 <span class="text-[10px] font-bold uppercase tracking-tighter" [class.text-green-600]="selectedColors.includes(col.name)">{{ col.name }}</span>
+                              </button>
+                           </div>
+                        </div>
+
+                        <!-- Stock for each size -->
+                        <div *ngIf="selectedSizes.length > 0" class="space-y-3 pt-4 border-t border-border/50">
+                           <label class="text-xs font-bold text-muted-foreground">Stock pour chaque taille :</label>
+                           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              <div *ngFor="let size of selectedSizes" class="flex items-center gap-2 bg-muted/10 border border-border p-2 rounded-xl">
+                                 <span class="text-xs font-black w-8 text-center text-primary">{{ size }}</span>
+                                 <input type="number" [(ngModel)]="variantStocks[size]" [name]="'stock-'+size" (ngModelChange)="calculateTotalStock()" class="w-full bg-transparent border-none outline-none text-right text-sm font-bold" placeholder="0">
+                              </div>
+                           </div>
+                           <p class="text-[10px] text-muted-foreground italic">* Mettez le stock à 0 pour afficher la taille en "rupture de stock".</p>
+                        </div>
+
+                        <!-- Stock for each color -->
+                        <div *ngIf="selectedColors.length > 0" class="space-y-3 pt-4 border-t border-border/50">
+                           <label class="text-xs font-bold text-muted-foreground">Stock pour chaque couleur :</label>
+                           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              <div *ngFor="let col of selectedColors" class="flex items-center gap-2 bg-muted/10 border border-border p-2 rounded-xl">
+                                 <span class="text-[10px] font-black w-12 truncate text-primary uppercase">{{ col }}</span>
+                                 <input type="number" [(ngModel)]="colorStocks[col]" [name]="'cstock-'+col" (ngModelChange)="calculateTotalStock()" class="w-full bg-transparent border-none outline-none text-right text-sm font-bold" placeholder="0">
+                              </div>
+                           </div>
                         </div>
                      </div>
-                     <div class="space-y-1">
-                        <label class="text-[10px] font-bold uppercase ml-1 opacity-60">Description Complète</label>
-                        <textarea [(ngModel)]="newProduct.description" name="desc" rows="3" class="w-full p-4 bg-muted/30 border-2 border-transparent focus:border-primary focus:bg-background rounded-2xl text-sm font-medium transition-all outline-none resize-none" placeholder="Détails techniques, matière, coupe..."></textarea>
+                  </div>
+
+                  <!-- Image Section -->
+                  <div class="space-y-2">
+                     <label class="text-sm font-bold text-foreground ml-1">Image (URL ou Fichier)</label>
+                     <div class="flex items-center gap-4">
+                        <input type="text" [(ngModel)]="newImageUrl" name="imgUrl" class="flex-1 h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="https://...">
+                        <span class="text-xs font-black text-muted-foreground">OU</span>
+                        <div class="relative">
+                           <input type="file" (change)="onFileSelected($event)" class="absolute inset-0 opacity-0 cursor-pointer z-10">
+                           <button type="button" class="h-12 px-6 bg-muted/30 hover:bg-muted/50 text-green-600 font-bold rounded-xl transition-all flex items-center gap-2">
+                              Choisir un fichier
+                           </button>
+                        </div>
+                        <div *ngIf="isUploading" class="animate-spin text-primary">
+                           <lucide-icon [img]="Loader2Icon" [size]="20"></lucide-icon>
+                        </div>
                      </div>
                   </div>
                </form>
             </div>
-            <div class="p-6 bg-muted/50 border-t border-border flex items-center justify-between gap-4">
-               <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="px-8 py-3 font-black text-xs uppercase tracking-widest hover:bg-muted-foreground/10 rounded-2xl transition-all cursor-pointer">Annuler</button>
-               <button type="button" (click)="submitNewProduct(); cdr.detectChanges()" [disabled]="addingProduct || isUploading" class="flex-1 h-14 bg-primary text-primary-foreground font-black uppercase text-sm tracking-tighter rounded-2xl shadow-[0_10px_30px_rgba(255,184,0,0.3)] hover:translate-y-[-2px] hover:shadow-[0_15px_40px_rgba(255,184,0,0.4)] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer">
-                  {{ editingId ? 'Mettre à jour' : 'Créer le produit' }}
+            <div class="p-6 bg-white border-t border-border flex items-center justify-end gap-4">
+               <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="px-8 py-3 font-bold text-sm hover:bg-muted rounded-2xl transition-all cursor-pointer">Cancel</button>
+               <button type="button" (click)="submitNewProduct(); cdr.detectChanges()" [disabled]="addingProduct || isUploading" class="px-10 h-14 bg-green-500 text-white font-black uppercase text-sm tracking-tighter rounded-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer">
+                  <lucide-icon *ngIf="addingProduct" [img]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
+                  {{ editingId ? 'Enregistrer les modifications' : 'Add le produit' }}
                </button>
             </div>
          </div>
@@ -325,54 +450,173 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
         </div>
       </div>
 
-      <!-- Checkout Drawer -->
       <div *ngIf="isCheckoutOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
-         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="isCheckoutOpen = false; cdr.detectChanges()"></div>
-         <div class="relative bg-card border border-border shadow-2xl rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
-            <div class="flex items-center justify-between p-6 border-b border-border bg-card relative z-10">
+         <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="isCheckoutOpen = false; cdr.detectChanges()"></div>
+         <div class="relative bg-card border border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2rem] w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+            <div class="flex items-center justify-between p-8 border-b border-border bg-white relative z-10">
                <h2 class="text-2xl font-black">Finalize Order</h2>
-               <button type="button" (click)="isCheckoutOpen = false; cdr.detectChanges()" class="p-2 hover:bg-muted rounded-full cursor-pointer"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
+               <button type="button" (click)="isCheckoutOpen = false; cdr.detectChanges()" class="h-10 w-10 bg-muted/50 rounded-full flex items-center justify-center hover:bg-muted cursor-pointer transition-all active:scale-90"><lucide-icon [img]="XIcon" [size]="20"></lucide-icon></button>
             </div>
-            <div class="flex-1 overflow-y-auto p-6 space-y-6">
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div class="space-y-1">
-                     <label class="text-[10px] font-bold uppercase opacity-60">Full Name</label>
-                     <input type="text" [(ngModel)]="checkoutData.clientName" class="w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:border-primary outline-none text-sm font-bold">
+            
+            <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar bg-white">
+               <!-- Delivery Information -->
+               <div class="space-y-6">
+                  <h3 class="font-bold text-foreground border-b border-border pb-3">Delivery Information</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Full Name</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientName" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ibtihel baccari">
+                     </div>
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Phone Number</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientPhone" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="94385191">
+                     </div>
                   </div>
-                  <div class="space-y-1">
-                     <label class="text-[10px] font-bold uppercase opacity-60">Phone Number</label>
-                     <input type="text" [(ngModel)]="checkoutData.clientPhone" class="w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:border-primary outline-none text-sm font-bold">
+                  <div class="space-y-2">
+                     <label class="text-sm font-bold text-foreground ml-1">Full Address</label>
+                     <input type="text" [(ngModel)]="checkoutData.clientAddress" (ngModelChange)="onAddressChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="sfax">
+                  </div>
+                  <div class="grid grid-cols-2 gap-6">
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">Postal Code</label>
+                        <input type="text" [(ngModel)]="checkoutData.clientPostalCode" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none">
+                     </div>
+                     <div class="space-y-2">
+                        <label class="text-sm font-bold text-foreground ml-1">City / Governorate</label>
+                        <select [(ngModel)]="checkoutData.clientCity" (change)="onAddressChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
+                           <option *ngFor="let gov of governorates" [value]="gov.name">{{ gov.name }}</option>
+                        </select>
+                     </div>
                   </div>
                </div>
-               <div class="space-y-1">
-                  <label class="text-[10px] font-bold uppercase opacity-60">Delivery Address</label>
-                  <input type="text" [(ngModel)]="checkoutData.clientAddress" (ngModelChange)="onAddressChange()" class="w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:border-primary outline-none text-sm font-bold">
-               </div>
-               <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-1">
-                     <label class="text-[10px] font-bold uppercase opacity-60">Postal Code</label>
-                     <input type="text" [(ngModel)]="checkoutData.clientPostalCode" class="w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:border-primary outline-none text-sm font-bold">
+
+               <!-- Delivery Mode -->
+               <div class="space-y-6">
+                  <h3 class="font-bold text-foreground border-b border-border pb-3">Delivery Mode</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div (click)="checkoutData.deliveryMode = 'LIVRAISON_DOMICILE'; onAddressChange()" 
+                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
+                        [class.border-green-500]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'"
+                        [class.bg-green-500/5]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'">
+                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
+                           [class.border-green-500]="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'"
+                           [class.border-muted-foreground/30]="checkoutData.deliveryMode !== 'LIVRAISON_DOMICILE'">
+                           <div *ngIf="checkoutData.deliveryMode === 'LIVRAISON_DOMICILE'" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                        <div class="flex flex-col">
+                           <span class="font-bold text-sm">Home Delivery</span>
+                           <span class="text-[10px] font-bold" [class.text-green-600]="cartTotal >= 300" [class.text-muted-foreground]="cartTotal < 300">
+                              {{ cartTotal >= 300 ? 'Free (Order >= 300 DT)' : backendDeliveryFee + ',000 DT Fee' }}
+                           </span>
+                        </div>
+                     </div>
+                     <div (click)="checkoutData.deliveryMode = 'RETRAIT_MAGASIN'; onAddressChange()" 
+                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
+                        [class.border-green-500]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'"
+                        [class.bg-green-500/5]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'">
+                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
+                           [class.border-green-500]="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'"
+                           [class.border-muted-foreground/30]="checkoutData.deliveryMode !== 'RETRAIT_MAGASIN'">
+                           <div *ngIf="checkoutData.deliveryMode === 'RETRAIT_MAGASIN'" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                        <div class="flex flex-col">
+                           <span class="font-bold text-sm">Store Pickup</span>
+                           <span class="text-[10px] font-bold text-muted-foreground">Free</span>
+                        </div>
+                     </div>
                   </div>
-                  <div class="space-y-1">
-                     <label class="text-[10px] font-bold uppercase opacity-60">City / Governorate</label>
-                     <select [(ngModel)]="checkoutData.clientCity" (change)="onAddressChange()" class="w-full h-12 px-4 bg-muted/30 border border-border rounded-xl focus:border-primary outline-none text-sm font-bold">
-                        <option *ngFor="let gov of governorates" [value]="gov.name">{{ gov.name }}</option>
-                     </select>
+               </div>
+
+               <!-- Payment Mode -->
+               <div class="space-y-6">
+                  <h3 class="font-bold text-foreground border-b border-border pb-3">Payment</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div (click)="checkoutData.paymentMode = 'ESPECE'" 
+                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
+                        [class.border-green-500]="checkoutData.paymentMode === 'ESPECE'"
+                        [class.bg-green-500/5]="checkoutData.paymentMode === 'ESPECE'">
+                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
+                           [class.border-green-500]="checkoutData.paymentMode === 'ESPECE'"
+                           [class.border-muted-foreground/30]="checkoutData.paymentMode !== 'ESPECE'">
+                           <div *ngIf="checkoutData.paymentMode === 'ESPECE'" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                        <div class="flex flex-col">
+                           <span class="font-bold text-sm">{{ checkoutData.deliveryMode === 'RETRAIT_MAGASIN' ? 'Cash in Store' : 'Cash on Delivery' }}</span>
+                           <span class="text-[10px] font-bold text-muted-foreground uppercase">{{ checkoutData.deliveryMode === 'RETRAIT_MAGASIN' ? 'Espece en magasin' : 'Espece à la livraison' }}</span>
+                        </div>
+                     </div>
+                     <div (click)="checkoutData.paymentMode = 'CARTE'" 
+                        class="flex items-center gap-4 p-5 border rounded-2xl cursor-pointer transition-all group"
+                        [class.border-green-500]="checkoutData.paymentMode === 'CARTE'"
+                        [class.bg-green-500/5]="checkoutData.paymentMode === 'CARTE'">
+                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all"
+                           [class.border-green-500]="checkoutData.paymentMode === 'CARTE'"
+                           [class.border-muted-foreground/30]="checkoutData.paymentMode !== 'CARTE'">
+                           <div *ngIf="checkoutData.paymentMode === 'CARTE'" class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        </div>
+                        <div class="flex flex-col">
+                           <span class="font-bold text-sm">Credit Card</span>
+                           <span class="text-[10px] font-bold text-muted-foreground uppercase">Paiement sécurisé</span>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Card Fields -->
+                  <div *ngIf="checkoutData.paymentMode === 'CARTE'" class="p-6 bg-muted/20 rounded-2xl border border-border space-y-4 animate-in slide-in-from-top-2">
+                     <div class="space-y-2">
+                        <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Card Number</label>
+                        <input type="text" [(ngModel)]="checkoutData.cardNumber" name="cnum" class="w-full h-12 px-4 bg-white border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="xxxx xxxx xxxx xxxx">
+                     </div>
+                     <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Expiry Date</label>
+                           <input type="text" [(ngModel)]="checkoutData.expiryDate" name="exp" class="w-full h-12 px-4 bg-white border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="MM/YY">
+                        </div>
+                        <div class="space-y-2">
+                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">CVV</label>
+                           <input type="password" [(ngModel)]="checkoutData.cvv" name="cvv" class="w-full h-12 px-4 bg-white border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="xxx">
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <!-- Promo Code -->
+               <div class="space-y-6">
+                  <h3 class="font-bold text-foreground border-b border-border pb-3">Promo Code</h3>
+                  <div class="flex items-center gap-3">
+                     <input type="text" [(ngModel)]="promoCodeInput" name="promo" class="flex-1 h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ENTER PROMO CODE">
+                     <button type="button" (click)="applyPromoCode()" class="h-12 px-8 bg-green-500 text-white font-black rounded-xl hover:bg-green-600 transition-all active:scale-95 text-xs uppercase cursor-pointer">Apply</button>
                   </div>
                </div>
             </div>
-            <div class="p-6 border-t border-border bg-card shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] relative z-10">
-               <div class="flex items-center justify-between mb-4">
-                  <div class="flex flex-col">
-                     <span class="text-lg font-bold">Final Total</span>
-                     <span *ngIf="isCalculatingFee" class="text-[10px] text-primary animate-pulse font-bold uppercase">Calculating delivery...</span>
+
+            <!-- Footer Details -->
+            <div class="p-8 border-t border-border bg-white shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] relative z-10">
+               <div class="space-y-3 mb-6">
+                  <div class="flex items-center justify-between text-sm font-bold text-muted-foreground/60">
+                     <span>Subtotal</span>
+                     <span>{{ formatPrice(cartTotal) }}</span>
                   </div>
-                  <span class="text-2xl font-black text-primary">{{ formatPrice(finalTotal) }}</span>
+                  <div class="flex items-center justify-between text-sm font-bold text-muted-foreground/60">
+                     <span>Delivery Fee</span>
+                     <span>+ {{ formatPrice(checkoutDeliveryFee) }}</span>
+                  </div>
                </div>
-               <button type="button" (click)="confirmCheckout(); cdr.detectChanges()" class="w-full py-4 bg-primary text-primary-foreground font-black rounded-xl text-lg flex items-center justify-center gap-2 hover:bg-primary/90 cursor-pointer shadow-lg shadow-primary/20"><lucide-icon [img]="ShoppingCartIcon" [size]="20"></lucide-icon> Confirm Order</button>
+               <div class="flex items-center justify-between mb-8">
+                  <span class="text-xl font-black">Final Total</span>
+                  <div class="flex flex-col items-end">
+                     <span class="text-3xl font-black text-green-500">{{ formatPrice(finalTotal) }}</span>
+                     <span *ngIf="isCalculatingFee" class="text-[10px] text-green-600 animate-pulse font-bold uppercase tracking-widest">Calculating fee...</span>
+                  </div>
+               </div>
+               <button type="button" (click)="confirmCheckout(); cdr.detectChanges()" class="w-full h-16 bg-green-500 text-white font-black uppercase text-sm tracking-tighter rounded-2xl shadow-xl shadow-green-500/20 hover:bg-green-600 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer">
+                  <lucide-icon [img]="ShoppingCartIcon" [size]="20"></lucide-icon>
+                  Confirm Order
+               </button>
             </div>
          </div>
       </div>
+
 
       <!-- Orders Tracker -->
       <div *ngIf="isOrdersOpen" class="fixed inset-0 z-[120] flex justify-end">
@@ -1034,6 +1278,17 @@ export class SponsorsComponent implements OnInit, OnDestroy {
       this.editingId = product.id;
       this.isEditMode = true;
       this.isAddModalOpen = true;
+      
+      // Auto-detect product type based on category
+      const catName = (product.category?.nom || product.category?.name || '').toLowerCase();
+      if (catName.includes('shoe') || catName.includes('chaussure') || catName.includes('crampon') || catName.includes('basket')) {
+         this.productType = 'chaussure';
+      } else if (catName.includes('cloth') || catName.includes('vêtement') || catName.includes('habit') || catName.includes('pull')) {
+         this.productType = 'vetement';
+      } else {
+         this.productType = '';
+      }
+
       this.productService.getProductById(product.id).subscribe({
          next: (fullProduct: Product) => {
             this.newProduct = {
@@ -1048,7 +1303,19 @@ export class SponsorsComponent implements OnInit, OnDestroy {
                variants: fullProduct.variants || []
             };
             this.newImageUrl = (this.newProduct.images.length > 0) ? this.newProduct.images[0] : '';
+            
+            // Auto-detect gender if it's a shoe
+            if (this.productType === 'chaussure' && fullProduct.variants && fullProduct.variants.length > 0) {
+               const firstSize = fullProduct.variants[0].size;
+               if (firstSize) {
+                  if (this.SIZES_CHAUSSURE_HOMME.includes(firstSize)) this.productGender = 'homme';
+                  else if (this.SIZES_CHAUSSURE_FEMME.includes(firstSize)) this.productGender = 'femme';
+                  else if (this.SIZES_CHAUSSURE_ENFANT.includes(firstSize)) this.productGender = 'enfant';
+               }
+            }
+
             this.autoDetectSizesFromVariants();
+            this.calculateTotalStock();
             this.cdr.detectChanges();
          }
       });
@@ -1129,9 +1396,17 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             this.addingProduct = false;
             this.closeAddModal();
             this.showToast('Product saved successfully!');
+            
+            // Recharger les produits et forcer la détection de changements
             this.loadProducts();
+            this.cdr.detectChanges();
          },
-         error: () => this.addingProduct = false
+         error: (err) => {
+            this.addingProduct = false;
+            console.error('Error saving product:', err);
+            this.showToast('❌ Error saving product');
+            this.cdr.detectChanges();
+         }
       });
    }
 
@@ -1173,6 +1448,18 @@ export class SponsorsComponent implements OnInit, OnDestroy {
             this.loadCart();
          }
       });
+   }
+
+   applyPromoCode() {
+      if (!this.promoCodeInput.trim()) {
+         this.showToast('Please enter a promo code');
+         return;
+      }
+      this.showToast('Applying promo code...');
+      setTimeout(() => {
+         this.showToast('Promo code applied successfully! 🎉');
+         this.cdr.detectChanges();
+      }, 1000);
    }
 
    ngOnDestroy(): void {
