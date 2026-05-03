@@ -1,4 +1,3 @@
-// medical-records.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +15,7 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
   imports: [CommonModule, FormsModule, HttpClientModule, RouterModule],
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
-      <!-- En-tête avec dégradé vert -->
+      <!-- En-tête -->
       <div class="bg-gradient-to-r from-green-50 to-emerald-100 rounded-2xl p-6 shadow-sm">
         <div class="flex flex-wrap justify-between items-center">
           <div class="flex items-center gap-4">
@@ -36,7 +35,7 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
         </div>
       </div>
 
-      <!-- Toast notification -->
+      <!-- Toast -->
       <div *ngIf="notification" 
            class="fixed bottom-5 right-5 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium animate-bounce"
            [class.bg-green-600]="notificationType === 'success'"
@@ -44,13 +43,13 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
         {{ notification }}
       </div>
 
-      <!-- CHARGEMENT -->
+      <!-- Chargement -->
       <div *ngIf="isLoading" class="text-center py-12 text-gray-500">
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent"></div>
         <p class="mt-2">Loading records...</p>
       </div>
 
-      <!-- TABLEAU DES DOSSIERS -->
+      <!-- Tableau -->
       <div *ngIf="!isLoading" class="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
         <div class="px-6 py-4 border-b bg-gray-50/50 flex justify-between items-center">
           <h3 class="font-bold text-gray-700 flex items-center gap-2">📋 Records List <span class="bg-gray-200 text-gray-600 text-[10px] px-2 py-0.5 rounded-full">{{ records.length }}</span></h3>
@@ -106,19 +105,14 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
                     </button>
                   </div>
                 </td>
-              </tr>
+               </tr>
               <tr *ngIf="records.length === 0">
                 <td colspan="7" class="px-6 py-10 text-center text-gray-400">No medical record found</td>
-              </tr>
+               </tr>
             </tbody>
-          </table>
+           </table>
         </div>
       </div>
-    </div>
-
-    <!-- Modal de création / modification (inchangée) -->
-    <div *ngIf="modalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <!-- contenu du modal identique à l'original -->
     </div>
 
     <!-- Modal de création / modification -->
@@ -130,12 +124,21 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
         </div>
         <form #recordForm="ngForm" (ngSubmit)="save()" class="p-6 space-y-5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Patient : pour non-admin sans profil, afficher un message bloquant -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Patient *</label>
-              <select [(ngModel)]="form.healthProfileId" name="healthProfileId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" [disabled]="!isAdmin">
-                <option *ngFor="let hp of healthProfiles" [value]="hp.id">{{ getPatientName(hp.id) }}</option>
+              <div *ngIf="!isAdmin && !currentUserHealthProfileId" class="text-amber-600 text-sm p-2 bg-amber-50 rounded-lg border border-amber-200 mb-2">
+                ⚠️ You must create your health profile before adding a medical record.
+              </div>
+              <select *ngIf="isAdmin || currentUserHealthProfileId" 
+                      [(ngModel)]="form.healthProfileId" name="healthProfileId" required 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                <option *ngFor="let hp of healthProfiles" [ngValue]="hp.id">{{ getPatientName(hp.id) }}</option>
               </select>
-              <div *ngIf="recordForm.submitted && !form.healthProfileId" class="text-red-500 text-xs mt-1">Required field</div>
+              <input *ngIf="!isAdmin && !currentUserHealthProfileId" 
+                     type="text" disabled value="No health profile available" 
+                     class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500">
+              <div *ngIf="recordForm.submitted && !form.healthProfileId && (isAdmin || currentUserHealthProfileId)" class="text-red-500 text-xs mt-1">Required field</div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Diagnosis *</label>
@@ -177,7 +180,7 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
               <label class="block text-sm font-medium text-gray-700 mb-1">Treating Doctor</label>
               <select [(ngModel)]="form.treatedByDoctorId" name="treatedByDoctorId" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
                 <option [ngValue]="undefined">Select a doctor</option>
-                <option *ngFor="let d of doctors" [value]="d.id">Dr. {{ d.firstName }} {{ d.lastName }} ({{ d.specialty }})</option>
+                <option *ngFor="let d of doctors" [ngValue]="d.id">Dr. {{ d.firstName }} {{ d.lastName }} ({{ d.specialty }})</option>
               </select>
             </div>
           </div>
@@ -192,7 +195,7 @@ import { DoctorService, DoctorResponse } from '../../services/doctor.service';
           </div>
           <div class="flex justify-end gap-3 pt-4 border-t">
             <button type="button" (click)="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-            <button type="submit" [disabled]="recordForm.invalid && recordForm.submitted" 
+            <button type="submit" [disabled]="(!isAdmin && !currentUserHealthProfileId) || (recordForm.invalid && recordForm.submitted)" 
                     class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
               {{ editingId ? 'Update' : 'Create' }}
             </button>
@@ -294,24 +297,21 @@ export class MedicalRecordsComponent implements OnInit {
   private loadInitialData() {
     this.isLoading = true;
     if (this.isAdmin) {
-      // Admin: Load everything directly
       this.loadHealthProfiles();
     } else if (this.currentUserId) {
-      // Regular user: Must have a health profile to see records
       this.healthProfileService.getByUserId(this.currentUserId).subscribe({
         next: (hp) => {
           if (hp) {
             this.currentUserHealthProfileId = hp.id;
             this.healthProfiles = [hp];
-            this.loadUsers();
           } else {
-            this.isLoading = false;
-            this.cdr.detectChanges();
+            this.healthProfiles = [];
           }
+          this.loadUsers();
         },
         error: () => {
-          this.isLoading = false;
-          this.cdr.detectChanges();
+          this.healthProfiles = [];
+          this.loadUsers();
         }
       });
     } else {
@@ -372,7 +372,7 @@ export class MedicalRecordsComponent implements OnInit {
   loadRecords() {
     this.isLoading = true;
     let obs: Observable<MedicalRecordResponse[]>;
-    
+
     if (this.isAdmin) {
       obs = this.medicalService.getAll();
     } else if (this.currentUserHealthProfileId) {
@@ -388,9 +388,6 @@ export class MedicalRecordsComponent implements OnInit {
       next: (data: MedicalRecordResponse[]) => {
         this.records = data;
         this.isLoading = false;
-        if (this.records.length > 0 && !this.selectedRecord) {
-          this.showDetails(this.records[0]);
-        }
         this.cdr.detectChanges();
       },
       error: (err: any) => {
@@ -480,12 +477,8 @@ export class MedicalRecordsComponent implements OnInit {
     this.showNotification('HTML Record downloaded', 'success');
   }
 
+  // ✅ Bouton toujours actif : la modale s'ouvre même sans profil santé
   openModal(r?: MedicalRecordResponse) {
-    if (!this.isAdmin && !this.currentUserHealthProfileId) {
-      this.showNotification('Action blocked: You must first create your health profile in the "Profile" module.', 'error');
-      return;
-    }
-
     if (r) {
       this.editingId = r.id;
       this.form = { ...r };
@@ -494,6 +487,7 @@ export class MedicalRecordsComponent implements OnInit {
       this.form.actualRecoveryDate = r.actualRecoveryDate ? r.actualRecoveryDate.substring(0, 10) : '';
     } else {
       this.editingId = null;
+      // Pour un non-admin sans profil santé, on laisse healthProfileId à 0 (sera invalidé à la sauvegarde)
       const defaultHpId = this.isAdmin ? (this.healthProfiles.length > 0 ? this.healthProfiles[0].id : 0) : (this.currentUserHealthProfileId || 0);
       this.form = {
         healthProfileId: defaultHpId,
@@ -511,20 +505,31 @@ export class MedicalRecordsComponent implements OnInit {
       };
     }
     this.modalVisible = true;
+    this.cdr.detectChanges();
   }
 
   closeModal() {
     this.modalVisible = false;
+    this.cdr.detectChanges();
   }
 
   save() {
     if (this.isSubmitting) return;
+    // Vérification spécifique pour les non-admin sans profil
+    if (!this.isAdmin && !this.currentUserHealthProfileId) {
+      this.showNotification('You cannot create a medical record without a health profile. Please create your health profile first.', 'error');
+      return;
+    }
     if (!this.form.healthProfileId || !this.form.diagnosis || !this.form.injuryDate) {
       this.showNotification('Please fill required fields (Patient, Diagnosis, Injury Date)', 'error');
       return;
     }
     this.isSubmitting = true;
-    const payload = { ...this.form };
+    const payload = { 
+      ...this.form,
+      healthProfileId: Number(this.form.healthProfileId),
+      treatedByDoctorId: this.form.treatedByDoctorId ? Number(this.form.treatedByDoctorId) : undefined
+    };
     const obs = this.editingId ? this.medicalService.update(this.editingId, payload) : this.medicalService.create(payload);
     obs.subscribe({
       next: (res) => { this.loadRecords(); this.closeModal(); this.isSubmitting = false; this.showNotification(this.editingId ? 'Record updated' : 'Record created', 'success'); },

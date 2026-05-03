@@ -33,7 +33,7 @@ interface SavedScore {
   imports: [CommonModule, FormsModule, HttpClientModule, RouterModule],
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
-      <!-- EN-TÊTE UNIFIÉ STYLE "DOSSIER MÉDICAL" -->
+      <!-- EN-TÊTE -->
       <div class="bg-emerald-50/80 backdrop-blur-sm rounded-3xl p-6 mb-10 border border-emerald-100/50 flex flex-wrap justify-between items-center gap-6 shadow-sm">
         <div class="flex items-center gap-6">
           <a routerLink="/app/healthcare" class="bg-white px-4 py-2 rounded-xl text-xs font-bold text-green-700 shadow-sm border border-green-100 hover:bg-green-50 transition-all flex items-center gap-2">
@@ -97,10 +97,10 @@ interface SavedScore {
 
       <!-- Détails du profil sélectionné -->
       <div *ngIf="selectedProfilee" id="patient-details" class="mt-8 space-y-8 animate-fade-in">
+        <!-- Contenu complet des détails -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Colonne Gauche -->
+          <!-- Colonne gauche : bilan, score, métabolisme -->
           <div class="lg:col-span-1 space-y-8">
-            <!-- Bilan général (NOUVEAU) -->
             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-3xl border border-blue-200 shadow-lg">
               <h3 class="font-black text-gray-800 text-sm uppercase mb-4 flex items-center gap-2">📋 Santé globale</h3>
               <div class="space-y-3 text-sm">
@@ -112,7 +112,6 @@ interface SavedScore {
               </div>
             </div>
 
-            <!-- Score Santé -->
             <div class="bg-white p-6 rounded-3xl border shadow-lg relative overflow-hidden group">
               <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition text-6xl">🧬</div>
               <h3 class="font-black text-gray-800 text-sm uppercase mb-6 flex items-center gap-2">🌟 Overall Score</h3>
@@ -120,14 +119,8 @@ interface SavedScore {
                 <div class="relative w-40 h-40">
                   <svg class="w-full h-full" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="45" fill="none" stroke="#f3f4f6" stroke-width="8"/>
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#healthGrad)" stroke-width="8" 
-                            stroke-dasharray="283" [attr.stroke-dashoffset]="283 - (283 * healthScore / 100)" 
-                            stroke-linecap="round" transform="rotate(-90 50 50)"/>
-                    <defs>
-                      <linearGradient id="healthGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#f87171"/><stop offset="50%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#34d399"/>
-                      </linearGradient>
-                    </defs>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="url(#healthGrad)" stroke-width="8" stroke-dasharray="283" [attr.stroke-dashoffset]="283 - (283 * healthScore / 100)" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                    <defs><linearGradient id="healthGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f87171"/><stop offset="50%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#34d399"/></linearGradient></defs>
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center">
                     <span class="text-4xl font-black text-gray-800">{{ healthScore }}</span>
@@ -135,10 +128,12 @@ interface SavedScore {
                   </div>
                 </div>
                 <p class="text-xs text-center mt-6 font-bold text-gray-600 px-4 leading-relaxed">{{ healthScoreMessage }}</p>
+                <button type="button" (click)="openAiCalculation()" class="mt-4 text-[10px] bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-200 hover:bg-green-100 transition-all font-black uppercase tracking-wider flex items-center gap-2">
+                  <span>✨</span> AI Calculation
+                </button>
               </div>
             </div>
 
-            <!-- Metabolism & Needs -->
             <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-lg text-gray-800">
               <h3 class="font-bold text-sm uppercase mb-6 flex items-center gap-2 text-gray-700">🔥 Metabolism & Needs</h3>
               <div class="space-y-4">
@@ -158,24 +153,19 @@ interface SavedScore {
               <p class="text-[10px] mt-6 text-gray-400 italic text-center">Harris-Benedict Formula (Moderate activity)</p>
             </div>
 
-            <!-- SMART NUTRITION LINK -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 relative overflow-hidden group">
                <div class="absolute -top-10 -right-10 w-32 h-32 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-all"></div>
                <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">🥗 Smart Nutrition</h3>
                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs font-bold text-gray-500">Daily Goal</p>
-                    <p class="text-2xl font-black tracking-tight text-green-600">{{ maintenanceCalories }} kcal</p>
-                  </div>
+                  <div><p class="text-xs font-bold text-gray-500">Daily Goal</p><p class="text-2xl font-black tracking-tight text-green-600">{{ maintenanceCalories }} kcal</p></div>
                   <a routerLink="/app/healthcare/diet" class="bg-green-50 hover:bg-green-100 text-green-600 p-3 rounded-2xl transition-all shadow-sm">➡️</a>
                </div>
                <p class="text-[10px] text-gray-400 mt-4 leading-relaxed italic font-medium">Synchronized with your weekly sports program.</p>
             </div>
           </div>
 
-          <!-- Colonne Droite -->
+          <!-- Colonne droite : conseils, programme, historique -->
           <div class="lg:col-span-2 space-y-8">
-            <!-- Expert Advice -->
             <div class="bg-white p-6 rounded-3xl border shadow-lg">
               <h3 class="font-black text-gray-800 text-sm uppercase mb-4 flex items-center gap-2">💡 Expert Advice</h3>
               <div class="bg-amber-50 border border-amber-100 p-5 rounded-2xl flex gap-4">
@@ -184,314 +174,44 @@ interface SavedScore {
               </div>
             </div>
 
-            <!-- Plan d'activité hebdomadaire -->
+            <!-- Plan d'activité -->
             <div id="activity-plan-section" class="rounded-xl overflow-hidden border shadow-xl bg-white mb-6">
               <div class="bg-gradient-to-r from-green-700 to-emerald-700 px-6 py-5">
                 <div class="flex flex-wrap justify-between items-center gap-4">
-                  <div>
-                    <h3 class="font-bold text-white text-xl flex items-center gap-2">🗓️ Smart Sports Program</h3>
-                    <p class="text-green-200 text-sm mt-1">Personalized by BMI: {{ selectedProfilee.bmiCategory }}</p>
-                  </div>
+                  <div><h3 class="font-bold text-white text-xl flex items-center gap-2">🗓️ Smart Sports Program</h3><p class="text-green-200 text-sm mt-1">Personalized by BMI: {{ selectedProfilee.bmiCategory }}</p></div>
                   <div class="flex items-center gap-3">
-                    <button (click)="togglePlanMode()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1 rounded-full transition">
-                      {{ showImcBasedPlan ? '📋 Normal Plan (with injuries)' : '📊 BMI-based Plan (ignore injuries)' }}
-                    </button>
-                    <div class="flex flex-col items-end">
-                      <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm shadow-sm font-bold border border-white/10">
-                        Cycle: Week {{ currentWeek }}/4
-                      </span>
-                      <span class="text-green-200 text-[10px] mt-1 italic">Changes in {{ daysUntilNextWeek }} days</span>
-                    </div>
+                    <button (click)="togglePlanMode()" class="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1 rounded-full transition">{{ showImcBasedPlan ? '📋 Normal Plan (with injuries)' : '📊 BMI-based Plan (ignore injuries)' }}</button>
+                    <div class="flex flex-col items-end"><span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm shadow-sm font-bold border border-white/10">Cycle: Week {{ currentWeek }}/4</span><span class="text-green-200 text-[10px] mt-1 italic">Changes in {{ daysUntilNextWeek }} days</span></div>
                   </div>
                 </div>
               </div>
-
-              <!-- Alerte quotidienne -->
-              <div *ngIf="todayActivity && !isPlanLoading" class="bg-green-600 px-6 py-3 flex items-center justify-between text-white animate-pulse-slow">
-                <div class="flex items-center gap-3">
-                  <span class="text-2xl">⚡</span>
-                  <div>
-                    <p class="text-xs font-bold uppercase opacity-80">Today's Activity: {{ todayActivity.dayOfWeek }}</p>
-                    <p class="font-bold text-lg">{{ todayActivity.activityName }} ({{ todayActivity.durationMinutes }} min)</p>
-                  </div>
-                </div>
-                <div class="hidden md:block text-right">
-                  <p class="text-xs opacity-80">Intensity</p>
-                  <p class="font-medium">{{ todayActivity.intensity }}</p>
-                </div>
-              </div>
-
-              <!-- Medical Alert -->
-              <div *ngIf="!isPlanLoading && activityPlan.length > 0 && activityPlan[0].description.includes('🩹') && !showImcBasedPlan" class="bg-red-100 border-l-8 border-red-500 px-6 py-4 flex items-center gap-4">
-                <span class="text-3xl">🩺</span>
-                <div>
-                  <p class="text-red-900 font-bold">RECOVERY MODE ACTIVE</p>
-                  <p class="text-red-700 text-sm">This plan considers your injury. Click "BMI-based Plan" to see the program based only on your body composition.</p>
-                </div>
-              </div>
-
-              <div *ngIf="isPlanLoading" class="p-12 text-center text-gray-500">
-                <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-green-500 border-t-transparent mb-4"></div>
-                <p class="text-lg font-medium">Synchronizing...</p>
-              </div>
-
-              <!-- Tableau d'activités -->
-              <div class="px-6 py-3 bg-gray-50 border-b flex justify-center">
-                <button (click)="isTableVisible = !isTableVisible" class="text-green-700 font-bold hover:underline flex items-center gap-2">
-                  {{ isTableVisible ? '⬇️ Hide table' : '⬇️ Show full program' }}
-                </button>
-              </div>
-              
-              <div *ngIf="isTableVisible && !isPlanLoading && activityPlan.length > 0" class="p-6 animate-fade-in">
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                  <div class="lg:col-span-3 overflow-x-auto">
-                    <table class="min-w-full border-collapse">
-                      <thead>
-                        <tr class="text-left text-xs font-bold text-green-700 uppercase tracking-widest border-b border-green-200">
-                          <th class="pb-3 px-2">Day</th>
-                          <th class="pb-3">Activity</th>
-                          <th class="pb-3 text-center">Duration</th>
-                          <th class="pb-3 text-center">Intensity</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-green-100">
-                        <ng-container *ngFor="let act of activityPlan; let i = index">
-                          <tr *ngIf="act.durationMinutes > 0" class="group transition-all hover:bg-green-50" [class.bg-green-50]="i === currentDayIndex">
-                            <td class="py-4 px-2">
-                              <div class="flex items-center gap-2">
-                                <span *ngIf="i === currentDayIndex" class="text-green-600 animate-bounce">📍</span>
-                                <span class="font-bold" [class.text-green-700]="i === currentDayIndex">{{ act.dayOfWeek }}</span>
-                              </div>
-                            </td>
-                            <td class="py-4">
-                              <p class="font-bold text-gray-800">{{ act.activityName }}</p>
-                              <p class="text-xs text-gray-400 mt-0.5">{{ act.description }}</p>
-                            </td>
-                            <td class="py-4 text-center font-medium text-gray-600">{{ act.durationMinutes }} min</td>
-                            <td class="py-4 text-center">
-                              <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm"
-                                [ngClass]="{
-                                  'bg-green-100 text-green-700': act.intensity === 'Faible',
-                                  'bg-amber-100 text-amber-700': act.intensity.includes('Modérée') || act.intensity.includes('Moderate'),
-                                  'bg-rose-100 text-rose-700': act.intensity.includes('Élevée') || act.intensity.includes('High')
-                                }">
-                                {{ act.intensity }}
-                              </span>
-                            </td>
-                          </tr>
-                        </ng-container>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div class="bg-green-50 rounded-2xl p-5 border border-green-100 shadow-inner">
-                    <h4 class="font-black text-green-800 text-sm uppercase mb-4">📊 Week Summary {{ currentWeek }}</h4>
-                    <div class="space-y-4">
-                      <div class="bg-white p-3 rounded-xl shadow-sm border border-green-100">
-                        <p class="text-xs text-green-600 font-bold uppercase">Total Volume</p>
-                        <p class="text-2xl font-black text-green-700">{{ weeklySummary.totalMinutes }} min</p>
-                      </div>
-                      <div class="bg-white p-3 rounded-xl shadow-sm border border-green-100">
-                        <p class="text-xs text-green-600 font-bold uppercase">Intensity Dominante</p>
-                        <p class="text-lg font-black text-green-700">{{ weeklySummary.intensityLevel }}</p>
-                      </div>
-                      <div class="bg-white p-3 rounded-xl shadow-sm border border-green-100">
-                        <p class="text-xs text-green-600 font-bold uppercase">Goal Focus</p>
-                        <p class="text-sm font-bold text-gray-700">{{ weeklySummary.focus }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div *ngIf="isTableVisible && !isPlanLoading && activityPlan.length === 0" class="p-12 text-center text-gray-400">
-                <p>No plan generated. Check BMI.</p>
-              </div>
+              <div *ngIf="todayActivity && !isPlanLoading" class="bg-green-600 px-6 py-3 flex items-center justify-between text-white animate-pulse-slow"><div class="flex items-center gap-3"><span class="text-2xl">⚡</span><div><p class="text-xs font-bold uppercase opacity-80">Today's Activity: {{ todayActivity.dayOfWeek }}</p><p class="font-bold text-lg">{{ todayActivity.activityName }} ({{ todayActivity.durationMinutes }} min)</p></div></div><div class="hidden md:block text-right"><p class="text-xs opacity-80">Intensity</p><p class="font-medium">{{ todayActivity.intensity }}</p></div></div>
+              <div *ngIf="!isPlanLoading && activityPlan.length > 0 && activityPlan[0].description.includes('🩹') && !showImcBasedPlan" class="bg-red-100 border-l-8 border-red-500 px-6 py-4 flex items-center gap-4"><span class="text-3xl">🩺</span><div><p class="text-red-900 font-bold">RECOVERY MODE ACTIVE</p><p class="text-red-700 text-sm">This plan considers your injury. Click "BMI-based Plan" to see the program based only on your body composition.</p></div></div>
+              <div *ngIf="isPlanLoading" class="p-12 text-center text-gray-500"><div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-green-500 border-t-transparent mb-4"></div><p class="text-lg font-medium">Synchronizing...</p></div>
+              <div class="px-6 py-3 bg-gray-50 border-b flex justify-center"><button (click)="isTableVisible = !isTableVisible" class="text-green-700 font-bold hover:underline flex items-center gap-2">{{ isTableVisible ? '⬆️ Hide table' : '⬇️ Show full program' }}</button></div>
+              <div *ngIf="isTableVisible && !isPlanLoading && activityPlan.length > 0" class="p-6 animate-fade-in"><div class="grid grid-cols-1 lg:grid-cols-4 gap-6"><div class="lg:col-span-3 overflow-x-auto"><table class="min-w-full border-collapse"><thead><tr class="text-left text-xs font-bold text-green-700 uppercase tracking-widest border-b border-green-200"><th class="pb-3 px-2">Day</th><th class="pb-3">Activity</th><th class="pb-3 text-center">Duration</th><th class="pb-3 text-center">Intensity</th></tr></thead><tbody class="divide-y divide-green-100"><ng-container *ngFor="let act of activityPlan; let i = index"><tr *ngIf="act.durationMinutes > 0" class="group transition-all hover:bg-green-50" [class.bg-green-50]="i === currentDayIndex"><td class="py-4 px-2"><div class="flex items-center gap-2"><span *ngIf="i === currentDayIndex" class="text-green-600 animate-bounce">📍</span><span class="font-bold" [class.text-green-700]="i === currentDayIndex">{{ act.dayOfWeek }}</span></div></td><td class="py-4"><p class="font-bold text-gray-800">{{ act.activityName }}</p><p class="text-xs text-gray-400 mt-0.5">{{ act.description }}</p></td><td class="py-4 text-center font-medium text-gray-600">{{ act.durationMinutes }} min</td><td class="py-4 text-center"><span class="px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm" [ngClass]="{'bg-green-100 text-green-700': act.intensity === 'Faible','bg-amber-100 text-amber-700': act.intensity.includes('Modérée') || act.intensity.includes('Moderate'),'bg-rose-100 text-rose-700': act.intensity.includes('Élevée') || act.intensity.includes('High')}">{{ act.intensity }}</span></td></tr></ng-container></tbody></table></div><div class="bg-green-50 rounded-2xl p-5 border border-green-100 shadow-inner"><h4 class="font-black text-green-800 text-sm uppercase mb-4">📊 Week Summary {{ currentWeek }}</h4><div class="space-y-4"><div class="bg-white p-3 rounded-xl shadow-sm border border-green-100"><p class="text-xs text-green-600 font-bold uppercase">Total Volume</p><p class="text-2xl font-black text-green-700">{{ weeklySummary.totalMinutes }} min</p></div><div class="bg-white p-3 rounded-xl shadow-sm border border-green-100"><p class="text-xs text-green-600 font-bold uppercase">Intensity Dominante</p><p class="text-lg font-black text-green-700">{{ weeklySummary.intensityLevel }}</p></div><div class="bg-white p-3 rounded-xl shadow-sm border border-green-100"><p class="text-xs text-green-600 font-bold uppercase">Goal Focus</p><p class="text-sm font-bold text-gray-700">{{ weeklySummary.focus }}</p></div></div></div></div></div>
+              <div *ngIf="isTableVisible && !isPlanLoading && activityPlan.length === 0" class="p-12 text-center text-gray-400"><p>No plan generated. Check BMI.</p></div>
             </div>
 
-            <!-- Health Score Chart -->
-            <div class="bg-white rounded-xl shadow border p-5">
-              <h3 class="text-lg font-bold text-gray-800 mb-3">📈 Health Score Evolution</h3>
-              <canvas id="healthScoreChart" width="400" height="200" style="max-width:100%; height:auto;"></canvas>
-              <p class="text-xs text-gray-500 mt-2">Based on the last 7 predictions.</p>
-            </div>
-
-            <!-- Prediction History -->
-            <div class="bg-white rounded-xl shadow border p-5">
-              <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-bold text-gray-800">📋 Latest Predictions</h3>
-                <button *ngIf="scoresHistory.length > 0" (click)="clearAllScores()" class="text-xs text-red-600 hover:underline">Clear all</button>
-              </div>
-              <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200" *ngIf="scoresHistory.length > 0; else noScores">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-3 py-2 text-left text-xs">Date</th>
-                      <th class="px-3 py-2 text-left text-xs">Score</th>
-                      <th class="px-3 py-2 text-left text-xs">Intensity</th>
-                      <th class="px-3 py-2 text-left text-xs">Sleep</th>
-                      <th class="px-3 py-2 text-left text-xs">Calories</th>
-                      <th class="px-3 py-2 text-left text-xs">Duration</th>
-                      <th class="px-3 py-2 text-right text-xs">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let item of scoresHistory.slice(0,10)">
-                      <td class="px-3 py-2 text-sm">{{ item.date | date:'dd/MM/yyyy HH:mm' }}</td>
-                      <td class="px-3 py-2 text-sm font-bold text-green-600">{{ item.score }}</td>
-                      <td class="px-3 py-2 text-sm">{{ item.params.intensity }}</td>
-                      <td class="px-3 py-2 text-sm">{{ item.params.sleepHours }}</td>
-                      <td class="px-3 py-2 text-sm">{{ item.params.caloriesIn }}</td>
-                      <td class="px-3 py-2 text-sm">{{ item.params.duration }}</td>
-                      <td class="px-3 py-2 text-right"><button (click)="deleteScore(item.date)" class="text-red-500">🗑️</button></td>
-                    </tr>
-                  </tbody>
-                </table>
-                <ng-template #noScores><div class="text-center py-6 text-gray-400 italic">No recorded score.</div></ng-template>
-              </div>
-            </div>
-
+            <!-- Graphique et historique -->
+            <div class="bg-white rounded-xl shadow border p-5"><h3 class="text-lg font-bold text-gray-800 mb-3">📈 Health Score Evolution</h3><canvas id="healthScoreChart" width="400" height="200" style="max-width:100%; height:auto;"></canvas><p class="text-xs text-gray-500 mt-2">Based on the last 7 predictions.</p></div>
+            <div class="bg-white rounded-xl shadow border p-5"><div class="flex justify-between items-center mb-3"><h3 class="text-lg font-bold text-gray-800">📋 Latest Predictions</h3><button *ngIf="scoresHistory.length > 0" (click)="clearAllScores()" class="text-xs text-red-600 hover:underline">Clear all</button></div><div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200" *ngIf="scoresHistory.length > 0; else noScores"><thead class="bg-gray-50"><tr><th class="px-3 py-2 text-left text-xs">Date</th><th class="px-3 py-2 text-left text-xs">Score</th><th class="px-3 py-2 text-left text-xs">Intensity</th><th class="px-3 py-2 text-left text-xs">Sleep</th><th class="px-3 py-2 text-left text-xs">Calories</th><th class="px-3 py-2 text-left text-xs">Duration</th><th class="px-3 py-2 text-right text-xs">Action</th></tr></thead><tbody><tr *ngFor="let item of scoresHistory.slice(0,10)"><td class="px-3 py-2 text-sm">{{ item.date | date:'dd/MM/yyyy HH:mm' }}</td><td class="px-3 py-2 text-sm font-bold text-green-600">{{ item.score }}</td><td class="px-3 py-2 text-sm">{{ item.params.intensity }}</td><td class="px-3 py-2 text-sm">{{ item.params.sleepHours }}</td><td class="px-3 py-2 text-sm">{{ item.params.caloriesIn }}</td><td class="px-3 py-2 text-sm">{{ item.params.duration }}</td><td class="px-3 py-2 text-right"><button (click)="deleteScore(item.date)" class="text-red-500">🗑️</button></td></tr></tbody></table><ng-template #noScores><div class="text-center py-6 text-gray-400 italic">No recorded score.</div></ng-template></div></div>
             <div class="flex justify-end"><button (click)="downloadProfilee(selectedProfilee)" class="bg-green-600 text-white px-4 py-2 rounded-lg">📥 Download File</button></div>
           </div>
         </div>
       </div>
 
-      <!-- MODAL BMR -->
-      <div *ngIf="showBmrModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAllModals()">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
-          <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-            <h2 class="text-xl font-bold">📊 Basal Metabolic Rate (BMR) Details</h2>
-            <button (click)="closeAllModals()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-          </div>
-          <div class="p-6">
-            <p class="text-gray-600 mb-4">BMR is the minimum energy at rest. Adapted to your profile ({{ selectedProfilee?.gender === 'MALE' ? 'Male' : 'Female' }}, BMI {{ selectedProfilee?.bmi | number:'1.1-1' }}).</p>
-            <div class="overflow-x-auto">
-              <table class="min-w-full border-collapse border border-green-200">
-                <thead class="bg-green-50"><tr><th class="border p-2 text-left">Category</th><th class="border p-2 text-left">Value / Advice</th></tr></thead>
-                <tbody>
-                  <tr><td class="border p-2 font-bold">Calculated BMR</td><td class="border p-2">{{ bmr }} kcal/day</td></tr>
-                  <tr><td class="border p-2 font-bold">Proteins (g)</td><td class="border p-2">{{ getBmrMacro('proteins') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Lipids (g)</td><td class="border p-2">{{ getBmrMacro('lipids') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Carbs (g)</td><td class="border p-2">{{ getBmrMacro('carbs') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Recommendation</td><td class="border p-2">{{ getBmrAdviceDetail() }}</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- MODALES BMR, MAINTENANCE, WEIGHT LOSS -->
+      <div *ngIf="showBmrModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAllModals()"><div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()"><div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center"><h2 class="text-xl font-bold">📊 Basal Metabolic Rate (BMR) Details</h2><button (click)="closeAllModals()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div><div class="p-6"><p class="text-gray-600 mb-4">BMR is the minimum energy at rest. Adapted to your profile ({{ selectedProfilee?.gender === 'MALE' ? 'Male' : 'Female' }}, BMI {{ selectedProfilee?.bmi | number:'1.1-1' }}).</p><div class="overflow-x-auto"><table class="min-w-full border-collapse border border-green-200"><thead class="bg-green-50"><tr><th class="border p-2 text-left">Category</th><th class="border p-2 text-left">Value / Advice</th></tr></thead><tbody><tr><td class="border p-2 font-bold">Calculated BMR</td><td class="border p-2">{{ bmr }} kcal/day</td></tr><tr><td class="border p-2 font-bold">Proteins (g)</td><td class="border p-2">{{ getBmrMacro('proteins') }}</td></tr><tr><td class="border p-2 font-bold">Lipids (g)</td><td class="border p-2">{{ getBmrMacro('lipids') }}</td></tr><tr><td class="border p-2 font-bold">Carbs (g)</td><td class="border p-2">{{ getBmrMacro('carbs') }}</td></tr><tr><td class="border p-2 font-bold">Recommendation</td><td class="border p-2">{{ getBmrAdviceDetail() }}</td></tr></tbody></table></div></div></div></div>
+      <div *ngIf="showMaintenanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAllModals()"><div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()"><div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center"><h2 class="text-xl font-bold">⚖️ Details – Maintenance Calories</h2><button (click)="closeAllModals()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div><div class="p-6"><p class="text-gray-600 mb-4">Daily intake to stabilize your weight with moderate activity.</p><div class="overflow-x-auto"><table class="min-w-full border-collapse border border-green-200"><thead class="bg-green-50"><tr><th class="border p-2">Macronutriment</th><th class="border p-2">Grammes / jour</th><th class="border p-2">Calories</th></tr></thead><tbody><tr><td class="border p-2 font-bold">Proteins</td><td class="border p-2">{{ getMaintenanceMacro('proteins_g') }}</td><td class="border p-2">{{ getMaintenanceMacro('proteins_kcal') }}</td></tr><tr><td class="border p-2 font-bold">Lipides</td><td class="border p-2">{{ getMaintenanceMacro('lipids_g') }}</td><td class="border p-2">{{ getMaintenanceMacro('lipids_kcal') }}</td></tr><tr><td class="border p-2 font-bold">Glucides</td><td class="border p-2">{{ getMaintenanceMacro('carbs_g') }}</td><td class="border p-2">{{ getMaintenanceMacro('carbs_kcal') }}</td></tr><tr class="bg-gray-50"><td class="border p-2 font-bold">Total</td><td class="border p-2"></td><td class="border p-2 font-bold">{{ maintenanceCalories }} kcal</td></tr></tbody></table></div><p class="text-sm text-gray-500 mt-4 italic">{{ getMaintenanceAdvice() }}</p></div></div></div>
+      <div *ngIf="showWeightLossModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAllModals()"><div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()"><div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center"><h2 class="text-xl font-bold">🔥 Details – Weight Loss (Moderate deficit)</h2><button (click)="closeAllModals()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div><div class="p-6"><p class="text-gray-600 mb-4">Goal: lose about 0.5 kg per week.</p><div class="overflow-x-auto"><table class="min-w-full border-collapse border border-green-200"><thead class="bg-green-50"><tr><th class="border p-2">Macronutriment</th><th class="border p-2">Grammes / jour</th><th class="border p-2">Calories</th></tr></thead><tbody><tr><td class="border p-2 font-bold">Proteins</td><td class="border p-2">{{ getWeightLossMacro('proteins_g') }}</td><td class="border p-2">{{ getWeightLossMacro('proteins_kcal') }}</td></tr><tr><td class="border p-2 font-bold">Lipides</td><td class="border p-2">{{ getWeightLossMacro('lipids_g') }}</td><td class="border p-2">{{ getWeightLossMacro('lipids_kcal') }}</td></tr><tr><td class="border p-2 font-bold">Glucides</td><td class="border p-2">{{ getWeightLossMacro('carbs_g') }}</td><td class="border p-2">{{ getWeightLossMacro('carbs_kcal') }}</td></tr><tr class="bg-gray-50"><td class="border p-2 font-bold">Total</td><td class="border p-2"></td><td class="border p-2 font-bold">{{ weightLossCalories }} kcal</td></tr></tbody></table></div><p class="text-sm text-gray-500 mt-4 italic">{{ getWeightLossAdvice() }}</p></div></div></div>
 
-      <!-- MODAL MAINTIEN -->
-      <div *ngIf="showMaintenanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAllModals()">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
-          <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-            <h2 class="text-xl font-bold">⚖️ Details – Maintenance Calories</h2>
-            <button (click)="closeAllModals()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-          </div>
-          <div class="p-6">
-            <p class="text-gray-600 mb-4">Daily intake to stabilize your weight with moderate activity.</p>
-            <div class="overflow-x-auto">
-              <table class="min-w-full border-collapse border border-green-200">
-                <thead class="bg-green-50"><tr><th class="border p-2">Macronutriment</th><th class="border p-2">Grammes / jour</th><th class="border p-2">Calories</th></tr></thead>
-                <tbody>
-                  <tr><td class="border p-2 font-bold">Proteins</td><td class="border p-2">{{ getMaintenanceMacro('proteins_g') }}</td><td class="border p-2">{{ getMaintenanceMacro('proteins_kcal') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Lipides</td><td class="border p-2">{{ getMaintenanceMacro('lipids_g') }}</td><td class="border p-2">{{ getMaintenanceMacro('lipids_kcal') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Glucides</td><td class="border p-2">{{ getMaintenanceMacro('carbs_g') }}</td><td class="border p-2">{{ getMaintenanceMacro('carbs_kcal') }}</td></tr>
-                  <tr class="bg-gray-50"><td class="border p-2 font-bold">Total</td><td class="border p-2"></td><td class="border p-2 font-bold">{{ maintenanceCalories }} kcal</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="text-sm text-gray-500 mt-4 italic">{{ getMaintenanceAdvice() }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- MODAL PERTE DE POIDS -->
-      <div *ngIf="showWeightLossModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeAllModals()">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" (click)="$event.stopPropagation()">
-          <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-            <h2 class="text-xl font-bold">🔥 Details – Weight Loss (Moderate deficit)</h2>
-            <button (click)="closeAllModals()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-          </div>
-          <div class="p-6">
-            <p class="text-gray-600 mb-4">Goal: lose about 0.5 kg per week.</p>
-            <div class="overflow-x-auto">
-              <table class="min-w-full border-collapse border border-green-200">
-                <thead class="bg-green-50"><tr><th class="border p-2">Macronutriment</th><th class="border p-2">Grammes / jour</th><th class="border p-2">Calories</th></tr></thead>
-                <tbody>
-                  <tr><td class="border p-2 font-bold">Proteins</td><td class="border p-2">{{ getWeightLossMacro('proteins_g') }}</td><td class="border p-2">{{ getWeightLossMacro('proteins_kcal') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Lipides</td><td class="border p-2">{{ getWeightLossMacro('lipids_g') }}</td><td class="border p-2">{{ getWeightLossMacro('lipids_kcal') }}</td></tr>
-                  <tr><td class="border p-2 font-bold">Glucides</td><td class="border p-2">{{ getWeightLossMacro('carbs_g') }}</td><td class="border p-2">{{ getWeightLossMacro('carbs_kcal') }}</td></tr>
-                  <tr class="bg-gray-50"><td class="border p-2 font-bold">Total</td><td class="border p-2"></td><td class="border p-2 font-bold">{{ weightLossCalories }} kcal</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="text-sm text-gray-500 mt-4 italic">{{ getWeightLossAdvice() }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ==================== CHAT INTELLIGENT ==================== -->
-      <!-- Bouton flottant pour ouvrir/fermer le chat -->
-      <button (click)="toggleChat()" class="fixed bottom-6 right-6 z-50 bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-all transform hover:scale-110">
-        <span class="text-2xl">💬</span>
-      </button>
-
-      <!-- Widget Chat (caché par défaut) -->
-      <div *ngIf="chatVisible" class="fixed bottom-24 right-6 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-fade-in">
-        <div class="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-3 flex justify-between items-center text-white">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">🤖</span>
-            <span class="font-bold">Coach Santé IA</span>
-          </div>
-          <button (click)="toggleChat()" class="text-white hover:text-gray-200">&times;</button>
-        </div>
-<div class="h-80 overflow-y-auto p-4 space-y-3 bg-gray-50" #chatScrollContainer>
-          <div class="text-center text-xs text-gray-400">Posez une question ou demandez à calculer votre score.</div>
-          <div *ngFor="let msg of chatMessages" [class.text-right]="msg.sender === 'user'" class="flex">
-            <div [class.bg-green-100]="msg.sender === 'user'" [class.bg-gray-200]="msg.sender !== 'user'" class="rounded-xl px-3 py-2 max-w-[80%] text-sm">
-              {{ msg.text }}
-            </div>
-          </div>
-          <div *ngIf="chatLoading" class="flex justify-start"><div class="bg-gray-200 rounded-xl px-3 py-2 text-sm italic">...</div></div>
-        </div>
-        <div class="border-t p-3 flex gap-2 bg-white">
-          <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" placeholder="Ex: Calcule mon score avec intensité 5, sommeil 7, calories 2500, durée 60" class="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-          <button (click)="sendChatMessage()" [disabled]="!chatInput.trim() || chatLoading" class="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold disabled:opacity-50">Envoyer</button>
-        </div>
-        <div class="bg-gray-50 text-[10px] text-gray-400 text-center py-1">Paramètres: intensité (1-10), sommeil (h), calories (kcal), durée (min)</div>
-      </div>
+      <!-- CHAT INTELLIGENT -->
+      <button (click)="toggleChat()" class="fixed bottom-6 right-6 z-50 bg-green-600 hover:bg-green-700 text-white rounded-full p-4 shadow-lg transition-all transform hover:scale-110"><span class="text-2xl">💬</span></button>
+      <div *ngIf="chatVisible" class="fixed bottom-24 right-6 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-fade-in"><div class="bg-gradient-to-r from-green-600 to-emerald-600 px-4 py-3 flex justify-between items-center text-white"><div class="flex items-center gap-2"><span class="text-xl">🤖</span><span class="font-bold">Coach Santé IA</span></div><button (click)="toggleChat()" class="text-white hover:text-gray-200">&times;</button></div><div class="h-80 overflow-y-auto p-4 space-y-3 bg-gray-50" #chatScrollContainer><div class="text-center text-xs text-gray-400">Posez une question ou demandez à calculer votre score.</div><div *ngFor="let msg of chatMessages" [class.text-right]="msg.sender === 'user'" class="flex"><div [class.bg-green-100]="msg.sender === 'user'" [class.bg-gray-200]="msg.sender !== 'user'" class="rounded-xl px-3 py-2 max-w-[80%] text-sm">{{ msg.text }}</div></div><div *ngIf="chatLoading" class="flex justify-start"><div class="bg-gray-200 rounded-xl px-3 py-2 text-sm italic">...</div></div></div><div class="border-t p-3 flex gap-2 bg-white"><input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendChatMessage()" placeholder="Ex: Calcule mon score avec intensité 5, sommeil 7, calories 2500, durée 60" class="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"><button (click)="sendChatMessage()" [disabled]="!chatInput.trim() || chatLoading" class="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold disabled:opacity-50">Envoyer</button></div><div class="bg-gray-50 text-[10px] text-gray-400 text-center py-1">Paramètres: intensité (1-10), sommeil (h), calories (kcal), durée (min)</div></div>
 
       <!-- MODAL création / modification -->
-      <div *ngIf="modalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between">
-            <h2 class="text-xl font-bold">{{ editingId ? 'Edit' : 'New' }} Health Profile</h2>
-            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-          </div>
-          <form #profileForm="ngForm" (ngSubmit)="save()" class="p-6 space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div><label>User *</label><select *ngIf="users.length>0" [(ngModel)]="form.userId" name="userId" required class="w-full p-2 border rounded" [disabled]="!isAdmin"><option *ngFor="let u of users" [value]="u.id">{{ u.firstName }} {{ u.lastName }}</option></select><input *ngIf="users.length===0" type="number" [(ngModel)]="form.userId" name="userId" required class="w-full p-2 border rounded" placeholder="User ID" [disabled]="!isAdmin"></div>
-              <div><label>Age *</label><input type="number" [(ngModel)]="form.age" name="age" required class="w-full p-2 border rounded"></div>
-              <div><label>Weight (kg) *</label><input type="number" step="0.1" [(ngModel)]="form.weight" name="weight" required class="w-full p-2 border rounded"></div>
-              <div><label>Height (cm) *</label><input type="number" step="0.1" [(ngModel)]="form.height" name="height" required class="w-full p-2 border rounded"></div>
-              <div><label>Gender *</label><select [(ngModel)]="form.gender" name="gender" required class="w-full p-2 border rounded"><option value="MALE">Male</option><option value="FEMALE">Female</option></select></div>
-              <div><label>Sports Position</label><input type="text" [(ngModel)]="form.sportPosition" class="w-full p-2 border rounded"></div>
-              <div><label>Fitness Status</label><select [(ngModel)]="form.fitnessStatus" class="w-full p-2 border rounded"><option value="ACTIVE">Active</option><option value="LIMITED">Limited</option><option value="INJURED">Injured</option><option value="RECOVERING">Recovering</option><option value="RESTING">Resting</option></select></div>
-              <div><label>Emergency Contact</label><input type="text" [(ngModel)]="form.emergencyContact" class="w-full p-2 border rounded"></div>
-              <div><label>Emergency Phone *</label><input type="text" [(ngModel)]="form.emergencyPhone" name="emergencyPhone" required pattern="^\\d{8,}$" class="w-full p-2 border rounded"></div>
-              <div><label>Blood Type</label><select [(ngModel)]="form.bloodType" class="w-full p-2 border rounded"><option *ngFor="let bt of bloodTypes" [value]="bt">{{ bt }}</option></select></div>
-            </div>
-            <div><label>Allergies</label><textarea rows="2" [(ngModel)]="form.allergies" class="w-full p-2 border rounded"></textarea></div>
-            <div><label>Medical Conditions</label><textarea rows="2" [(ngModel)]="form.medicalConditions" class="w-full p-2 border rounded"></textarea></div>
-            <div *ngIf="form.weight > 0 && form.height > 0" class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <div class="flex justify-between items-center">
-                <div><p class="text-xs font-bold text-blue-600 uppercase">BMI Preview</p><p class="text-xl font-black text-blue-800">{{ getPreviewBmi() | number:'1.1-1' }} <span class="text-sm font-normal">({{ getPreviewBmiCategory() }})</span></p></div>
-                <div class="text-right"><p class="text-[10px] text-blue-500 italic">The sports program will be dynamically generated based on these values.</p></div>
-              </div>
-            </div>
-            <div class="flex justify-end gap-3"><button type="button" (click)="closeModal()" class="px-4 py-2 border rounded-lg">Cancel</button><button type="submit" class="px-5 py-2 bg-green-600 text-white rounded-lg">{{ editingId ? 'Update' : 'Create' }}</button></div>
-          </form>
-        </div>
-      </div>
+      <div *ngIf="modalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"><div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"><div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between"><h2 class="text-xl font-bold">{{ editingId ? 'Edit' : 'New' }} Health Profile</h2><button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div><form #profileForm="ngForm" (ngSubmit)="save()" class="p-6 space-y-5"><div class="grid grid-cols-1 md:grid-cols-2 gap-5"><div><label>User *</label><select *ngIf="users.length>0" [(ngModel)]="form.userId" name="userId" required class="w-full p-2 border rounded" [disabled]="!isAdmin"><option *ngFor="let u of users" [value]="u.id">{{ u.firstName }} {{ u.lastName }}</option></select><input *ngIf="users.length===0" type="number" [(ngModel)]="form.userId" name="userId" required class="w-full p-2 border rounded" placeholder="User ID" [disabled]="!isAdmin"></div><div><label>Age *</label><input type="number" [(ngModel)]="form.age" name="age" required class="w-full p-2 border rounded"></div><div><label>Weight (kg) *</label><input type="number" step="0.1" [(ngModel)]="form.weight" name="weight" required class="w-full p-2 border rounded"></div><div><label>Height (cm) *</label><input type="number" step="0.1" [(ngModel)]="form.height" name="height" required class="w-full p-2 border rounded"></div><div><label>Gender *</label><select [(ngModel)]="form.gender" name="gender" required class="w-full p-2 border rounded"><option value="MALE">Male</option><option value="FEMALE">Female</option></select></div><div><label>Sports Position</label><input type="text" [(ngModel)]="form.sportPosition" class="w-full p-2 border rounded"></div><div><label>Fitness Status</label><select [(ngModel)]="form.fitnessStatus" class="w-full p-2 border rounded"><option value="ACTIVE">Active</option><option value="LIMITED">Limited</option><option value="INJURED">Injured</option><option value="RECOVERING">Recovering</option><option value="RESTING">Resting</option></select></div><div><label>Emergency Contact</label><input type="text" [(ngModel)]="form.emergencyContact" class="w-full p-2 border rounded"></div><div><label>Emergency Phone *</label><input type="text" [(ngModel)]="form.emergencyPhone" name="emergencyPhone" required pattern="^\\d{8,}$" class="w-full p-2 border rounded"></div><div><label>Blood Type</label><select [(ngModel)]="form.bloodType" class="w-full p-2 border rounded"><option *ngFor="let bt of bloodTypes" [value]="bt">{{ bt }}</option></select></div></div><div><label>Allergies</label><textarea rows="2" [(ngModel)]="form.allergies" class="w-full p-2 border rounded"></textarea></div><div><label>Medical Conditions</label><textarea rows="2" [(ngModel)]="form.medicalConditions" class="w-full p-2 border rounded"></textarea></div><div *ngIf="form.weight > 0 && form.height > 0" class="bg-blue-50 p-4 rounded-xl border border-blue-100"><div class="flex justify-between items-center"><div><p class="text-xs font-bold text-blue-600 uppercase">BMI Preview</p><p class="text-xl font-black text-blue-800">{{ getPreviewBmi() | number:'1.1-1' }} <span class="text-sm font-normal">({{ getPreviewBmiCategory() }})</span></p></div><div class="text-right"><p class="text-[10px] text-blue-500 italic">The sports program will be dynamically generated based on these values.</p></div></div></div><div class="flex justify-end gap-3"><button type="button" (click)="closeModal()" class="px-4 py-2 border rounded-lg">Cancel</button><button type="submit" class="px-5 py-2 bg-green-600 text-white rounded-lg">{{ editingId ? 'Update' : 'Create' }}</button></div></form></div></div>
     </div>
   `,
   styles: [`
@@ -546,15 +266,15 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   showMaintenanceModal = false;
   showWeightLossModal = false;
 
-  showImcBasedPlan: boolean = false;
-  isTableVisible: boolean = false;
+  showImcBasedPlan = false;
+  isTableVisible = true;
 
-  // Chat
   chatVisible = false;
   chatInput = '';
   chatMessages: { sender: 'user' | 'bot'; text: string }[] = [];
   chatLoading = false;
 
+  private activityPlanCache = new Map<string, ActivityRecommendation[]>();
   private apiBaseUrl = 'http://localhost:8085/api/health-profiles';
   private chatApiUrl = 'http://localhost:8085/api/chat';
 
@@ -590,12 +310,23 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     setTimeout(() => this.drawHealthScoreChart(), 500);
   }
 
-  // ---------- CHAT LOGIC ----------
+  // ---------------------------------------------------------------------------
+  // Chat logic
+  // ---------------------------------------------------------------------------
   toggleChat() {
     this.chatVisible = !this.chatVisible;
-    if (this.chatVisible) {
-      setTimeout(() => this.scrollChatToBottom(), 100);
-    }
+    if (this.chatVisible) setTimeout(() => this.scrollChatToBottom(), 100);
+  }
+
+  openAiCalculation() {
+    this.chatVisible = true;
+    const msg = "Calcule mon score de santé avec : intensité 7, sommeil 8h, calories 2200, durée 45 min";
+    this.chatInput = msg;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.scrollChatToBottom();
+      this.sendChatMessage();
+    }, 300);
   }
 
   scrollChatToBottom() {
@@ -611,17 +342,14 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.scrollChatToBottom();
     this.chatLoading = true;
 
-    // Appel au backend Spring Boot
     this.http.post<{ reply: string; healthScore?: number }>(this.chatApiUrl, { message: msg }).subscribe({
       next: (res) => {
         this.chatLoading = false;
         let botReply = res.reply;
-        // Extraire le score numérique si présent
         const scoreMatch = botReply.match(/Score\s*:\s*(\d+)/i);
         if (scoreMatch && res.healthScore !== undefined && res.healthScore !== null) {
           const scoreValue = Math.round(res.healthScore);
           botReply = `✅ Score calculé : ${scoreValue}/100. ${botReply.replace(/Score\s*:\s*\d+/i, '').trim()}`;
-          // Enregistrer le score avec les paramètres extraits de la question
           this.extractAndSaveScore(msg, scoreValue);
         }
         this.chatMessages.push({ sender: 'bot', text: botReply });
@@ -639,7 +367,6 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   private extractAndSaveScore(userMessage: string, score: number) {
-    // Extraction des paramètres depuis la phrase (ex: intensité 5, sommeil 7, calories 2500, durée 60)
     const intensityMatch = userMessage.match(/intensité\s*(\d+)/i) || userMessage.match(/intensity\s*(\d+)/i);
     const sleepMatch = userMessage.match(/sommeil\s*(\d+)/i) || userMessage.match(/sleep\s*(\d+)/i);
     const caloriesMatch = userMessage.match(/calories\s*(\d+)/i);
@@ -698,8 +425,9 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return 'Attention : votre score santé est faible. Consultez les recommandations personnalisées.';
   }
 
-  // ---------- FIN CHAT ----------
-
+  // ---------------------------------------------------------------------------
+  // Score management
+  // ---------------------------------------------------------------------------
   loadScoresHistory() {
     const targetUserId = this.selectedProfilee ? this.selectedProfilee.userId : (this.currentUserId || 0);
     const key = `healthScores_${targetUserId}`;
@@ -747,7 +475,6 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     const last7 = all.slice(-7);
     const labels = last7.map(s => new Date(s.date).toLocaleDateString());
     const data = last7.map(s => s.score);
-    // Destroy existing chart if any
     const existingChart = Chart.getChart(canvas);
     if (existingChart) existingChart.destroy();
     new Chart(ctx, {
@@ -757,6 +484,9 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Users & profiles
+  // ---------------------------------------------------------------------------
   loadUsers() {
     if (this.isAdmin) {
       this.userService.getAll().subscribe({
@@ -826,9 +556,39 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     return 'Obesity';
   }
 
+  // Calcul automatique du score via l'API backend /predict
+  private calculateAutoScoreFromProfile() {
+    if (!this.selectedProfilee) return;
+
+    const athleteRequest = {
+      duration: 45,
+      intensity: 5,
+      trainingLoad: 225,
+      sleepHours: 7,
+      sleepQuality: 5,
+      fatigueLevel: 3,
+      hydrationLiters: 2,
+      bmi: this.selectedProfilee.bmi,
+      weightKg: this.selectedProfilee.weight,
+      caloriesIn: this.maintenanceCalories,
+      nutritionAdherence: 5,
+      sorenessCode: 2
+    };
+
+    this.http.post<number>('http://localhost:8085/api/predict', athleteRequest).subscribe({
+      next: (score) => {
+        const roundedScore = Math.round(score);
+        this.extractAndSaveScore(`Score automatique (IMC ${this.selectedProfilee!.bmi.toFixed(1)})`, roundedScore);
+        this.showNotification(`Score santé calculé : ${roundedScore}/100`, 'success');
+      },
+      error: (err) => console.error('Erreur prédiction auto', err)
+    });
+  }
+
   showDetails(profile: HealthProfileResponse) {
     if (!profile) return;
     this.selectedProfilee = profile;
+    this.isTableVisible = true;
     setTimeout(() => {
       const element = document.getElementById('patient-details');
       if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -841,6 +601,7 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.currentWeek = ((weekNum - 1) % 4) + 1;
     this.loadActivityPlanFromBackend(profile.userId, this.currentWeek);
     this.loadScoresHistory();
+    this.calculateAutoScoreFromProfile();
     setTimeout(() => this.drawHealthScoreChart(), 300);
   }
 
@@ -867,14 +628,16 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       this.maintenanceCalories = Math.round(this.bmr * 1.375);
       this.weightLossCalories = Math.max(1200, this.maintenanceCalories - 500);
       this.weightGainCalories = this.maintenanceCalories + 300;
-      // Le score santé initial sera remplacé par l'historique
       this.healthScore = 0;
-      this.healthScoreMessage = 'Utilisez le chat pour évaluer votre santé';
+      this.healthScoreMessage = 'Utilisez le chat ou le calcul auto pour évaluer votre santé';
       this.personalizedAdvice = profile.personalizedAdvice || 'Complétez vos données pour obtenir des recommandations.';
     }
     this.updateHealthScoreFromHistory();
   }
 
+  // ---------------------------------------------------------------------------
+  // Activity plan
+  // ---------------------------------------------------------------------------
   togglePlanMode() {
     this.showImcBasedPlan = !this.showImcBasedPlan;
     if (this.selectedProfilee) {
@@ -883,6 +646,16 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   loadActivityPlanFromBackend(userId: number, week?: number) {
+    const cacheKey = `${userId}_${week || 1}_${this.showImcBasedPlan}`;
+    const cached = this.activityPlanCache.get(cacheKey);
+    if (cached) {
+      this.activityPlan = cached;
+      this.processPlanMetadata();
+      this.isPlanLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.isPlanLoading = true;
     this.activityPlan = [];
     const timeout = setTimeout(() => this.generateFallbackPlan(), 3000);
@@ -909,6 +682,7 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
             }
             return act;
           });
+          this.activityPlanCache.set(cacheKey, this.activityPlan);
           this.isPlanLoading = false;
           this.processPlanMetadata();
         } else {
@@ -1012,15 +786,9 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     this.processPlanMetadata();
   }
 
-  scrollToActivityTable() {
-    const element = document.getElementById('activity-plan-section');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      element.classList.add('ring-4', 'ring-green-400', 'rounded-xl');
-      setTimeout(() => element.classList.remove('ring-4', 'ring-green-400'), 1500);
-    }
-  }
-
+  // ---------------------------------------------------------------------------
+  // Helper methods (macros, modals, download...)
+  // ---------------------------------------------------------------------------
   getBmiAdvice(): string {
     if (!this.selectedProfilee) return '';
     const bmi = this.selectedProfilee.bmi;
@@ -1124,49 +892,8 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
     const userName = this.getUserName(profile.userId);
     const html = `<!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Health Profile - ${userName}</title>
-  <style>
-    body { font-family: 'Segoe UI', sans-serif; margin: 40px; background: #eff6ff; color: #1e293b; }
-    .card { max-width: 800px; margin: auto; background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); overflow: hidden; }
-    .header { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 30px; text-align: center; }
-    .content { padding: 30px; }
-    .section { margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-    .section h3 { color: #2563eb; margin-bottom: 10px; font-size: 18px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .label { font-weight: bold; color: #64748b; font-size: 13px; }
-    .value { font-weight: 600; color: #1e293b; }
-    footer { text-align: center; padding: 15px; color: #94a3b8; font-size: 11px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header"><h1>🩺 Athlete Health Profile</h1><p>${userName}</p></div>
-    <div class="content">
-      <div class="section"><h3>👤 Biometrics</h3><div class="grid">
-        <div><div class="label">Age</div><div class="value">${profile.age} years</div></div>
-        <div><div class="label">BMI</div><div class="value">${profile.bmi?.toFixed(1)} (${profile.bmiCategory})</div></div>
-        <div><div class="label">Height</div><div class="value">${profile.height} cm</div></div>
-        <div><div class="label">Weight</div><div class="value">${profile.weight} kg</div></div>
-      </div></div>
-      <div class="section"><h3>⚽ Sports & Fitness</h3><div class="grid">
-        <div><div class="label">Position</div><div class="value">${profile.sportPosition || '-'}</div></div>
-        <div><div class="label">Fitness Status</div><div class="value">${profile.fitnessStatus}</div></div>
-      </div></div>
-      <div class="section"><h3>🏥 Medical Info</h3><div class="grid">
-        <div><div class="label">Blood Type</div><div class="value">${profile.bloodType || '-'}</div></div>
-        <div><div class="label">Allergies</div><div class="value">${profile.allergies || 'None'}</div></div>
-      </div></div>
-      <div class="section"><h3>🚨 Emergency Contact</h3><div class="grid">
-        <div><div class="label">Contact Name</div><div class="value">${profile.emergencyContact || '-'}</div></div>
-        <div><div class="label">Phone</div><div class="value">${profile.emergencyPhone || '-'}</div></div>
-      </div></div>
-    </div>
-    <footer>STREET LEAGUE - Athlete Management System</footer>
-  </div>
-</body>
-</html>`;
+<head><meta charset="UTF-8"><title>Health Profile - ${userName}</title><style>body{font-family:'Segoe UI',sans-serif;margin:40px;background:#eff6ff;color:#1e293b;}.card{max-width:800px;margin:auto;background:white;border-radius:24px;box-shadow:0 10px 40px rgba(0,0,0,0.05);overflow:hidden;}.header{background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;padding:30px;text-align:center;}.content{padding:30px;}.section{margin-bottom:25px;border-bottom:1px solid #f1f5f9;padding-bottom:15px;}.section h3{color:#2563eb;margin-bottom:10px;font-size:18px;}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;}.label{font-weight:bold;color:#64748b;font-size:13px;}.value{font-weight:600;color:#1e293b;}footer{text-align:center;padding:15px;color:#94a3b8;font-size:11px;}</style></head>
+<body><div class="card"><div class="header"><h1>🩺 Athlete Health Profile</h1><p>${userName}</p></div><div class="content"><div class="section"><h3>👤 Biometrics</h3><div class="grid"><div><div class="label">Age</div><div class="value">${profile.age} years</div></div><div><div class="label">BMI</div><div class="value">${profile.bmi?.toFixed(1)} (${profile.bmiCategory})</div></div><div><div class="label">Height</div><div class="value">${profile.height} cm</div></div><div><div class="label">Weight</div><div class="value">${profile.weight} kg</div></div></div></div><div class="section"><h3>⚽ Sports & Fitness</h3><div class="grid"><div><div class="label">Position</div><div class="value">${profile.sportPosition || '-'}</div></div><div><div class="label">Fitness Status</div><div class="value">${profile.fitnessStatus}</div></div></div></div><div class="section"><h3>🏥 Medical Info</h3><div class="grid"><div><div class="label">Blood Type</div><div class="value">${profile.bloodType || '-'}</div></div><div><div class="label">Allergies</div><div class="value">${profile.allergies || 'None'}</div></div></div></div><div class="section"><h3>🚨 Emergency Contact</h3><div class="grid"><div><div class="label">Contact Name</div><div class="value">${profile.emergencyContact || '-'}</div></div><div><div class="label">Phone</div><div class="value">${profile.emergencyPhone || '-'}</div></div></div></div></div><footer>STREET LEAGUE - Athlete Management System</footer></div></body></html>`;
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1197,9 +924,10 @@ export class HealthProfileComponent implements OnInit, AfterViewInit, OnDestroy 
       };
     }
     this.modalVisible = true;
+    this.cdr.detectChanges();
   }
 
-  closeModal() { this.modalVisible = false; }
+  closeModal() { this.modalVisible = false; this.cdr.detectChanges(); }
 
   getPreviewBmi(): number {
     if (this.form.weight > 0 && this.form.height > 0) {
