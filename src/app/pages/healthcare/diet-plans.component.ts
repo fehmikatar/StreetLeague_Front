@@ -39,15 +39,36 @@ import { UserService } from '../../services/user.service';
       <div class="bg-white rounded-xl shadow p-4 border border-gray-200">
         <h3 class="font-semibold text-gray-800 mb-2">🔍 Food Calorie Search</h3>
         <div class="flex gap-2">
-          <input type="text" [(ngModel)]="calorieSearch" (input)="searchCalories()" placeholder="Ex: apple, rice, chicken..." class="flex-1 p-2 border rounded-lg">
-          <div *ngIf="isSearchingCalories" class="flex items-center">
-            <div class="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
+          <input type="text" [(ngModel)]="calorieSearch" (keyup.enter)="searchCalories()" placeholder="Ex: apple, rice, chicken..." class="flex-1 p-2 border rounded-lg">
+          <button (click)="searchCalories()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">Search</button>
         </div>
-        <div *ngIf="isSearchingCalories" class="text-xs text-gray-500 mt-1">Searching the web...</div>
-        <div *ngIf="calorieResult !== null" class="mt-2 p-2 bg-green-100 rounded">🍎 {{ calorieSearch }} : {{ calorieResult }} kcal/100g</div>
-        <div *ngIf="calorieSuggestions.length" class="mt-2 flex flex-wrap gap-1">
-          <button *ngFor="let sugg of calorieSuggestions" (click)="selectCalorieSuggestion(sugg)" class="bg-blue-100 hover:bg-blue-200 px-2 py-1 rounded text-sm transition">{{ sugg.name }} ({{ sugg.calories }} kcal)</button>
+        
+        <!-- Status & Results -->
+        <div class="mt-3">
+          <div *ngIf="isSearchingCalories" class="flex items-center gap-2 text-blue-600 font-bold animate-pulse">
+            <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Searching...
+          </div>
+          
+          <div *ngIf="!isSearchingCalories && calorieSuggestions.length === 0 && calorieSearch.length >= 3" class="text-xs text-gray-400">
+            No results yet. Click Search or check backend.
+          </div>
+
+          <div *ngIf="calorieResult !== null" class="mb-3 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between">
+             <span class="font-bold text-green-700">✅ {{ calorieSearch }} : {{ calorieResult }} kcal/100g</span>
+             <button (click)="calorieResult = null" class="text-xs text-gray-400">Clear</button>
+          </div>
+
+          <div *ngIf="calorieSuggestions.length" class="flex flex-wrap gap-2">
+            <button *ngFor="let sugg of calorieSuggestions" (click)="selectCalorieSuggestion(sugg)" 
+                    class="bg-white border-2 border-blue-100 hover:border-blue-400 px-3 py-2 rounded-xl text-sm transition-all shadow-sm flex items-center gap-2">
+              <span class="text-lg">🥣</span>
+              <div>
+                <p class="font-bold text-gray-800">{{ sugg.name }}</p>
+                <p class="text-[10px] text-blue-600 font-black">{{ sugg.calories }} kcal</p>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -180,6 +201,23 @@ import { UserService } from '../../services/user.service';
            [class.bg-green-600]="notificationType === 'success'"
            [class.bg-red-600]="notificationType === 'error'">{{ notification }}</div>
 
+
+
+      <!-- Admin Search Bar -->
+      <div *ngIf="isAdmin" class="bg-white rounded-3xl p-6 shadow-lg border border-emerald-100/50 mb-6">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl shadow-inner">🔍</div>
+          <div class="flex-1">
+            <label class="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Search Diet Plans (Administrator Only)</label>
+            <input type="text" 
+                   [(ngModel)]="searchTermPlans" 
+                   (input)="onSearchPlans()" 
+                   placeholder="Type to filter by patient name, plan name or goals..." 
+                   class="w-full bg-slate-50 border-none rounded-xl text-sm p-3 focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
+          </div>
+        </div>
+      </div>
+
       <!-- Loading -->
       <div *ngIf="isLoading" class="text-center py-12 text-slate-400">
         <div class="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
@@ -200,7 +238,7 @@ import { UserService } from '../../services/user.service';
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let p of plans" (click)="selectPlan(p)" class="hover:bg-gray-50 cursor-pointer">
+            <tr *ngFor="let p of filteredPlans" (click)="selectPlan(p)" class="hover:bg-gray-50 cursor-pointer">
               <td class="px-6 py-4 text-sm">{{ isAdmin ? p.id : '' }}</td>
               <td class="px-6 py-4 text-sm">{{ getPatientName(p.healthProfileId) }}</td>
               <td class="px-6 py-4 text-sm font-medium">{{ p.planName }}</td>
@@ -234,7 +272,7 @@ import { UserService } from '../../services/user.service';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="plans.length===0"><td colspan="6" class="text-center py-10 text-gray-400">No diet plan found</td></tr>
+            <tr *ngIf="filteredPlans.length===0"><td colspan="6" class="text-center py-10 text-gray-400">No diet plan found</td></tr>
           </tbody>
         </table>
       </div>
@@ -321,7 +359,7 @@ import { UserService } from '../../services/user.service';
               <div class="space-y-2">
                 <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Patient *</label>
                 <select [(ngModel)]="form.healthProfileId" name="healthProfileId" required class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20" [disabled]="!isAdmin">
-                  <option *ngFor="let hp of healthProfiles" [value]="hp.id">{{ getPatientName(hp.id) }}</option>
+                  <option *ngFor="let hp of healthProfiles" [ngValue]="hp.id">{{ getPatientName(hp.id) }}</option>
                 </select>
               </div>
               <div class="space-y-2">
@@ -385,6 +423,10 @@ export class DietPlansComponent implements OnInit {
   currentUserId: number | null = null;
   currentUserHealthProfileId: number | null = null;
 
+  // Plan search
+  searchTermPlans = '';
+  filteredPlans: DietPlanResponse[] = [];
+
   modalVisible = false;
   editingId: number | null = null;
   isSubmitting = false;
@@ -410,18 +452,18 @@ export class DietPlansComponent implements OnInit {
   proteinRecommendation = 120;
   waterRecommendation = 2.5;
   userHealthProfile: HealthProfileResponse | null = null;
-  
+
   // Advanced features
   nutritionScore: string | null = null;
   shoppingList: { [cat: string]: { name: string; checked: boolean }[] } = {};
   shoppingListCategories: string[] = [];
-  dailyMeals: any = { 
-    breakfast: '', lunch: '', snack: '', dinner: '', 
-    breakfastCal: 0, lunchCal: 0, snackCal: 0, dinnerCal: 0, totalCal: 0 
+  dailyMeals: any = {
+    breakfast: '', lunch: '', snack: '', dinner: '',
+    breakfastCal: 0, lunchCal: 0, snackCal: 0, dinnerCal: 0, totalCal: 0
   };
   macros = { carbs: 0, fat: 0 };
   medicalAdvice: string = '';
-  
+
   private bypassClient!: HttpClient;
 
   constructor(
@@ -447,7 +489,7 @@ export class DietPlansComponent implements OnInit {
     this.isAdmin = role === 'ROLE_ADMIN' || role === 'ADMIN' || role === 'ROLE_FIELD_OWNER' || role === 'FIELD_OWNER';
     const userId = localStorage.getItem('user_id');
     this.currentUserId = userId ? parseInt(userId, 10) : null;
-    
+
     this.loadUserProfilee();
   }
 
@@ -518,14 +560,15 @@ export class DietPlansComponent implements OnInit {
 
   loadPlans() {
     this.isLoading = true;
-    const request$ = this.isAdmin 
-      ? this.dietService.getAll() 
+    const request$ = this.isAdmin
+      ? this.dietService.getAll()
       : this.currentUserHealthProfileId ? this.dietService.getByHealthProfileId(this.currentUserHealthProfileId) : null;
 
     if (request$) {
       request$.subscribe({
         next: (data) => {
           this.plans = data;
+          this.filteredPlans = [...this.plans];
           this.isLoading = false;
           if (this.plans.length > 0 && !this.selectedPlan) {
             this.selectPlan(this.plans[0]);
@@ -536,9 +579,27 @@ export class DietPlansComponent implements OnInit {
       });
     } else {
       this.plans = [];
+      this.filteredPlans = [];
       this.isLoading = false;
     }
   }
+
+  onSearchPlans() {
+    const term = this.searchTermPlans.toLowerCase().trim();
+    if (!term) {
+      this.filteredPlans = [...this.plans];
+    } else {
+      this.filteredPlans = this.plans.filter(p => {
+        const patientName = this.getPatientName(p.healthProfileId).toLowerCase();
+        const planName = (p.planName || '').toLowerCase();
+        const goals = (p.nutritionalGoals || '').toLowerCase();
+        return patientName.includes(term) || planName.includes(term) || goals.includes(term);
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
+
 
   getPatientName(hpId: number): string {
     const profile = this.healthProfiles.find(hp => hp.id === hpId);
@@ -559,14 +620,14 @@ export class DietPlansComponent implements OnInit {
     const w = this.userHealthProfile.weight || 70;
     const h = this.userHealthProfile.height || 175;
     const a = this.userHealthProfile.age || 25;
-    
+
     let bmr = (10 * w) + (6.25 * h) - (5 * a) + 5;
     let maintain = Math.round(bmr * 1.5);
-    
+
     if (this.dailyGoal === 'loss') this.targetDailyCalories = maintain - 500;
     else if (this.dailyGoal === 'gain') this.targetDailyCalories = maintain + 400;
     else this.targetDailyCalories = maintain;
-    
+
     this.proteinRecommendation = Math.round(w * (this.dailyGoal === 'gain' ? 2.2 : 1.8));
     this.waterRecommendation = Number((w * 0.035).toFixed(1));
 
@@ -604,7 +665,7 @@ export class DietPlansComponent implements OnInit {
     const goal = (this.dailyGoal as keyof typeof mealDB) || 'maintain';
     const db = mealDB[goal];
     const day = new Date().getDate();
-    
+
     this.dailyMeals.breakfast = db.breakfasts[day % 3];
     this.dailyMeals.lunch = db.lunches[day % 3];
     this.dailyMeals.dinner = db.dinners[day % 3];
@@ -623,19 +684,38 @@ export class DietPlansComponent implements OnInit {
 
   searchCalories() {
     const q = this.calorieSearch.trim();
+    console.log('Manual search triggered for:', q);
     if (q.length < 3) {
-      this.calorieResult = null;
-      this.calorieSuggestions = [];
+      this.showNotification('Type at least 3 letters', 'error');
       return;
     }
-    this.searchSubject.next(q);
+    this.performSearch(q);
   }
 
   performSearch(q: string) {
+    console.log('Calling backend for:', q);
     this.isSearchingCalories = true;
-    this.bypassClient.get<any[]>(`http://localhost:8085/api/diet-plans/search-calories`, { params: { query: q } }).subscribe({
-      next: (results) => { this.calorieSuggestions = results || []; this.isSearchingCalories = false; },
-      error: () => { this.isSearchingCalories = false; }
+    this.calorieSuggestions = []; // Clear previous
+
+    this.dietService.searchFoodCalories(q).subscribe({
+      next: (results) => {
+        console.log('Results received from service:', results);
+        this.calorieSuggestions = results || [];
+        this.isSearchingCalories = false;
+        if (!results || results.length === 0) {
+          this.showNotification('No results found for ' + q, 'error');
+        }
+      },
+      error: (err) => {
+        console.error('Search Error:', err);
+        this.isSearchingCalories = false;
+        this.showNotification('Backend unreachable (8085)', 'error');
+
+        // MOCK DATA FOR USER TO SEE SOMETHING IF BACKEND IS DOWN
+        if (q.toLowerCase().includes('pomme')) {
+          this.calorieSuggestions = [{ name: 'Pomme (MOCK)', calories: 52 }];
+        }
+      }
     });
   }
 
@@ -651,8 +731,8 @@ export class DietPlansComponent implements OnInit {
 
   analyzeNutrition(plan: DietPlanResponse) {
     const meals = (plan.mealSuggestions || '').toLowerCase();
-    const score = (['vegetable', 'fruit', 'fish', 'nuts', 'oat'].filter(g => meals.includes(g)).length) - 
-                  (['sugar', 'fried', 'fat'].filter(b => meals.includes(b)).length);
+    const score = (['vegetable', 'fruit', 'fish', 'nuts', 'oat'].filter(g => meals.includes(g)).length) -
+      (['sugar', 'fried', 'fat'].filter(b => meals.includes(b)).length);
     if (score >= 2) this.nutritionScore = 'A';
     else if (score >= 0) this.nutritionScore = 'B';
     else this.nutritionScore = 'C';
@@ -707,20 +787,25 @@ export class DietPlansComponent implements OnInit {
     } else {
       this.editingId = null;
       this.form = {
-        healthProfileId: this.currentUserHealthProfileId || 0, planName: '', description: '', dailyCalories: 2000, 
-        mealSuggestions: '', startDate: new Date().toISOString().slice(0,10), endDate: '',
+        healthProfileId: this.currentUserHealthProfileId || 0, planName: '', description: '', dailyCalories: 2000,
+        mealSuggestions: '', startDate: new Date().toISOString().slice(0, 10), endDate: '',
         isActive: true, dietaryRestrictions: '', nutritionalGoals: '', createdBy: localStorage.getItem('user_name') || ''
       };
     }
     this.modalVisible = true;
+    this.cdr.detectChanges();
   }
 
-  closeModal() { this.modalVisible = false; }
+  closeModal() { this.modalVisible = false; this.cdr.detectChanges(); }
 
   save() {
     if (this.isSubmitting) return;
     this.isSubmitting = true;
-    const obs = this.editingId ? this.dietService.update(this.editingId, this.form) : this.dietService.create(this.form);
+    const payload = {
+      ...this.form,
+      healthProfileId: Number(this.form.healthProfileId)
+    };
+    const obs = this.editingId ? this.dietService.update(this.editingId, payload) : this.dietService.create(payload);
     obs.subscribe({
       next: () => { this.loadPlans(); this.closeModal(); this.showNotification('Saved!', 'success'); this.isSubmitting = false; },
       error: (err) => { this.showNotification(err.error?.message || 'Error', 'error'); this.isSubmitting = false; }

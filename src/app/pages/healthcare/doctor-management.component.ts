@@ -1,4 +1,3 @@
-// src/app/components/doctor-management/doctor-management.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -12,27 +11,25 @@ import { DoctorService, DoctorResponse, DoctorRequest } from '../../services/doc
   imports: [CommonModule, FormsModule, HttpClientModule, RouterModule],
   template: `
     <div class="p-6 max-w-7xl mx-auto space-y-6 font-sans">
-      <!-- Header with green gradient + back button -->
+      <!-- Header -->
       <div class="bg-gradient-to-r from-green-50 to-emerald-100 rounded-2xl p-6 shadow-sm">
         <div class="flex flex-wrap justify-between items-center">
           <div class="flex items-center gap-4">
-            <a routerLink="/app/healthcare"
-               class="bg-white hover:bg-gray-100 text-green-700 px-4 py-2 rounded-xl shadow-md transition duration-200 flex items-center gap-2">
-              ← Dashboard
+            <a routerLink="/app/healthcare" class="p-2 bg-white/50 rounded-xl hover:bg-white transition-all text-green-700 shadow-sm border border-green-100">
+              <span class="text-xl">🏠</span>
             </a>
             <div>
-              <h1 class="text-3xl font-bold text-gray-800">👨‍⚕️ Doctors Management</h1>
-              <p class="text-gray-600 mt-1">Manage medical staff, availability and information</p>
+              <h1 class="text-2xl font-black text-gray-800 tracking-tight">🩺 Doctor Network</h1>
+              <p class="text-green-700/70 text-sm font-medium">Manage and view sports medical specialists</p>
             </div>
           </div>
-          <button (click)="openModal()"
-                  class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl shadow-md transition duration-200 flex items-center gap-2">
-            <span class="text-xl">+</span> Add Doctor
+          <button *ngIf="isAdmin" (click)="openModal()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-green-200 flex items-center gap-2">
+            <span>+</span> Add Doctor
           </button>
         </div>
       </div>
 
-      <!-- Toast notification -->
+      <!-- Toast -->
       <div *ngIf="notification"
            class="fixed bottom-5 right-5 z-50 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium animate-bounce"
            [class.bg-green-600]="notificationType === 'success'"
@@ -45,7 +42,7 @@ import { DoctorService, DoctorResponse, DoctorRequest } from '../../services/doc
         <div class="relative">
           <input type="text"
                  [(ngModel)]="searchTerm"
-                 (input)="filterDoctors()"
+                 (input)="onSearchInput()"
                  placeholder="🔍 Search by name, specialty or license..."
                  class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-xl focus:ring-green-500 focus:border-green-500">
         </div>
@@ -104,51 +101,47 @@ import { DoctorService, DoctorResponse, DoctorRequest } from '../../services/doc
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                  <div class="flex justify-end gap-2">
-                    <button (click)="openModal(doctor)"
-                            class="p-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all shadow-sm border border-amber-100"
-                            title="Edit">
+                  <div *ngIf="isAdmin" class="flex justify-end gap-2">
+                    <button (click)="openModal(doctor); $event.stopPropagation()"
+                            class="p-2 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all shadow-sm border border-amber-100" title="Edit">
                       ✏️
                     </button>
-                    <button (click)="deleteDoctor(doctor.id)"
-                            class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all shadow-sm border border-red-100"
-                            title="Delete">
+                    <button (click)="deleteDoctor(doctor.id); $event.stopPropagation()"
+                            class="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all shadow-sm border border-red-100" title="Delete">
                       🗑️
                     </button>
                   </div>
+                  <span *ngIf="!isAdmin" class="text-gray-400 text-xs italic">Read-only</span>
                 </td>
               </tr>
               <tr *ngIf="filteredDoctors.length === 0">
                 <td colspan="8" class="px-6 py-10 text-center text-gray-400">No doctors found</td>
               </tr>
             </tbody>
-           </table>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- Modal for Create / Edit -->
-    <div *ngIf="modalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <!-- Modal Create / Edit -->
+    <div *ngIf="modalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto" (click)="closeModal()">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
         <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
           <h2 class="text-xl font-bold text-gray-800">{{ editingId ? 'Edit Doctor' : 'Add New Doctor' }}</h2>
           <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
         </div>
         <form #doctorForm="ngForm" (ngSubmit)="saveDoctor()" class="p-6 space-y-5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <!-- First Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
               <input type="text" [(ngModel)]="form.firstName" name="firstName" required
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Last Name -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
               <input type="text" [(ngModel)]="form.lastName" name="lastName" required
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Specialty (dropdown) -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Specialty *</label>
               <select [(ngModel)]="form.specialty" name="specialty" required
@@ -156,37 +149,31 @@ import { DoctorService, DoctorResponse, DoctorRequest } from '../../services/doc
                 <option *ngFor="let spec of sportsSpecialties" [value]="spec">{{ spec }}</option>
               </select>
             </div>
-            <!-- License Number -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">License Number *</label>
               <input type="text" [(ngModel)]="form.licenseNumber" name="licenseNumber" required
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Email -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
               <input type="email" [(ngModel)]="form.email" name="email" required email
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Phone -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
               <input type="text" [(ngModel)]="form.phoneNumber" name="phoneNumber" required
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Working Hours Start -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Working Hours Start *</label>
               <input type="text" [(ngModel)]="form.workingHoursStart" name="workingHoursStart" required placeholder="09:00"
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Working Hours End -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Working Hours End *</label>
               <input type="text" [(ngModel)]="form.workingHoursEnd" name="workingHoursEnd" required placeholder="17:00"
                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
             </div>
-            <!-- Available (checkbox) -->
             <div class="col-span-2">
               <label class="flex items-center gap-2">
                 <input type="checkbox" [(ngModel)]="form.isAvailable" name="isAvailable">
@@ -194,7 +181,6 @@ import { DoctorService, DoctorResponse, DoctorRequest } from '../../services/doc
               </label>
             </div>
           </div>
-
           <div class="flex justify-end gap-3 pt-4 border-t">
             <button type="button" (click)="closeModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
             <button type="submit" [disabled]="doctorForm.invalid && doctorForm.submitted"
@@ -228,8 +214,8 @@ export class DoctorManagementComponent implements OnInit {
   searchTerm = '';
   notification = '';
   notificationType: 'success' | 'error' = 'success';
+  private searchDebounceTimer: any;
 
-  // Predefined list of sports specialties (as requested)
   sportsSpecialties = [
     'Médecin du sport',
     'Physiothérapie',
@@ -245,7 +231,7 @@ export class DoctorManagementComponent implements OnInit {
   form: DoctorRequest = {
     firstName: '',
     lastName: '',
-    specialty: this.sportsSpecialties[0], // default to first specialty
+    specialty: this.sportsSpecialties[0],
     licenseNumber: '',
     email: '',
     phoneNumber: '',
@@ -254,12 +240,16 @@ export class DoctorManagementComponent implements OnInit {
     isAvailable: true
   };
 
+  isAdmin = false;
+
   constructor(
     private doctorService: DoctorService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
+    const role = localStorage.getItem('user_type');
+    this.isAdmin = role === 'ROLE_ADMIN' || role === 'ADMIN' || role === 'ROLE_FIELD_OWNER' || role === 'FIELD_OWNER';
     this.loadDoctors();
   }
 
@@ -268,7 +258,7 @@ export class DoctorManagementComponent implements OnInit {
     this.doctorService.getAll().subscribe({
       next: (data) => {
         this.doctors = data;
-        this.filterDoctors();
+        this.filterDoctors(); // Met à jour la liste filtrée immédiatement
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -278,6 +268,14 @@ export class DoctorManagementComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // Recherche avec debounce pour éviter de surcharger
+  onSearchInput(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.searchDebounceTimer = setTimeout(() => {
+      this.filterDoctors();
+    }, 300);
   }
 
   filterDoctors(): void {
@@ -293,12 +291,19 @@ export class DoctorManagementComponent implements OnInit {
         doc.email.toLowerCase().includes(term)
       );
     }
+    this.cdr.detectChanges();
   }
 
   toggleAvailability(doctor: DoctorResponse): void {
-    this.doctorService.updateAvailability(doctor.id, !doctor.isAvailable).subscribe({
+    const newStatus = !doctor.isAvailable;
+    this.doctorService.updateAvailability(doctor.id, newStatus).subscribe({
       next: (updated) => {
-        doctor.isAvailable = updated.isAvailable;
+        // Mise à jour immédiate dans le tableau local sans rechargement
+        const index = this.doctors.findIndex(d => d.id === doctor.id);
+        if (index !== -1) {
+          this.doctors[index].isAvailable = updated.isAvailable;
+          this.filterDoctors(); // Rafraîchir la recherche
+        }
         this.showNotification(`Doctor is now ${updated.isAvailable ? 'available' : 'unavailable'}`, 'success');
         this.cdr.detectChanges();
       },
@@ -335,6 +340,7 @@ export class DoctorManagementComponent implements OnInit {
       };
     }
     this.modalVisible = true;
+    this.cdr.detectChanges();
   }
 
   closeModal(): void {
@@ -343,8 +349,8 @@ export class DoctorManagementComponent implements OnInit {
 
   saveDoctor(): void {
     if (!this.form.firstName || !this.form.lastName || !this.form.specialty ||
-        !this.form.licenseNumber || !this.form.email || !this.form.phoneNumber ||
-        !this.form.workingHoursStart || !this.form.workingHoursEnd) {
+      !this.form.licenseNumber || !this.form.email || !this.form.phoneNumber ||
+      !this.form.workingHoursStart || !this.form.workingHoursEnd) {
       this.showNotification('Please fill all required fields', 'error');
       return;
     }
@@ -355,8 +361,8 @@ export class DoctorManagementComponent implements OnInit {
       : this.doctorService.create(request);
 
     obs.subscribe({
-      next: () => {
-        this.loadDoctors();
+      next: (savedDoctor) => {
+        this.loadDoctors(); // Recharge la liste complète pour être synchro
         this.closeModal();
         this.showNotification(this.editingId ? 'Doctor updated' : 'Doctor created', 'success');
       },
