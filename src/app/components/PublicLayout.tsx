@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from "react-router";
 import { Menu, X, Home, Info, Phone, Grid, LogIn } from "lucide-react";
-import logoImage from "figma:asset/46063177b77ac48f46bc6be9e7b29a63cce56278.png";
+import logoImage from "@/assets/46063177b77ac48f46bc6be9e7b29a63cce56278.png";
 import { useState } from "react";
 
 export function PublicLayout() {

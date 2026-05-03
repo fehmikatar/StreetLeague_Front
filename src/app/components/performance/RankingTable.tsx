@@ -2,16 +2,17 @@ import { Trophy, Medal, Award, TrendingUp, TrendingDown } from 'lucide-react';
 import { useState } from 'react';
 
 interface Player {
-  rank: number;
-  previousRank: number;
-  name: string;
-  avatar: string;
-  position: string;
-  points: number;
-  matches: number;
-  goals: number;
-  assists: number;
-  rating: number;
+  rank?: number;
+  previousRank?: number;
+  name?: string;
+  avatar?: string;
+  position?: string;
+  points?: number;
+  matches?: number;
+  goals?: number;
+  assists?: number;
+  rating?: number;
+  [key: string]: any;
 }
 
 interface RankingTableProps {

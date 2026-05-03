@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Building2 } from 'lucide-react';
+import { authService } from '@/services/authService';
 
 type UserType = 'player' | 'owner';
 
@@ -41,14 +42,20 @@ export default function SignupPage() {
       return;
     }
 
-    // Simulation d'inscription
-    setTimeout(() => {
-      localStorage.setItem('auth_token', 'mock_token_' + Date.now());
-      localStorage.setItem('user_email', formData.email);
-      localStorage.setItem('user_name', formData.name);
-      localStorage.setItem('user_type', userType);
+    try {
+      await authService.signup({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        userType
+      });
+      // Login directly after signup
+      await authService.login({ email: formData.email, password: formData.password });
       window.location.href = '/app';
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message || "Échec de l'inscription. Veuillez réessayer.");
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {

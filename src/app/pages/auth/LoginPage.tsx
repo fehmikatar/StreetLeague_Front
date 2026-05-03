@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { authService } from '@/services/authService';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,15 +22,13 @@ export default function LoginPage() {
       return;
     }
 
-    // Simulation de connexion
-    setTimeout(() => {
-      // Mock authentication - accepte n'importe quel email/password pour la démo
-      localStorage.setItem('auth_token', 'mock_token_' + Date.now());
-      localStorage.setItem('user_email', email);
-      localStorage.setItem('user_name', email.split('@')[0]);
-      localStorage.setItem('user_type', 'player');
+    try {
+      await authService.login({ email, password });
       window.location.href = '/app';
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message || 'Échec de la connexion. Veuillez vérifier vos identifiants.');
+      setLoading(false);
+    }
   };
 
   return (

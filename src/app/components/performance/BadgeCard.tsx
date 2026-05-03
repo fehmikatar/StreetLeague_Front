@@ -3,31 +3,34 @@ import { useState } from 'react';
 
 interface BadgeCardProps {
   badge: {
-    id: string;
+    id: string | number;
     name: string;
-    description: string;
-    icon: string;
-    category: 'performance' | 'achievement' | 'social' | 'loyalty';
-    progress: number;
-    total: number;
+    description?: string;
+    icon?: string;
+    iconUrl?: string;
+    category?: 'performance' | 'achievement' | 'social' | 'loyalty' | string;
+    progress?: number;
+    total?: number;
+    requiredXp?: number;
+    level?: number;
     earned: boolean;
     earnedDate?: string;
-    criteria: string;
-    points: number;
+    criteria?: string;
+    points?: number;
   };
 }
 
 export function BadgeCard({ badge }: BadgeCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const categoryColors = {
+  const categoryColors: Record<string, string> = {
     performance: '#F26419',
     achievement: '#1DB954',
     social: '#06D6A0',
     loyalty: '#FFD700',
   };
 
-  const categoryColor = categoryColors[badge.category];
+  const categoryColor = badge.category ? categoryColors[badge.category.toLowerCase()] : undefined;
 
   return (
     <div
@@ -69,11 +72,11 @@ export function BadgeCard({ badge }: BadgeCardProps) {
       {/* Badge Icon */}
       <div className="text-center mb-3">
         <div
-          className={`text-5xl mb-2 relative ${
+          className={`text-5xl mb-2 relative flex justify-center items-center ${
             !badge.earned && 'opacity-40 grayscale'
           }`}
         >
-          {badge.icon}
+          {badge.iconUrl ? <img src={badge.iconUrl} alt={badge.name} className="w-12 h-12 object-contain" /> : badge.icon}
           {!badge.earned && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Lock className="w-6 h-6 text-muted-foreground" />
@@ -84,8 +87,8 @@ export function BadgeCard({ badge }: BadgeCardProps) {
         <span
           className="text-xs px-2 py-1 rounded-full"
           style={{
-            backgroundColor: `${categoryColor}15`,
-            color: categoryColor,
+            backgroundColor: `${categoryColor || '#F26419'}15`,
+            color: categoryColor || '#F26419',
           }}
         >
           {badge.category}
@@ -97,13 +100,13 @@ export function BadgeCard({ badge }: BadgeCardProps) {
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>Progression</span>
           <span>
-            {badge.progress}/{badge.total}
+            {badge.progress || 0}/{badge.total || badge.requiredXp || 100}
           </span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-            style={{ width: `${(badge.progress / badge.total) * 100}%` }}
+            style={{ width: `${((badge.progress || 0) / (badge.total || badge.requiredXp || 100)) * 100}%` }}
           />
         </div>
       </div>

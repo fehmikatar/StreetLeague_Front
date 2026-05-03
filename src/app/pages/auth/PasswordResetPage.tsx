@@ -4,7 +4,7 @@ import { ArrowLeft, Mail, Check } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { toast } from 'sonner';
-import logoImage from 'figma:asset/46063177b77ac48f46bc6be9e7b29a63cce56278.png';
+import logoImage from "@/assets/46063177b77ac48f46bc6be9e7b29a63cce56278.png";
 
 export default function PasswordResetPage() {
   const [email, setEmail] = useState('');

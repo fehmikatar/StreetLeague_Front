@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
-import { Home, Users, Trophy, MapPin, MessageSquare, Activity, Gift, Settings, Map, LogOut, Menu, X, Bell, User } from "lucide-react";
-import logoImage from "figma:asset/46063177b77ac48f46bc6be9e7b29a63cce56278.png";
+import { Home, Users, Trophy, MapPin, MessageSquare, Activity, Gift, Settings, Map, LogOut, Menu, X, Bell, User, Award, Ticket, Star } from "lucide-react";
+import logoImage from "@/assets/46063177b77ac48f46bc6be9e7b29a63cce56278.png";
 import { useEffect, useState } from "react";
 
 export function Layout() {
@@ -21,7 +21,7 @@ export function Layout() {
     }
 
     // Load user data
-    const name = localStorage.getItem('user_name') || 'Utilisateur';
+    const name = localStorage.getItem('user_name') || 'User';
     const email = localStorage.getItem('user_email') || '';
     const type = localStorage.getItem('user_type') || 'player';
     
@@ -44,10 +44,14 @@ export function Layout() {
     { path: "/app/team", icon: Users, label: "Team" },
     { path: "/app/matches", icon: Trophy, label: "Matches" },
     { path: "/app/booking", icon: MapPin, label: "Booking" },
-    { path: "/app/fields", icon: Map, label: "Terrains" },
+    { path: "/app/fields", icon: Map, label: "Fields" },
     { path: "/app/community", icon: MessageSquare, label: "Community" },
     { path: "/app/performance", icon: Activity, label: "Performance" },
     { path: "/app/sponsors", icon: Gift, label: "Sponsors" },
+    { path: "/app/loyalty", icon: Star, label: "Loyalty Hub" },
+    { path: "/app/admin/loyalty", icon: Award, label: "Loyalty Admin" },
+    { path: "/app/admin/badges", icon: Award, label: "Badges Admin" },
+    { path: "/app/admin/promotions", icon: Ticket, label: "Promos Admin" },
     { path: "/app/admin", icon: Settings, label: "Admin" },
   ];
 
@@ -106,7 +110,7 @@ export function Layout() {
                   <div className="flex-1">
                     <div className="text-sm font-semibold">{userName}</div>
                     <div className="text-xs text-muted-foreground">
-                      {userType === 'owner' ? 'Propriétaire' : 'Joueur'}
+                      {userType === 'owner' ? 'Owner' : 'Player'}
                     </div>
                   </div>
                 </div>
@@ -142,7 +146,7 @@ export function Layout() {
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#DC2626]/10 text-[#DC2626] hover:bg-[#DC2626]/20 transition-all"
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className="font-semibold">Déconnexion</span>
+                  <span className="font-semibold">Logout</span>
                 </button>
               </div>
             </div>
@@ -189,7 +193,7 @@ export function Layout() {
               <div className="flex-1">
                 <div className="text-sm font-semibold">{userName}</div>
                 <div className="text-xs text-muted-foreground">
-                  {userType === 'owner' ? 'Propriétaire' : 'Joueur'}
+                  {userType === 'owner' ? 'Owner' : 'Player'}
                 </div>
               </div>
             </div>
@@ -198,7 +202,7 @@ export function Layout() {
               className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-error-red/10 text-error-red hover:bg-error-red/20 transition-all"
             >
               <LogOut className="h-4 w-4" />
-              <span className="text-sm font-semibold">Déconnexion</span>
+              <span className="text-sm font-semibold">Logout</span>
             </button>
           </div>
         </div>

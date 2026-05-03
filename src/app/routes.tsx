@@ -25,6 +25,12 @@ import PublicHomePage from "@/app/pages/public/PublicHomePage";
 import AboutPage from "@/app/pages/public/AboutPage";
 import ContactPage from "@/app/pages/public/ContactPage";
 import BrowsePage from "@/app/pages/public/BrowsePage";
+import PerformanceDashboard from "@/app/pages/PerformanceDashboard";
+import PerformanceHistory from "@/app/pages/PerformanceHistory";
+import BadgeGallery from "@/app/pages/BadgeGallery";
+import RankingFullPage from "@/app/pages/RankingFullPage";
+import MyRewards from "@/app/pages/MyRewards";
+
 // Healthcare Module
 import HealthDashboard from "@/app/pages/healthcare/HealthDashboard";
 import HealthProfile from "@/app/pages/healthcare/HealthProfile";
@@ -34,6 +40,11 @@ import DietPlans from "@/app/pages/healthcare/DietPlans";
 import HealthTrends from "@/app/pages/healthcare/HealthTrends";
 import HealthAlerts from "@/app/pages/healthcare/HealthAlerts";
 import ComplianceTracking from "@/app/pages/healthcare/ComplianceTracking";
+import BadgeManagement from "@/app/pages/BadgeManagement";
+import PromotionManagement from "@/app/pages/PromotionManagement";
+import LoyaltyDashboard from "@/app/pages/loyalty/LoyaltyDashboard";
+import AdminLoyalty from "@/app/pages/admin/AdminLoyalty";
+import AiCoach from "@/app/pages/performance/AiCoach";
 
 export const router = createBrowserRouter([
   // Public Routes (no authentication required)
@@ -89,7 +100,15 @@ export const router = createBrowserRouter([
       { path: "user-profile", Component: UserProfile },
       { path: "notifications", Component: NotificationsCenter },
       { path: "matches/:id", Component: MatchDetailPage },
-      { path: "booking-form", Component: BookingForm },
+      { path: "performance/history", Component: PerformanceHistory },
+      { path: "performance/badges", Component: BadgeGallery },
+      { path: "performance/ranking", Component: RankingFullPage },
+      { path: "performance/rewards", Component: MyRewards },
+      { path: "admin/badges", Component: BadgeManagement },
+      { path: "admin/promotions", Component: PromotionManagement },
+      { path: "loyalty", Component: LoyaltyDashboard },
+      { path: "admin/loyalty", Component: AdminLoyalty },
+      { path: "ai-coach", Component: AiCoach },
     ],
   },
   // 404 Not Found
