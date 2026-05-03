@@ -457,7 +457,7 @@ public get navItems() {
   }
 
   private generateAlerts(profile: any, appointments: any[]): any[] {
-    const alerts = [];
+    const alerts: any[] = [];
     
     if (profile?.bmi) {
       const bmi = profile.bmi;

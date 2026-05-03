@@ -960,10 +960,14 @@ export class SponsorsComponent implements OnInit, OnDestroy {
 
       this.productService.getAIRecommendations(userId, 50).subscribe({
          next: (res) => {
-            this.aiFlaskAvailable = res.flask_available;
+            this.aiFlaskAvailable = res.flask_available ?? false;
             this.aiRankMap.clear();
             (res.ranked_products || []).forEach(r => {
-               this.aiRankMap.set(Number(r.product_id), { rank: r.rank, score: r.recommendation_score, priority: r.priority });
+               this.aiRankMap.set(Number(r.product_id), { 
+                  rank: r.rank, 
+                  score: r.recommendation_score, 
+                  priority: r.priority ?? 'Normal' 
+               });
             });
             this.sortProductsByAI();
             this.cdr.detectChanges();

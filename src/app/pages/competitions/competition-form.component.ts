@@ -567,13 +567,13 @@ export class CompetitionFormComponent implements OnInit {
     const newTeams = this.teams.filter(t => !t.id);
     const existingTeams = this.teams.filter(t => !!t.id);
 
-    const teamRequests = newTeams.map(t => this.teamService.create({
+    const teamRequests = newTeams.map(t => this.teamService.createTeam({
       name: t.name,
       level: t.level.toString(),
       city: t.city,
       sport: this.formData.sportType,
       description: 'Added via Modification'
-    }, this.userId));
+    }, Number(this.userId)));
 
     (teamRequests.length > 0 ? forkJoin(teamRequests) : of([])).pipe(
       catchError(err => {

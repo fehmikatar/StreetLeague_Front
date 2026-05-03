@@ -146,9 +146,9 @@ export class CommunityService {
         );
     }
 
-    createTeamPost(teamId: number, content: string): Observable<TeamPostResponse> {
+    createTeamPost(teamId: number, content: string, title?: string): Observable<TeamPostResponse> {
         return this.http.post<TeamPostResponse>(
-            `${this.base}/community/team/${teamId}/posts`, { content }
+            `${this.base}/community/team/${teamId}/posts`, { content, title: title || 'Post d\'équipe' }
         );
     }
 

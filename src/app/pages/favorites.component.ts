@@ -330,7 +330,7 @@ export class FavoritesComponent implements OnInit, OnDestroy {
     this.loadingList = true;
     this.productService.getLowStockFavorites().subscribe({
       next: (res) => {
-        this.favorites = res || [];
+        this.favorites = (res || []).map(p => ({ id: 0, product: p }));
         this.loadingList = false;
       },
       error: (err) => {

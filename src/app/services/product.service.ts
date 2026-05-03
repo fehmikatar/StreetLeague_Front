@@ -78,7 +78,7 @@ export interface FavoriteResponse {
   id: number;
   product: Product;
   category?: FavoriteCategory;
-  addedAt: string;
+  addedAt?: string;
 }
 
 export interface CartItemDTO {
@@ -121,6 +121,18 @@ export interface ProductHighDemandDTO {
   quantityInActiveCarts: number;
   currentStock: number;
   categoryName: string;
+}
+
+export interface AIRankedProduct {
+  product_id: number | string;
+  recommendation_score: number;
+  rank: number;
+  priority?: string;
+}
+
+export interface AIRecommendationsResponse {
+  ranked_products: AIRankedProduct[];
+  flask_available?: boolean;
 }
 
 @Injectable({
@@ -247,5 +259,81 @@ export class ProductService {
   getMyFavorites(page: number = 0, size: number = 50): Observable<{ content: FavoriteResponse[], totalPages: number, totalElements: number }> {
     const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     return this.http.get<any>(this.favoriteUrl, { params });
+  }
+
+  getTopSellingProductsStats(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/stats/top-selling`);
+  }
+
+  getHighDemandProducts(): Observable<ProductHighDemandDTO[]> {
+    return this.http.get<ProductHighDemandDTO[]>(`${this.apiUrl}/high-demand`);
+  }
+
+  getAbandonedCartStatsCity(): Observable<any> {
+    return this.http.get(`${this.cartUrl}/stats/abandoned-by-city`);
+  }
+
+  getPromoCodeUsageStats(): Observable<any> {
+    return this.http.get(`${this.cartUrl}/stats/promo-usage`);
+  }
+
+  getLowStockProducts(threshold: number): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}/low-stock/${threshold}`);
+  }
+
+  bulkImportProducts(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/import`, formData);
+  }
+
+  bulkExportProducts(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, { responseType: 'blob' });
+  }
+
+  getFavoriteCategories(): Observable<FavoriteCategory[]> {
+    return this.http.get<FavoriteCategory[]>(`${this.favoriteUrl}/categories`);
+  }
+
+  getLowStockFavorites(): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.favoriteUrl}/low-stock`);
+  }
+
+  getFavoritesByCategory(categoryId: number): Observable<FavoriteResponse[]> {
+    return this.http.get<FavoriteResponse[]>(`${this.favoriteUrl}/category/${categoryId}`);
+  }
+
+  searchFavorites(name: string, category?: string | number): Observable<FavoriteResponse[]> {
+    let params = new HttpParams().set('name', name);
+    if (category) params = params.set('category', category.toString());
+    return this.http.get<FavoriteResponse[]>(`${this.favoriteUrl}/search`, { params });
+  }
+
+  createFavoriteCategory(name: string): Observable<FavoriteCategory> {
+    return this.http.post<FavoriteCategory>(`${this.favoriteUrl}/categories`, { name });
+  }
+
+  categorizeFavorite(favId: number, catId: number): Observable<any> {
+    return this.http.patch(`${this.favoriteUrl}/${favId}/category`, { categoryId: catId });
+  }
+
+  triggerStockCheck(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/check-stock`, {});
+  }
+
+  getAIRecommendations(userId: any, limit: number = 5): Observable<AIRecommendationsResponse> {
+    return this.http.get<AIRecommendationsResponse>(`${this.apiUrl}/recommendations/${userId}?limit=${limit}`);
+  }
+
+  checkIfFavorite(productId: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.favoriteUrl}/check/${productId}`);
+  }
+
+  calculateDeliveryFee(location: string): Observable<number> {
+    return this.http.get<number>(`${this.cartUrl}/delivery-fee?location=${encodeURIComponent(location)}`);
+  }
+
+  clearCart(): Observable<any> {
+    return this.http.delete(`${this.cartUrl}/clear`);
   }
 }

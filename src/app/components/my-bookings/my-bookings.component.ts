@@ -312,7 +312,8 @@ export class MyBookingsComponent implements OnInit {
       return reservation.totalPrice;
     }
 
-    const fallbackRate = this.bookingService.getFieldById(reservation.fieldId)?.price ?? 0;
+    const field = this.bookingService.fields.find(f => f.id === reservation.fieldId);
+    const fallbackRate = field?.price ?? 0;
     return Number((fallbackRate * reservation.duration).toFixed(2));
   }
 

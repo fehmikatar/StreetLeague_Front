@@ -90,6 +90,10 @@ export class BookingService {
     public notifications$ = this.notificationsSubject.asObservable();
     public myReservations$ = this.myReservationsSubject.asObservable();
 
+    public get fields(): Field[] {
+        return this.fieldsSubject.value;
+    }
+
     constructor(private http: HttpClient, private api: ApiService, private webSocketService: WebSocketService) {
         this.loadFields();
         this.loadStaticNotifications();
@@ -394,5 +398,83 @@ export class BookingService {
     private extractCoordinates(location: string): { lat: number, lng: number } | null {
         const match = (location || '').match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
         return match ? { lat: parseFloat(match[1]), lng: parseFloat(match[2]) } : null;
+    }
+
+    public getUserFieldFeedbacks(userId: string): Observable<FieldFeedback[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/feedbacks/user/${userId}`).pipe(
+            map(feedbacks => feedbacks.map(feedback => this.mapBackendFeedback(feedback))),
+            catchError(() => of([]))
+        );
+    }
+
+    public updateFieldFeedback(id: number, payload: any): Observable<FieldFeedback> {
+        return this.http.put<any>(`${this.apiUrl}/feedbacks/${id}`, payload).pipe(
+            map(feedback => this.mapBackendFeedback(feedback))
+        );
+    }
+
+    public getFieldById(fieldId: string): Observable<Field | null> {
+        return this.http.get<any>(`${this.apiUrl}/sport-spaces/${fieldId}`).pipe(
+            map(space => {
+                const openingTime = space.openingTime || this.extractOpeningTime(space.hours) || '08:00';
+                const closingTime = space.closingTime || this.extractClosingTime(space.hours) || '22:00';
+                const coords = this.extractCoordinates(space.location);
+                return {
+                    id: String(space.id),
+                    name: space.name,
+                    location: space.location,
+                    type: space.sportType,
+                    price: space.pricePerHour,
+                    rating: space.averageRating,
+                    reviews: space.reviews,
+                    hours: space.hours,
+                    openingTime,
+                    closingTime,
+                    latitude: space.latitude ?? coords?.lat ?? null,
+                    longitude: space.longitude ?? coords?.lng ?? null,
+                    available: space.available !== false
+                };
+            }),
+            catchError(() => of(null))
+        );
+    }
+
+    public getFieldReservations(fieldId: string): Observable<Reservation[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/space/${fieldId}`).pipe(
+            map(data => data.map(b => this.mapBackendToFrontendReservation(b))),
+            catchError(() => of([]))
+        );
+    }
+
+    public isSlotAvailableClientSide(fieldId: string, date: string, time: string, duration: number, existingReservations: Reservation[]): boolean {
+        const start = new Date(`${date}T${time}:00`).getTime();
+        const end = start + duration * 60 * 60 * 1000;
+
+        return !existingReservations.some(r => {
+            if (r.fieldId !== fieldId || r.date !== date || r.status === 'cancelled') return false;
+            const rStart = new Date(`${r.date}T${r.time}:00`).getTime();
+            const rEnd = rStart + r.duration * 60 * 60 * 1000;
+            return (start < rEnd && end > rStart);
+        });
+    }
+
+    public getMyOwnerReservations(): Observable<Reservation[]> {
+        const ownerId = localStorage.getItem('user_id');
+        if (!ownerId) return of([]);
+        return this.getOwnerReservations(ownerId);
+    }
+
+    public getOwnerReservations(ownerId: string): Observable<Reservation[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/owner/${ownerId}`).pipe(
+            map(data => data.map(b => this.mapBackendToFrontendReservation(b))),
+            catchError(() => of([]))
+        );
+    }
+
+    public getOwnerReservationsFromOwnedFields(ownerId: string): Observable<Reservation[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/bookings/owner/${ownerId}/fields`).pipe(
+            map(data => data.map(b => this.mapBackendToFrontendReservation(b))),
+            catchError(() => of([]))
+        );
     }
 }

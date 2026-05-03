@@ -175,6 +175,24 @@ export class WebSocketService implements OnDestroy {
         return isNaN(date.getTime()) ? '' : date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     }
 
+    public getNotifications(): Observable<WebSocketNotification[]> {
+        return this.notifications$;
+    }
+
+    public markAsRead(notificationId: string): void {
+        const current = this.notificationsSubject.getValue();
+        const updated = current.map(n => n.id === notificationId ? { ...n, read: true } : n);
+        this.notificationsSubject.next(updated);
+        // Stub for API call: this.http.patch(`${this.api.base}/notifications/${notificationId}/read`, {}).subscribe();
+    }
+
+    public deleteNotification(notificationId: string): void {
+        const current = this.notificationsSubject.getValue();
+        const filtered = current.filter(n => n.id !== notificationId);
+        this.notificationsSubject.next(filtered);
+        // Stub for API call: this.http.delete(`${this.api.base}/notifications/${notificationId}`).subscribe();
+    }
+
     public disconnect(): void {
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);

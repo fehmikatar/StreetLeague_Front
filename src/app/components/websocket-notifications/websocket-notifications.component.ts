@@ -48,11 +48,11 @@ export class WebSocketNotificationsComponent implements OnDestroy {
         private webSocketService: WebSocketService,
         private bookingService: BookingService
     ) {
-        this.notifications$ = combineLatest([
+        this.notifications$ = combineLatest(
             this.webSocketService.getNotifications(),
             this.bookingService.notifications$,
             this.dismissedIdsSubject
-        ]).pipe(
+        ).pipe(
             map(([webSocketNotifications, bookingNotifications, dismissedIds]) => {
                 const mappedWebSocketNotifications: DisplayNotification[] = webSocketNotifications.map((notification) => ({
                     ...notification,

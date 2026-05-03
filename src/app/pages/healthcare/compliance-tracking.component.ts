@@ -206,7 +206,7 @@ export class ComplianceTrackingComponent implements OnInit, AfterViewInit {
   }
 
   private generateDiagnostics() {
-    const diag = [];
+    const diag: string[] = [];
     if (this.attendanceRate >= 80) diag.push(`🏆 Excellent compliance (${this.attendanceRate}%).`);
     else if (this.attendanceRate >= 50) diag.push(`👍 Average compliance (${this.attendanceRate}%). Improve your regularity.`);
     else if (this.appointments.length > 0) diag.push(`⚠️ Low compliance (${this.attendanceRate}%). Appointments are essential.`);

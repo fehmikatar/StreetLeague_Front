@@ -279,7 +279,7 @@ export class MatchesComponent implements OnInit {
     } });
     this.matchService.getMatches().subscribe({
       next: (data: any) => {
-        let items = [];
+        let items: any[] = [];
         if (data?.content) items = data.content;
         else if (data?._embedded) items = data._embedded[Object.keys(data._embedded)[0]];
         else if (Array.isArray(data)) items = data;

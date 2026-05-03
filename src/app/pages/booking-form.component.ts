@@ -253,11 +253,11 @@ export class BookingFormComponent implements OnInit, OnDestroy {
     if (!this.bookingService.respectsMinimumAdvanceNotice(this.bookingDate, time)) return false;
 
     return this.bookingService.isSlotAvailableClientSide(
-      this.existingReservations,
       this.field.id,
       this.bookingDate,
       time,
-      this.bookingDuration
+      this.bookingDuration,
+      this.existingReservations
     );
   }
 

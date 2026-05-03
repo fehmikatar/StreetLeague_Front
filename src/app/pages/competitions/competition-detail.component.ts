@@ -460,7 +460,7 @@ export class CompetitionDetailComponent implements OnInit {
   loadMatches() {
     this.matchService.getMatches(this.compId).subscribe({
       next: (res: any) => {
-        let items = [];
+        let items: any[] = [];
         if (res?.content) items = res.content;
         else if (res?._embedded) items = res._embedded[Object.keys(res._embedded)[0]];
         else if (Array.isArray(res)) items = res;
