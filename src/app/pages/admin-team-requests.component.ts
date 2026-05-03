@@ -197,9 +197,7 @@ export class AdminTeamRequestsComponent implements OnInit {
           ? 'Session expirée. Reconnectez-vous et réessayez.'
           : status === 403
             ? 'Accès refusé à l\'approbation. Vérifiez le rôle ROLE_ADMIN puis rechargez la session.'
-            : status === 400
-              ? 'Demande invalide. Vérifiez les données puis réessayez.'
-              : this.teamService.extractErrorMessage(err);
+            : this.teamService.extractErrorMessage(err);
         this.showToast(`Erreur approbation: ${message}`);
         this.cdr.detectChanges();
       }

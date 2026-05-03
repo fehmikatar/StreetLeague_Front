@@ -24,8 +24,8 @@ export interface TeamPostResponse {
     likeCount: number;
     commentCount: number;
     likedByCurrentUser: boolean;
-    currentUserReaction?: ReactionType;  // ✅ Ajouté
-    reactions?: ReactionSummary[];       // ✅ Ajouté
+    currentUserReaction?: ReactionType;
+    reactions?: ReactionSummary[];
 }
 
 export interface TeamCommentResponse {
@@ -33,7 +33,13 @@ export interface TeamCommentResponse {
     content: string;
     author: PostAuthorInfo;
     postId: number;
+    parentId?: number;
+    replies?: TeamCommentResponse[];
     createdAt: string;
+    likeCount?: number;
+    likedByCurrentUser?: boolean;
+    currentUserReaction?: ReactionType;
+    showReactions?: boolean;
 }
 
 export interface PageResponse<T> {
@@ -164,9 +170,13 @@ export class CommunityService {
         );
     }
 
-    addTeamPostComment(postId: number, content: string): Observable<TeamCommentResponse> {
+    addTeamPostComment(postId: number, content: string, parentId?: number): Observable<TeamCommentResponse> {
+        const payload: any = { content };
+        if (parentId) {
+            payload.parentId = parentId;
+        }
         return this.http.post<TeamCommentResponse>(
-            `${this.base}/community/posts/${postId}/comments`, { content }
+            `${this.base}/community/posts/${postId}/comments`, payload
         );
     }
 
@@ -194,9 +204,6 @@ export class CommunityService {
 
     // ── Reactions (Facebook-style emoji reactions) ────────────────────────
 
-    /**
-     * Ajouter ou changer une réaction sur un post
-     */
     addReaction(postId: number, reactionType: ReactionType): Observable<void> {
         const request: AddReactionRequest = { reactionType };
         return this.http.post<void>(
@@ -205,30 +212,57 @@ export class CommunityService {
         );
     }
 
-    /**
-     * Supprimer la réaction de l'utilisateur courant
-     */
     removeReaction(postId: number): Observable<void> {
         return this.http.delete<void>(
             `${this.base}/community/posts/${postId}/react`
         );
     }
 
-    /**
-     * Obtenir le résumé des réactions (nombre par type)
-     */
     getReactionSummary(postId: number): Observable<ReactionSummary[]> {
         return this.http.get<ReactionSummary[]>(
             `${this.base}/community/posts/${postId}/reactions`
         );
     }
 
-    /**
-     * Obtenir la liste des utilisateurs qui ont réagi avec leur type de réaction
-     */
     getUsersWhoReacted(postId: number): Observable<UserReaction[]> {
         return this.http.get<UserReaction[]>(
             `${this.base}/community/posts/${postId}/likes`
+        );
+    }
+
+    // ── Convenience wrappers used by communities.component ────────────────
+
+    getReactions(postId: number): Observable<{ myReaction: string | null; totalCount: number; counts: Record<string, number> }> {
+        return this.http.get<{ myReaction: string | null; totalCount: number; counts: Record<string, number> }>(
+            `${this.base}/community/posts/${postId}/reactions`
+        );
+    }
+
+    react(postId: number, type: string): Observable<{ totalCount: number; counts: Record<string, number> }> {
+        return this.http.post<{ totalCount: number; counts: Record<string, number> }>(
+            `${this.base}/community/posts/${postId}/react`,
+            { reactionType: type }
+        );
+    }
+
+    getReactionUsers(postId: number): Observable<any[]> {
+        return this.http.get<any[]>(
+            `${this.base}/community/posts/${postId}/reaction-users`
+        );
+    }
+
+    // ── Comment Reactions ──────────────────────────────────────────────────
+
+    reactToComment(commentId: number, reactionType: ReactionType): Observable<void> {
+        return this.http.post<void>(
+            `${this.base}/community/comments/${commentId}/react`,
+            { reactionType }
+        );
+    }
+
+    removeCommentReaction(commentId: number): Observable<void> {
+        return this.http.delete<void>(
+            `${this.base}/community/comments/${commentId}/react`
         );
     }
 }

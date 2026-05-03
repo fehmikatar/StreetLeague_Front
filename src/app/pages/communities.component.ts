@@ -18,6 +18,9 @@ interface TeamPostState {
   loadingComments: boolean;
   newCommentText: string;
   submittingComment: boolean;
+  replyingTo: TeamCommentResponse | null;
+  showReactions: boolean;
+  reactionAnimating: boolean;
 }
 
 
@@ -162,13 +165,40 @@ interface TeamPostState {
           </div>
 
           <div class="px-4 pb-3 pt-1 flex items-center gap-1 border-t border-border">
-            <button (click)="toggleTeamLike(post)"
-              class="inline-flex items-center gap-1.5 text-sm font-medium rounded-lg px-2.5 py-1.5
-                     hover:bg-muted/60 transition-colors"
-              [ngClass]="post.data.likedByCurrentUser ? 'text-red-500' : 'text-muted-foreground'">
-              <lucide-icon [name]="HeartIcon" [size]="16"></lucide-icon>
-              <span class="tabular-nums">{{ post.data.likeCount }}</span>
-            </button>
+            <div style="position: relative; display: inline-block;"
+                 (mouseenter)="post.showReactions = true"
+                 (mouseleave)="scheduleHideTeamReactions(post)">
+
+              <div *ngIf="post.showReactions"
+                  (mouseenter)="cancelHideTeamReactions(post)"
+                  (mouseleave)="scheduleHideTeamReactions(post)"
+                  style="position: absolute; bottom: 110%; left: -8px; z-index: 50;"
+                  class="flex items-center gap-1 rounded-full border border-border bg-card px-2 py-1.5 shadow-lg animate-in fade-in zoom-in duration-200">
+                <button *ngFor="let r of reactions"
+                        (click)="selectTeamReaction(post, r.type)"
+                        [title]="r.label"
+                        class="text-2xl transition-transform duration-150 hover:scale-125 hover:-translate-y-1 border-none bg-transparent cursor-pointer p-1 rounded-full">
+                  {{ r.emoji }}
+                </button>
+              </div>
+
+              <button (click)="selectTeamReaction(post, post.data.currentUserReaction ? null : 'LIKE')"
+                      class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors border-none bg-transparent cursor-pointer"
+                      [style.color]="post.data.currentUserReaction ? getReactionColor(post.data.currentUserReaction) : 'var(--color-text-secondary)'">
+                <span class="transition-transform duration-150"
+                      [class.scale-125]="post.reactionAnimating">
+                  {{ post.data.currentUserReaction ? getReactionEmoji(post.data.currentUserReaction) : '👍' }}
+                </span>
+                <span>{{ post.data.currentUserReaction ? getReactionLabel(post.data.currentUserReaction) : "J'aime" }}</span>
+              </button>
+
+              <span *ngIf="post.data.likeCount > 0"
+                    class="ml-1 text-xs opacity-70 cursor-pointer hover:underline"
+                    [style.color]="post.data.currentUserReaction ? getReactionColor(post.data.currentUserReaction) : 'var(--color-text-secondary)'"
+                    (click)="openReactionsModal(post.data)">
+                {{ post.data.likeCount }}
+              </span>
+            </div>
             <button (click)="toggleTeamComments(post)"
               class="inline-flex items-center gap-1.5 text-sm font-medium rounded-lg px-2.5 py-1.5
                      text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors">
@@ -193,34 +223,132 @@ interface TeamPostState {
                 class="text-center py-2 text-sm text-muted-foreground">
                 Soyez le premier à commenter !
               </div>
-              <div *ngFor="let comment of post.comments" class="flex items-start gap-2.5">
-                <div class="h-7 w-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
-                  <img *ngIf="comment.author.profileImageUrl"
-                    [src]="getFullUrl(comment.author.profileImageUrl)" class="h-full w-full object-cover">
-                  <div *ngIf="!comment.author.profileImageUrl"
-                    class="h-full w-full bg-gradient-to-br from-primary/50 to-accent/50
-                           flex items-center justify-center text-white text-xs font-bold">
-                    {{ getInitials(comment.author.firstName + ' ' + comment.author.lastName) }}
+              <div *ngFor="let comment of post.comments" class="space-y-3">
+                <div class="flex items-start gap-2.5">
+                  <div class="h-7 w-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                    <img *ngIf="comment.author.profileImageUrl"
+                      [src]="getFullUrl(comment.author.profileImageUrl)" class="h-full w-full object-cover">
+                    <div *ngIf="!comment.author.profileImageUrl"
+                      class="h-full w-full bg-gradient-to-br from-primary/50 to-accent/50
+                             flex items-center justify-center text-white text-xs font-bold">
+                      {{ getInitials(comment.author.firstName + ' ' + comment.author.lastName) }}
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="bg-muted/40 rounded-2xl rounded-tl-sm px-3 py-2">
+                      <p class="text-xs font-semibold text-foreground mb-0.5">
+                        {{ comment.author.firstName }} {{ comment.author.lastName }}
+                      </p>
+                      <p class="text-sm text-foreground leading-snug">{{ comment.content }}</p>
+                    </div>
+                    <div class="flex items-center gap-3 mt-1 pl-1">
+                      <span class="text-xs text-muted-foreground">{{ formatDate(comment.createdAt) }}</span>
+                      
+                      <!-- Comment Reaction -->
+                      <div style="position: relative; display: inline-block;"
+                           (mouseenter)="comment.showReactions = true"
+                           (mouseleave)="scheduleHideCommentReactions(comment)">
+                        <div *ngIf="comment.showReactions"
+                             (mouseenter)="cancelHideCommentReactions(comment)"
+                             (mouseleave)="scheduleHideCommentReactions(comment)"
+                             style="position: absolute; bottom: 110%; left: -8px; z-index: 50;"
+                             class="flex items-center gap-1 rounded-full border border-border bg-card px-1.5 py-1 shadow-lg">
+                          <button *ngFor="let r of reactions"
+                                  (click)="selectCommentReaction(comment, r.type)"
+                                  class="text-xl hover:scale-125 transition-transform bg-transparent border-none cursor-pointer p-0.5">
+                            {{ r.emoji }}
+                          </button>
+                        </div>
+                        <button (click)="selectCommentReaction(comment, comment.currentUserReaction ? null : 'LIKE')"
+                                class="text-xs font-medium hover:underline transition-colors bg-transparent border-none cursor-pointer"
+                                [style.color]="comment.currentUserReaction ? getReactionColor(comment.currentUserReaction) : 'var(--color-primary)'">
+                          {{ comment.currentUserReaction ? getReactionEmoji(comment.currentUserReaction) : "J'aime" }}
+                        </button>
+                      </div>
+
+                      <button (click)="setTeamReplyingTo(post, comment)"
+                        class="text-xs text-primary font-medium hover:underline">
+                        Répondre
+                      </button>
+                      <button *ngIf="comment.author.id === teamCurrentUserId"
+                        (click)="deleteTeamComment(post, comment)"
+                        class="text-xs text-muted-foreground hover:text-destructive transition-colors">
+                        Supprimer
+                      </button>
+                      <span *ngIf="(comment.likeCount || 0) > 0" class="text-[10px] text-muted-foreground">
+                        {{ comment.likeCount }}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <div class="bg-muted/40 rounded-2xl rounded-tl-sm px-3 py-2">
-                    <p class="text-xs font-semibold text-foreground mb-0.5">
-                      {{ comment.author.firstName }} {{ comment.author.lastName }}
-                    </p>
-                    <p class="text-sm text-foreground leading-snug">{{ comment.content }}</p>
-                  </div>
-                  <div class="flex items-center gap-3 mt-1 pl-1">
-                    <span class="text-xs text-muted-foreground">{{ formatDate(comment.createdAt) }}</span>
-                    <button *ngIf="comment.author.id === teamCurrentUserId"
-                      (click)="confirmDeleteTeamComment(post, comment)"
-                      class="text-xs text-muted-foreground hover:text-destructive transition-colors">
-                      Supprimer
-                    </button>
+
+                <!-- Nested Replies -->
+                <div *ngIf="comment.replies && comment.replies.length > 0" class="ml-9 space-y-3 pt-1 border-l-2 border-muted pl-4">
+                  <div *ngFor="let reply of comment.replies" class="flex items-start gap-2.5">
+                    <div class="h-6 w-6 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                      <img *ngIf="reply.author.profileImageUrl"
+                        [src]="getFullUrl(reply.author.profileImageUrl)" class="h-full w-full object-cover">
+                      <div *ngIf="!reply.author.profileImageUrl"
+                        class="h-full w-full bg-gradient-to-br from-primary/50 to-accent/50
+                               flex items-center justify-center text-white text-[10px] font-bold">
+                        {{ getInitials(reply.author.firstName + ' ' + reply.author.lastName) }}
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="bg-muted/30 rounded-2xl rounded-tl-sm px-3 py-2">
+                        <p class="text-xs font-semibold text-foreground mb-0.5">
+                          {{ reply.author.firstName }} {{ reply.author.lastName }}
+                        </p>
+                        <p class="text-sm text-foreground leading-snug">{{ reply.content }}</p>
+                      </div>
+                      <div class="flex items-center gap-3 mt-1 pl-1">
+                        <span class="text-xs text-muted-foreground">{{ formatDate(reply.createdAt) }}</span>
+                        
+                        <!-- Reply Reaction -->
+                        <div style="position: relative; display: inline-block;"
+                             (mouseenter)="reply.showReactions = true"
+                             (mouseleave)="scheduleHideCommentReactions(reply)">
+                          <div *ngIf="reply.showReactions"
+                               (mouseenter)="cancelHideCommentReactions(reply)"
+                               (mouseleave)="scheduleHideCommentReactions(reply)"
+                               style="position: absolute; bottom: 110%; left: -8px; z-index: 50;"
+                               class="flex items-center gap-1 rounded-full border border-border bg-card px-1.5 py-1 shadow-lg">
+                            <button *ngFor="let r of reactions"
+                                    (click)="selectCommentReaction(reply, r.type)"
+                                    class="text-xl hover:scale-125 transition-transform bg-transparent border-none cursor-pointer p-0.5">
+                              {{ r.emoji }}
+                            </button>
+                          </div>
+                          <button (click)="selectCommentReaction(reply, reply.currentUserReaction ? null : 'LIKE')"
+                                  class="text-[11px] font-medium hover:underline transition-colors bg-transparent border-none cursor-pointer"
+                                  [style.color]="reply.currentUserReaction ? getReactionColor(reply.currentUserReaction) : 'var(--color-primary)'">
+                            {{ reply.currentUserReaction ? getReactionEmoji(reply.currentUserReaction) : "J'aime" }}
+                          </button>
+                        </div>
+
+                        <button *ngIf="reply.author.id === teamCurrentUserId"
+                          (click)="deleteTeamComment(post, reply, comment)"
+                          class="text-xs text-muted-foreground hover:text-destructive transition-colors">
+                          Supprimer
+                        </button>
+                        <span *ngIf="(reply.likeCount || 0) > 0" class="text-[10px] text-muted-foreground">
+                          {{ reply.likeCount }}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+            <div *ngIf="post.replyingTo" class="px-4 py-1.5 bg-muted/20 flex items-center justify-between border-t border-border">
+              <span class="text-xs text-muted-foreground">
+                Réponse à <span class="font-semibold">{{ post.replyingTo.author.firstName }}</span>
+              </span>
+              <button (click)="post.replyingTo = null" class="text-muted-foreground hover:text-foreground">
+                <lucide-icon [name]="XIcon" [size]="12"></lucide-icon>
+              </button>
+            </div>
+
             <div class="px-4 py-3 flex items-center gap-2.5 border-t border-border mt-1">
               <div class="h-7 w-7 rounded-full flex-shrink-0 bg-gradient-to-br from-primary to-accent
                           flex items-center justify-center text-white text-xs font-bold select-none">
@@ -1241,7 +1369,7 @@ private normalizePost(post: any): any {
 
   // ✅ Charger la réaction de l'user au refresh
   this.communityService.getReactions(post.id).subscribe({
-    next: (res) => {
+    next: (res: { myReaction: string | null; totalCount: number; counts: Record<string, number> }) => {
       normalized.myReaction = res.myReaction || null;
       normalized.totalReactions = res.totalCount || 0;
       normalized.reactionCounts = res.counts || {};
@@ -1318,7 +1446,7 @@ private normalizePost(post: any): any {
 
     const type = post.myReaction || previousType;
     this.communityService.react(post.id, type).subscribe({
-      next: (res) => {
+      next: (res: { totalCount: number; counts: Record<string, number> }) => {
         post.totalReactions = res.totalCount;
         post.reactionCounts = res.counts;
         this.cdr.detectChanges();
@@ -1358,6 +1486,115 @@ private normalizePost(post: any): any {
     return this.reactions.find(r => r.type === type)?.color || 'var(--color-text-secondary)';
   }
 
+  // ── Team Reactions Helpers ──────────────────────────────────────────────────
+
+  scheduleHideTeamReactions(post: TeamPostState): void {
+    (post as any).hideReactionTimer = setTimeout(() => {
+      post.showReactions = false;
+      this.cdr.detectChanges();
+    }, 400);
+  }
+
+  cancelHideTeamReactions(post: TeamPostState): void {
+    if ((post as any).hideReactionTimer) {
+      clearTimeout((post as any).hideReactionTimer);
+      (post as any).hideReactionTimer = null;
+    }
+  }
+
+  selectTeamReaction(post: TeamPostState, type: string | null): void {
+    post.showReactions = false;
+    const previousType = post.data.currentUserReaction;
+    const previousCount = post.data.likeCount;
+
+    if (!type || type === previousType) {
+      // Toggle off
+      post.data.currentUserReaction = undefined;
+      post.data.likedByCurrentUser = false;
+      post.data.likeCount = Math.max(0, previousCount - 1);
+      
+      this.communityService.removeReaction(post.data.id).subscribe({
+        error: () => {
+          post.data.currentUserReaction = previousType;
+          post.data.likeCount = previousCount;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      // Toggle on or change
+      post.data.currentUserReaction = type as any;
+      post.data.likedByCurrentUser = true;
+      if (!previousType) {
+        post.data.likeCount++;
+      }
+
+      post.reactionAnimating = true;
+      setTimeout(() => { post.reactionAnimating = false; this.cdr.detectChanges(); }, 300);
+
+      this.communityService.addReaction(post.data.id, type as any).subscribe({
+        error: () => {
+          post.data.currentUserReaction = previousType;
+          if (!previousType) post.data.likeCount--;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
+  // ── Comment Reactions Helpers ───────────────────────────────────────────────
+
+  scheduleHideCommentReactions(comment: any): void {
+    comment.hideReactionTimer = setTimeout(() => {
+      comment.showReactions = false;
+      this.cdr.detectChanges();
+    }, 400);
+  }
+
+  cancelHideCommentReactions(comment: any): void {
+    if (comment.hideReactionTimer) {
+      clearTimeout(comment.hideReactionTimer);
+      comment.hideReactionTimer = null;
+    }
+  }
+
+  selectCommentReaction(comment: any, type: string | null): void {
+    comment.showReactions = false;
+    const previousType = comment.currentUserReaction;
+    const previousCount = comment.likeCount || 0;
+
+    if (!type || type === previousType) {
+      // Remove reaction
+      comment.currentUserReaction = null;
+      comment.likedByCurrentUser = false;
+      comment.likeCount = Math.max(0, previousCount - 1);
+
+      this.communityService.removeCommentReaction(comment.id).subscribe({
+        error: () => {
+          comment.currentUserReaction = previousType;
+          comment.likeCount = previousCount;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      // Add or change reaction
+      comment.currentUserReaction = type;
+      comment.likedByCurrentUser = true;
+      if (!previousType) {
+        comment.likeCount = previousCount + 1;
+      }
+
+      this.communityService.reactToComment(comment.id, type as any).subscribe({
+        error: () => {
+          comment.currentUserReaction = previousType;
+          if (!previousType) comment.likeCount = previousCount;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
   ////////////////////////
   // Getter pour filtrer
   get filteredModalUsers(): any[] {
@@ -1374,7 +1611,7 @@ private normalizePost(post: any): any {
     this.modalReactionUsers = [];
 
     this.communityService.getReactionUsers(post.id).subscribe({
-      next: (users) => {
+      next: (users: any[]) => {
         this.modalReactionUsers = users || [];
         this.loadingModalReactions = false;
         this.cdr.detectChanges();
@@ -1471,7 +1708,17 @@ private normalizePost(post: any): any {
   }
 
   private makePostState(data: TeamPostResponse): TeamPostState {
-    return { data, showComments: false, comments: [], loadingComments: false, newCommentText: '', submittingComment: false };
+    return { 
+      data, 
+      showComments: false, 
+      comments: [], 
+      loadingComments: false, 
+      newCommentText: '', 
+      submittingComment: false, 
+      replyingTo: null,
+      showReactions: false,
+      reactionAnimating: false
+    };
   }
 
   goBackToTeam(): void {
@@ -1550,26 +1797,6 @@ private normalizePost(post: any): any {
     });
   }
 
-  toggleTeamLike(post: TeamPostState): void {
-    const wasLiked = post.data.likedByCurrentUser;
-    post.data.likedByCurrentUser = !wasLiked;
-    post.data.likeCount += wasLiked ? -1 : 1;
-    this.cdr.detectChanges();
-
-    const req = wasLiked
-      ? this.communityService.unlikeTeamPost(post.data.id)
-      : this.communityService.likeTeamPost(post.data.id);
-
-    req.subscribe({
-      next: (updated) => { post.data = updated; this.cdr.detectChanges(); },
-      error: () => {
-        post.data.likedByCurrentUser = wasLiked;
-        post.data.likeCount += wasLiked ? 1 : -1;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
   toggleTeamComments(post: TeamPostState): void {
     post.showComments = !post.showComments;
     if (post.showComments && post.comments.length === 0) {
@@ -1581,28 +1808,49 @@ private normalizePost(post: any): any {
     }
   }
 
+  setTeamReplyingTo(post: TeamPostState, comment: TeamCommentResponse): void {
+    post.replyingTo = comment;
+    this.cdr.detectChanges();
+  }
+
   submitTeamComment(post: TeamPostState): void {
     const text = post.newCommentText.trim();
     if (!text || post.submittingComment) return;
     post.submittingComment = true;
 
-    this.communityService.addTeamPostComment(post.data.id, text).subscribe({
+    const parentId = post.replyingTo?.id;
+
+    this.communityService.addTeamPostComment(post.data.id, text, parentId).subscribe({
       next: (comment) => {
-        post.comments.push(comment);
+        if (parentId) {
+          const parent = post.comments.find(c => c.id === parentId);
+          if (parent) {
+            parent.replies = parent.replies || [];
+            parent.replies.push(comment);
+          }
+        } else {
+          post.comments.push(comment);
+        }
+        
         post.data.commentCount++;
         post.newCommentText = '';
         post.submittingComment = false;
+        post.replyingTo = null;
         this.cdr.detectChanges();
       },
       error: () => { post.submittingComment = false; this.cdr.detectChanges(); }
     });
   }
 
-  confirmDeleteTeamComment(post: TeamPostState, comment: TeamCommentResponse): void {
+  deleteTeamComment(post: TeamPostState, comment: TeamCommentResponse, parent?: TeamCommentResponse): void {
     if (!confirm('Supprimer ce commentaire ?')) return;
     this.communityService.deleteTeamPostComment(comment.id).subscribe({
       next: () => {
-        post.comments = post.comments.filter(c => c !== comment);
+        if (parent) {
+          parent.replies = parent.replies?.filter(r => r.id !== comment.id);
+        } else {
+          post.comments = post.comments.filter(c => c.id !== comment.id);
+        }
         post.data.commentCount = Math.max(0, post.data.commentCount - 1);
         this.cdr.detectChanges();
       },

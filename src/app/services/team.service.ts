@@ -327,10 +327,11 @@ export class TeamService {
             id: Number(item?.id || item?.requestId || 0),
             teamId: Number(item?.teamId || item?.team?.id || 0) || undefined,
             teamName: item?.teamName || item?.team?.name || item?.team?.teamName || '',
-            playerId: Number(item?.playerId || item?.userId || item?.requesterId || 0) || undefined,
+            playerId: Number(item?.playerId || item?.user?.id || item?.userId || item?.requesterId || 0) || undefined,
             playerName: item?.playerName || item?.requesterName || item?.userName || item?.player?.name ||
-                (item?.userFirstName ? `${item.userFirstName} ${item.userLastName || ''}`.trim() : ''),
-            playerEmail: item?.playerEmail || item?.email || item?.userEmail || '',
+                (item?.user?.firstName ? `${item.user.firstName} ${item.user.lastName || ''}`.trim() : 
+                (item?.userFirstName ? `${item.userFirstName} ${item.userLastName || ''}`.trim() : '')),
+            playerEmail: item?.playerEmail || item?.user?.email || item?.email || item?.userEmail || '',
             message: item?.message || item?.note || '',
             status: item?.status || 'PENDING',
             createdAt: item?.createdAt || item?.requestedAt || item?.dateCreated || '',

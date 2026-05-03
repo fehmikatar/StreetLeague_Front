@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 export interface ChatMessagePayload {
   roomId: string;
   content: string;
+  transcript?: string;
 }
 
 export interface ChatTypingPayload {
@@ -20,6 +21,9 @@ export interface ChatRoomSummary {
   roomName?: string;
   teamId?: number;
   communityId?: number;
+  memberId?: number;
+  memberName?: string;
+  memberProfileImageUrl?: string;
   memberCount?: number;
   unreadCount?: number;
   lastMessageAt?: string;
@@ -40,6 +44,7 @@ export interface ChatHistoryMessage {
   senderId?: number;
   senderName?: string;
   content?: string;
+  transcript?: string;
   createdAt?: string;
   timestamp?: string;
   type?: string;
@@ -67,8 +72,25 @@ export interface TeamChatMessage {
   senderId?: number;
   senderName?: string;
   content?: string;
+  transcript?: string;
   timestamp?: string;
   [key: string]: unknown;
+}
+
+export interface CallRecord {
+  id: number;
+  roomId: string;
+  teamId?: number;
+  callerId: number;
+  callerName: string;
+  calleeId: number;
+  calleeName: string;
+  callType: 'AUDIO' | 'VIDEO';
+  status: 'INITIATED' | 'ONGOING' | 'ENDED' | 'REJECTED' | 'MISSED' | 'FAILED';
+  startedAt: string;
+  answeredAt?: string;
+  endedAt?: string;
+  durationSeconds?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -95,18 +117,29 @@ export class ChatService {
   private readonly roomMessagesSubject = new Subject<TeamChatMessage>();
   private readonly roomPresenceSubject = new Subject<TeamChatMessage>();
   private readonly roomTypingUsersSubject = new BehaviorSubject<string[]>([]);
+  private readonly roomMembersSubject = new BehaviorSubject<any[]>([]);
   private readonly roomMembersCountSubject = new BehaviorSubject<number>(0);
-  private readonly roomHistorySubject = new Subject<ChatHistoryPage>();
+  private readonly roomHistorySubject = new BehaviorSubject<ChatHistoryPage>({ items: [], lastMessageId: null, hasMore: false });
   private readonly roomErrorsSubject = new Subject<ChatErrorMessage>();
   readonly connected$: Observable<boolean> = this.connectedSubject.asObservable();
   readonly roomMessages$: Observable<TeamChatMessage> = this.roomMessagesSubject.asObservable();
   readonly roomPresence$: Observable<TeamChatMessage> = this.roomPresenceSubject.asObservable();
   readonly roomTypingUsers$: Observable<string[]> = this.roomTypingUsersSubject.asObservable();
+  readonly roomMembers$: Observable<any[]> = this.roomMembersSubject.asObservable();
   readonly roomMembersCount$: Observable<number> = this.roomMembersCountSubject.asObservable();
   readonly roomHistory$: Observable<ChatHistoryPage> = this.roomHistorySubject.asObservable();
   readonly roomErrors$: Observable<ChatErrorMessage> = this.roomErrorsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
+
+  isConnected(): boolean {
+    return this.stompClient?.connected ?? false;
+  }
+
+  /** Expose the client for reuse by other services (e.g. WebRtcCallService) */
+  getStompClient(): Client | null {
+    return this.stompClient;
+  }
 
   connect(username: string, onMessage?: (msg: TeamChatMessage) => void): void {
     this.onMessageCallback = onMessage ?? null;
@@ -236,16 +269,16 @@ export class ChatService {
     });
   }
 
-  sendTeamMessage(teamId: number, content: string): void {
-    this.sendMessage(this.buildTeamRoomId(teamId), content);
+  sendTeamMessage(teamId: number, content: string, transcript?: string): void {
+    this.sendMessage(this.buildTeamRoomId(teamId), content, transcript);
   }
 
-  sendMessage(roomId: string, content: string): void {
+  sendMessage(roomId: string, content: string, transcript?: string): void {
     if (!this.stompClient || !this.stompClient.connected) {
       return;
     }
 
-    const payload: ChatMessagePayload = { roomId, content };
+    const payload: ChatMessagePayload = { roomId, content, transcript };
     this.stompClient.publish({
       destination: '/app/chat.send',
       body: JSON.stringify(payload)
@@ -317,8 +350,14 @@ export class ChatService {
     );
   }
 
-  createPrivateRoom(): Observable<ChatRoomSummary> {
-    return this.http.post<any>(`${this.apiBase}/chat/private-room`, {}).pipe(map((room) => this.normalizeRoomSummary(room)));
+  createPrivateRoom(teamId: number, memberId: number): Observable<ChatRoomSummary> {
+    const params = new HttpParams()
+      .set('teamId', String(teamId))
+      .set('memberId', String(memberId));
+
+    return this.http.post<any>(`${this.apiBase}/chat/private-room`, {}, { params }).pipe(
+      map((room) => this.normalizeRoomSummary(room))
+    );
   }
 
   createTeamRoom(teamId: number): Observable<ChatRoomSummary> {
@@ -455,13 +494,13 @@ export class ChatService {
   }
 
   private handleMembersEvent(rawBody: string): void {
-    const parsed = this.safeParse(rawBody) as ChatRoomMemberUpdate;
-    const count = Number(
-      parsed?.onlineCount
-      ?? parsed?.count
-      ?? (Array.isArray(parsed?.members) ? parsed.members?.length : 0)
-    );
+    const parsed = this.safeParse(rawBody);
+    const count = Number(parsed?.onlineCount ?? parsed?.count ?? (Array.isArray(parsed?.members) ? parsed.members.length : 0));
     this.roomMembersCountSubject.next(Number.isFinite(count) && count >= 0 ? count : 0);
+    
+    if (Array.isArray(parsed?.members)) {
+      this.roomMembersSubject.next(parsed.members);
+    }
   }
 
   private handleHistoryQueueMessage(rawBody: string): void {
@@ -486,6 +525,9 @@ export class ChatService {
       roomName: room?.roomName || room?.name || room?.title,
       teamId: Number(room?.teamId || 0) || undefined,
       communityId: Number(room?.communityId || 0) || undefined,
+      memberId: Number(room?.memberId || 0) || undefined,
+      memberName: room?.memberName || room?.roomName || room?.name,
+      memberProfileImageUrl: room?.memberProfileImageUrl || '',
       memberCount: Number(room?.memberCount ?? room?.onlineMembers ?? 0) || 0,
       unreadCount: Number(room?.unreadCount ?? 0) || 0,
       lastMessageAt: room?.lastMessageAt || room?.updatedAt || room?.createdAt
@@ -520,6 +562,7 @@ export class ChatService {
       senderId: Number(message?.senderId || message?.userId || 0) || undefined,
       senderName: message?.senderName || message?.userName || message?.authorName || message?.author || 'Member',
       content: message?.content || message?.message || '',
+      transcript: message?.transcript || '',
       createdAt: message?.createdAt || message?.timestamp || new Date().toISOString()
     };
   }
@@ -565,9 +608,11 @@ export class ChatService {
     this.onMessageCallback?.(parsed);
   }
 
-
-
   uploadFile(formData: FormData): Observable<any> {
-  return this.http.post(`${this.apiBase}/chat/upload`, formData);
-}
+    return this.http.post(`${this.apiBase}/chat/upload`, formData);
+  }
+
+  getCallHistory(roomId: string): Observable<CallRecord[]> {
+    return this.http.get<CallRecord[]>(`${this.apiBase}/chat/calls/room/${encodeURIComponent(roomId)}`);
+  }
 }

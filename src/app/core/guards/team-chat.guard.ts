@@ -19,15 +19,20 @@ export const teamChatGuard: CanActivateFn = (route) => {
   }
 
   const currentUserId = parseCurrentUserId();
+  const memberId = route.paramMap.get('memberId');
+  const returnUrl = memberId
+    ? `/app/team/${teamId}/chat/private/${memberId}`
+    : `/app/team/${teamId}/chat`;
+
   if (!currentUserId) {
-    return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: `/app/team/${teamId}/chat` } });
+    return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl } });
   }
 
   // ✅ Utiliser getTeamMembers au lieu de getTeamDetails
   return teamService.getTeamMembers(teamId).pipe(
     map((members) => {
-      // ✅ Comparer avec member.id au lieu de member.userId
-      const isMember = Array.isArray(members) && members.some((member: any) => member.id === currentUserId);
+      // ✅ Comparer avec member.userId ou member.id
+      const isMember = Array.isArray(members) && members.some((member: any) => (member.userId || member.id) === currentUserId);
       return isMember ? true : router.createUrlTree(['/app/team', teamId]);
     }),
     catchError(() => of(router.createUrlTree(['/app/team', teamId])))

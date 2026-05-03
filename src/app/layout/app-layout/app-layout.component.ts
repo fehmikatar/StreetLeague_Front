@@ -8,11 +8,14 @@ import {
 } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
 import { PendingChangesService } from '../../services/pending-changes.service';
+import { WebRtcCallService } from '../../services/webrtc-call.service';
+import { CallOverlayComponent } from '../../components/call-overlay/call-overlay.component';
+import { IncomingCallComponent } from '../../components/incoming-call/incoming-call.component';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, RouterOutlet, RouterModule, LucideAngularModule],
+    imports: [CommonModule, RouterOutlet, RouterModule, LucideAngularModule, CallOverlayComponent, IncomingCallComponent],
     templateUrl: './app-layout.component.html',
 })
 export class AppLayoutComponent implements OnInit {
@@ -74,7 +77,12 @@ export class AppLayoutComponent implements OnInit {
         });
     }
 
-    constructor(private router: Router, private authService: AuthService, private pendingChangesService: PendingChangesService) { }
+    constructor(
+        private router: Router,
+        private authService: AuthService,
+        private pendingChangesService: PendingChangesService,
+        private webRtcCallService: WebRtcCallService
+    ) { }
 
     get roleLabel(): string {
         const r = this.userType;
@@ -92,12 +100,16 @@ export class AppLayoutComponent implements OnInit {
         this.userName = localStorage.getItem('user_name') || 'Utilisateur';
         this.userEmail = localStorage.getItem('user_email') || '';
         this.userType = localStorage.getItem('user_type') || 'ROLE_PLAYER';
+
+        // Initialize WebRTC call service so it can receive incoming calls from any page
+        const userId = localStorage.getItem('user_id') || '0';
+        this.webRtcCallService.connectOwnStomp(userId, this.userName);
     }
 
     handleLogout() {
         // Notify all services/components that logout is happening - allows them to save pending changes
         this.pendingChangesService.notifyBeforeLogout();
-        
+
         // Give a moment for auto-save to complete
         setTimeout(() => {
             this.authService.logout();

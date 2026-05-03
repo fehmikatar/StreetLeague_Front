@@ -28,6 +28,7 @@ interface PostState {
     loadingComments: boolean;
     newCommentText: string;
     submittingComment: boolean;
+    replyingTo: TeamCommentResponse | null;
 }
 
 @Component({
@@ -264,35 +265,83 @@ interface PostState {
             No comments yet. Be the first!
           </div>
 
-          <div *ngFor="let comment of post.comments" class="flex items-start gap-2.5">
-            <div class="h-7 w-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
-              <img *ngIf="comment.author.profileImageUrl"
-                [src]="getFullUrl(comment.author.profileImageUrl)"
-                [alt]="comment.author.firstName"
-                class="h-full w-full object-cover">
-              <div *ngIf="!comment.author.profileImageUrl"
-                class="h-full w-full bg-gradient-to-br from-primary/50 to-accent/50
-                       flex items-center justify-center text-white text-xs font-bold">
-                {{ getInitials(comment.author.firstName, comment.author.lastName) }}
+          <div *ngFor="let comment of post.comments" class="space-y-3">
+            <div class="flex items-start gap-2.5">
+              <div class="h-7 w-7 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                <img *ngIf="comment.author.profileImageUrl"
+                  [src]="getFullUrl(comment.author.profileImageUrl)"
+                  [alt]="comment.author.firstName"
+                  class="h-full w-full object-cover">
+                <div *ngIf="!comment.author.profileImageUrl"
+                  class="h-full w-full bg-gradient-to-br from-primary/50 to-accent/50
+                         flex items-center justify-center text-white text-xs font-bold">
+                  {{ getInitials(comment.author.firstName, comment.author.lastName) }}
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="bg-muted/40 rounded-2xl rounded-tl-sm px-3 py-2">
+                  <p class="text-xs font-semibold text-foreground mb-0.5">
+                    {{ comment.author.firstName }} {{ comment.author.lastName }}
+                  </p>
+                  <p class="text-sm text-foreground leading-snug">{{ comment.content }}</p>
+                </div>
+                <div class="flex items-center gap-3 mt-1 pl-1">
+                  <span class="text-xs text-muted-foreground">{{ formatTime(comment.createdAt) }}</span>
+                  <button (click)="setReplyingTo(post, comment)"
+                    class="text-xs text-primary font-medium hover:underline">
+                    Reply
+                  </button>
+                  <button *ngIf="comment.author.id === currentUserId"
+                    (click)="deleteComment(post, comment)"
+                    class="text-xs text-muted-foreground hover:text-destructive transition-colors">
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="flex-1 min-w-0">
-              <div class="bg-muted/40 rounded-2xl rounded-tl-sm px-3 py-2">
-                <p class="text-xs font-semibold text-foreground mb-0.5">
-                  {{ comment.author.firstName }} {{ comment.author.lastName }}
-                </p>
-                <p class="text-sm text-foreground leading-snug">{{ comment.content }}</p>
-              </div>
-              <div class="flex items-center gap-3 mt-1 pl-1">
-                <span class="text-xs text-muted-foreground">{{ formatTime(comment.createdAt) }}</span>
-                <button *ngIf="comment.author.id === currentUserId"
-                  (click)="confirmDeleteComment(post, comment)"
-                  class="text-xs text-muted-foreground hover:text-destructive transition-colors">
-                  Delete
-                </button>
+
+            <!-- Nested Replies -->
+            <div *ngIf="comment.replies && comment.replies.length > 0" class="ml-9 space-y-3 pt-1 border-l-2 border-muted pl-4">
+              <div *ngFor="let reply of comment.replies" class="flex items-start gap-2.5">
+                <div class="h-6 w-6 rounded-full overflow-hidden flex-shrink-0 mt-0.5">
+                  <img *ngIf="reply.author.profileImageUrl"
+                    [src]="getFullUrl(reply.author.profileImageUrl)"
+                    [alt]="reply.author.firstName"
+                    class="h-full w-full object-cover">
+                  <div *ngIf="!reply.author.profileImageUrl"
+                    class="h-full w-full bg-gradient-to-br from-primary/50 to-accent/50
+                           flex items-center justify-center text-white text-[10px] font-bold">
+                    {{ getInitials(reply.author.firstName, reply.author.lastName) }}
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="bg-muted/30 rounded-2xl rounded-tl-sm px-3 py-2">
+                    <p class="text-xs font-semibold text-foreground mb-0.5">
+                      {{ reply.author.firstName }} {{ reply.author.lastName }}
+                    </p>
+                    <p class="text-sm text-foreground leading-snug">{{ reply.content }}</p>
+                  </div>
+                  <div class="flex items-center gap-3 mt-1 pl-1">
+                    <span class="text-xs text-muted-foreground">{{ formatTime(reply.createdAt) }}</span>
+                    <button *ngIf="reply.author.id === currentUserId"
+                      (click)="deleteComment(post, reply, comment)"
+                      class="text-xs text-muted-foreground hover:text-destructive transition-colors">
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        <div *ngIf="post.replyingTo" class="px-4 py-1.5 bg-muted/20 flex items-center justify-between border-t border-border">
+          <span class="text-xs text-muted-foreground">
+            Replying to <span class="font-semibold">{{ post.replyingTo.author.firstName }}</span>
+          </span>
+          <button (click)="post.replyingTo = null" class="text-muted-foreground hover:text-foreground">
+            <lucide-icon [name]="XIcon" [size]="12"></lucide-icon>
+          </button>
         </div>
 
         <div class="px-4 py-3 flex items-center gap-2.5 border-t border-border mt-1">
@@ -669,16 +718,33 @@ export class TeamCommunityComponent implements OnInit {
         });
     }
 
+    setReplyingTo(post: PostState, comment: TeamCommentResponse): void {
+        post.replyingTo = comment;
+        this.cdr.detectChanges();
+    }
+
     submitComment(post: PostState): void {
         if (!post.newCommentText.trim() || post.submittingComment) return;
         post.submittingComment = true;
 
-        this.communityService.addTeamPostComment(post.data.id, post.newCommentText).subscribe({
+        const parentId = post.replyingTo?.id;
+
+        this.communityService.addTeamPostComment(post.data.id, post.newCommentText, parentId).subscribe({
             next: (comment) => {
-                post.comments.push(comment);
+                if (parentId) {
+                    const parent = post.comments.find(c => c.id === parentId);
+                    if (parent) {
+                        parent.replies = parent.replies || [];
+                        parent.replies.push(comment);
+                    }
+                } else {
+                    post.comments.push(comment);
+                }
+                
                 post.data.commentCount++;
                 post.newCommentText = '';
                 post.submittingComment = false;
+                post.replyingTo = null;
                 this.cdr.detectChanges();
             },
             error: (err) => {
@@ -689,11 +755,15 @@ export class TeamCommunityComponent implements OnInit {
         });
     }
 
-    confirmDeleteComment(post: PostState, comment: TeamCommentResponse): void {
+    deleteComment(post: PostState, comment: TeamCommentResponse, parent?: TeamCommentResponse): void {
         if (!confirm('Delete this comment?')) return;
         this.communityService.deleteTeamPostComment(comment.id).subscribe({
             next: () => {
-                post.comments = post.comments.filter(c => c.id !== comment.id);
+                if (parent) {
+                    parent.replies = parent.replies?.filter(r => r.id !== comment.id);
+                } else {
+                    post.comments = post.comments.filter(c => c.id !== comment.id);
+                }
                 post.data.commentCount = Math.max(0, post.data.commentCount - 1);
                 this.cdr.detectChanges();
             },
@@ -749,7 +819,8 @@ export class TeamCommunityComponent implements OnInit {
             comments: [],
             loadingComments: false,
             newCommentText: '',
-            submittingComment: false
+            submittingComment: false,
+            replyingTo: null
         };
     }
 

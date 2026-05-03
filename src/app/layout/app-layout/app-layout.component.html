@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-background">
+﻿<div class="min-h-screen bg-background">
     <!-- Mobile Header -->
     <header class="fixed top-0 left-0 right-0 z-40 bg-card border-b border-border lg:hidden">
         <div class="flex items-center justify-between px-4 py-3">
@@ -33,7 +33,7 @@
                         <div class="flex-1">
                             <div class="text-sm font-semibold">{{ userName }}</div>
                             <div class="text-xs text-muted-foreground">
-                                {{ isOwner ? 'Propriétaire' : 'Joueur' }}
+                                {{ isOwner ? 'PropriÃ©taire' : 'Joueur' }}
                             </div>
                         </div>
                     </div>
@@ -55,7 +55,7 @@
                     <button (click)="handleLogout()"
                         class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#DC2626]/10 text-[#DC2626] hover:bg-[#DC2626]/20 transition-all">
                         <lucide-icon [img]="LogOutIcon" class="h-5 w-5"></lucide-icon>
-                        <span class="font-semibold">Déconnexion</span>
+                        <span class="font-semibold">DÃ©connexion</span>
                     </button>
                 </div>
             </div>
@@ -100,7 +100,7 @@
                 <button (click)="handleLogout()"
                     class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-error-red/10 text-error-red hover:bg-error-red/20 transition-all cursor-pointer">
                     <lucide-icon [img]="LogOutIcon" class="h-4 w-4"></lucide-icon>
-                    <span class="text-sm font-semibold">Déconnexion</span>
+                    <span class="text-sm font-semibold">DÃ©connexion</span>
                 </button>
             </div>
         </div>
@@ -151,4 +151,9 @@
             <router-outlet></router-outlet>
         </div>
     </main>
+
+    <!-- Global WebRTC Call Components -->
+    <app-call-overlay></app-call-overlay>
+    <app-incoming-call></app-incoming-call>
 </div>
+

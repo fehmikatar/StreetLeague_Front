@@ -392,7 +392,7 @@ private loadBasicTeamFallback(): void {
 }
 
   goBack(): void {
-    this.router.navigate(['/app/team']);
+    this.router.navigate(['/app', 'team']);
   }
 
   joinTeam(): void {
@@ -447,9 +447,16 @@ private loadBasicTeamFallback(): void {
           this.joinFeedback = 'You are not allowed to join this team or your session role is invalid.';
           this.showToast(readable);
         } else if (status === 400) {
-          this.joinState = 'default';
-          this.joinFeedback = readable;
-          this.showToast(readable);
+          if (readable.includes('already have a pending request')) {
+            this.joinState = 'pending';
+            this.joinFeedback = 'Request already pending.';
+            this.persistJoinState('pending');
+            this.showToast('Une demande est déjà en attente pour cette équipe.');
+          } else {
+            this.joinState = 'default';
+            this.joinFeedback = readable;
+            this.showToast(readable);
+          }
         } else {
           this.joinState = 'default';
           this.joinFeedback = status ? `[${status}] ${readable}` : readable;
@@ -466,18 +473,32 @@ private loadBasicTeamFallback(): void {
       return;
     }
 
-    this.router.navigate(['/app/team', this.teamId, 'chat']);
+    this.router.navigate(['/app', 'team', this.teamId, 'chat']);
   }
 
   openCommunity(): void {
     if (!this.teamId) return;
-    this.router.navigate(['/app/team', this.teamId, 'community']);
+    this.router.navigate(['/app', 'team', this.teamId, 'community']);
   }
 
   messageMember(member: TeamMember): void {
-    console.log('Message member:', member);
-    // TODO: Implement messaging functionality
-    alert(`Message to ${member.firstName} ${member.lastName} - Coming soon`);
+    if (!this.teamId) {
+      return;
+    }
+
+    const memberUserId = Number((member as any).userId || (member as any).id || 0);
+    if (!Number.isFinite(memberUserId) || memberUserId <= 0) {
+      this.showToast('Impossible d\'ouvrir cette conversation privee.');
+      return;
+    }
+
+    const currentUserId = this.getCurrentUserId();
+    if (currentUserId && memberUserId === currentUserId) {
+      this.showToast('Vous ne pouvez pas ouvrir une conversation privée avec vous-même.');
+      return;
+    }
+
+    this.router.navigate(['/app', 'team', this.teamId, 'chat', 'private', memberUserId]);
   }
 
   removeMember(member: TeamMember): void {
@@ -599,7 +620,7 @@ isCurrentUserMember(): boolean {
     return false;
   }
 
-  return this.team!.members!.some((member: any) => member.id === currentUserId);
+  return this.team!.members!.some((member: any) => (member.userId || member.id) === currentUserId);
 }
 
   private restorePersistedJoinState(): 'sent' | 'pending' | null {
