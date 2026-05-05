@@ -1,0 +1,146 @@
+<div class="stats-container">
+  <div class="header">
+    <h1>Tableau de Bord des Statistiques</h1>
+    <p>Analyse approfondie de l'activité e-commerce et performance commerciale</p>
+  </div>
+
+  <div *ngIf="loading" class="loader-container">
+    <div class="loader"></div>
+    <p>Chargement des analyses...</p>
+  </div>
+
+  <div *ngIf="!loading" class="dashboard-grid">
+    <!-- Top Stats Cards -->
+    <div class="summary-cards">
+      <div class="card glass shadow-blue">
+        <div class="card-icon">📈</div>
+        <div class="card-info">
+          <span class="label">Revenu Perdu (Abandons)</span>
+          <span class="value">{{ lostRevenueTotal | currency:'TND':'DT ' }}</span>
+        </div>
+      </div>
+      <div class="card glass shadow-purple">
+        <div class="card-icon">🏷️</div>
+        <div class="card-info">
+          <span class="label">Utilisations Codes Promo</span>
+          <span class="value">{{ totalOrdersFromPromos }}</span>
+        </div>
+      </div>
+      <div class="card glass shadow-green">
+        <div class="card-icon">🏆</div>
+        <div class="card-info">
+          <span class="label">Top Produit</span>
+          <span class="value">{{ topProducts[0]?.productName || 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-sections">
+      <!-- Top Products Section -->
+      <section class="section-card glass">
+        <div class="section-header">
+          <h2>Produits les Plus Vendus</h2>
+          <span class="badge">Performance</span>
+        </div>
+        <div class="table-responsive">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Catégorie</th>
+                <th>Quantité</th>
+                <th>Chiffre d'Affaires</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of topProducts">
+                <td>{{ item.productName }}</td>
+                <td><span class="cat-pill">{{ item.categoryName }}</span></td>
+                <td>{{ item.quantitySold }}</td>
+                <td class="revenue">{{ item.revenue | currency:'TND':'DT ' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- High Demand Products Section (JPQL with Joins) -->
+      <section class="section-card glass demand-section">
+        <div class="section-header">
+          <h2>Produits à Forte Demande (Paniers Actifs)</h2>
+          <span class="badge warning">Temps Réel</span>
+        </div>
+        <div class="table-responsive">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Catégorie</th>
+                <th>En Panier</th>
+                <th>Stock Relatif</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of highDemandProducts">
+                <td>{{ item.nom }}</td>
+                <td><span class="cat-pill blue">{{ item.categoryName }}</span></td>
+                <td><strong>{{ item.quantityInActiveCarts }} unités</strong></td>
+                <td>
+                  <div class="stock-impact">
+                    <div class="progress-mini">
+                      <div class="p-fill" [style.width.%]="(item.quantityInActiveCarts / (item.currentStock + item.quantityInActiveCarts)) * 100"></div>
+                    </div>
+                    <span class="stock-val">Dispo: {{ item.currentStock }}</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Abandoned Stats Section -->
+      <section class="section-card glass">
+        <div class="section-header">
+          <h2>Paniers Abandonnés par Ville</h2>
+          <span class="badge danger">Alertes</span>
+        </div>
+        <div class="city-grid">
+          <div *ngFor="let item of abandonedByCity" class="city-card">
+            <div class="city-info">
+              <span class="city-name">{{ item.city }}</span>
+              <span class="city-count">{{ item.count }} abandons</span>
+            </div>
+            <div class="progress-bar">
+              <div class="fill" [style.width.%]="(item.lostRevenue / lostRevenueTotal) * 100"></div>
+            </div>
+            <span class="city-amount">{{ item.lostRevenue | currency:'TND':'DT ' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Promo Codes Section -->
+      <section class="section-card glass full-width">
+        <div class="section-header">
+          <h2>Performance des Codes Promo</h2>
+        </div>
+        <div class="promo-flex">
+          <div *ngFor="let item of promoStats" class="promo-stat-card">
+            <span class="promo-code">{{ item.code }}</span>
+            <div class="promo-details">
+              <div class="stat">
+                <span class="s-label">Utilisations</span>
+                <span class="s-value">{{ item.usageCount }}</span>
+              </div>
+              <div class="stat">
+                <span class="s-label">Chiffre d'Affaires</span>
+                <span class="s-value">{{ item.totalRevenue | currency:'TND':'DT ' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

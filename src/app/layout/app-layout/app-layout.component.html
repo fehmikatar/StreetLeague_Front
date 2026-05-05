@@ -1,0 +1,159 @@
+<div class="min-h-screen bg-background">
+    <app-websocket-notifications></app-websocket-notifications>
+    <!-- Mobile Header -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-card border-b border-border lg:hidden">
+        <div class="flex items-center justify-between px-4 py-3">
+            <img src="/logo.png" alt="StreetLeague" class="h-100 w-50" />
+            <button (click)="toggleMobileMenu()" class="p-2 rounded-lg hover:bg-muted transition-all">
+                <lucide-icon *ngIf="mobileMenuOpen" [img]="XIcon" class="h-6 w-6"></lucide-icon>
+                <lucide-icon *ngIf="!mobileMenuOpen" [img]="MenuIcon" class="h-6 w-6"></lucide-icon>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div *ngIf="mobileMenuOpen" class="fixed inset-0 z-50 lg:hidden">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" (click)="closeMobileMenu()"></div>
+        <div class="absolute top-0 right-0 h-full w-80 max-w-[85vw] bg-card border-l border-border shadow-xl">
+            <div class="flex flex-col h-full">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-4 py-4 border-b border-border">
+                    <img src="/logo.png" alt="StreetLeague" class="h-10 w-auto" />
+                    <button (click)="closeMobileMenu()" class="p-2 rounded-lg hover:bg-muted transition-all">
+                        <lucide-icon [img]="XIcon" class="h-6 w-6"></lucide-icon>
+                    </button>
+                </div>
+
+                <!-- User Profile -->
+                <div class="p-4 border-b border-border">
+                    <div class="flex items-center gap-3 rounded-2xl bg-muted p-3">
+                        <div
+                            class="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-lg">
+                            {{ getUserInitials() }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold">{{ userName }}</div>
+                            <div class="text-xs text-muted-foreground">
+                                {{ isOwner ? 'Owner' : 'Player' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 space-y-1 p-4 overflow-y-auto">
+                    <a *ngFor="let item of filteredNavItems" [routerLink]="item.path"
+                        routerLinkActive="bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                        [routerLinkActiveOptions]="{exact: item.path === '/app'}" (click)="closeMobileMenu()"
+                        class="flex items-center gap-3 rounded-2xl px-4 py-3 transition-all text-muted-foreground hover:bg-muted hover:text-foreground">
+                        <lucide-icon [img]="item.icon" class="h-5 w-5"></lucide-icon>
+                        <span class="font-medium">{{ item.label }}</span>
+                    </a>
+                </nav>
+
+                <!-- Logout Button -->
+                <div class="p-4 border-t border-border">
+                    <button (click)="handleLogout()"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#DC2626]/10 text-[#DC2626] hover:bg-[#DC2626]/20 transition-all">
+                        <lucide-icon [img]="LogOutIcon" class="h-5 w-5"></lucide-icon>
+                        <span class="font-semibold">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Sidebar -->
+    <aside class="fixed left-0 top-0 z-40 h-screen w-72 border-r border-border bg-card hidden lg:block">
+        <div class="flex h-full min-h-0 flex-col overflow-hidden">
+            <!-- Logo -->
+            <div class="flex h-20 items-center justify-center border-b border-border px-6">
+                <img src="/logo.png" alt="StreetLeague" class="h-12 w-auto" />
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 min-h-0 space-y-1 overflow-y-auto p-4">
+                <a *ngFor="let item of filteredNavItems" [routerLink]="item.path"
+                    routerLinkActive="bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                    [routerLinkActiveOptions]="{exact: item.path === '/app'}"
+                    class="flex items-center gap-3 rounded-2xl px-4 py-3 transition-all text-muted-foreground hover:bg-muted hover:text-foreground"
+                    [class.bg-primary]="false" [class.text-primary-foreground]="false" [class.shadow-lg]="false"
+                    [class.shadow-primary/30]="false">
+                    <lucide-icon [img]="item.icon" class="h-5 w-5"></lucide-icon>
+                    <span class="font-medium">{{ item.label }}</span>
+                </a>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="border-t border-border p-4">
+                <div class="flex items-center gap-3 rounded-2xl bg-muted p-3 mb-3">
+                    <div
+                        class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold">
+                        {{ getUserInitials() }}
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold">{{ userName }}</div>
+                        <div class="text-xs text-muted-foreground">
+                            {{ roleLabel }}
+                        </div>
+                    </div>
+                </div>
+                <button (click)="handleLogout()"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-error-red/10 text-error-red hover:bg-error-red/20 transition-all cursor-pointer">
+                    <lucide-icon [img]="LogOutIcon" class="h-4 w-4"></lucide-icon>
+                    <span class="text-sm font-semibold">Logout</span>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card lg:hidden">
+        <div class="flex justify-around py-2">
+            <a *ngFor="let item of filteredNavItems.slice(0, 5)" [routerLink]="item.path"
+                routerLinkActive="text-primary" [routerLinkActiveOptions]="{exact: item.path === '/app'}"
+                class="flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition-all text-muted-foreground">
+                <lucide-icon [img]="item.icon" class="h-5 w-5"></lucide-icon>
+                <span class="text-xs font-medium">{{ item.label }}</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="lg:pl-72">
+        <!-- Desktop Top Bar -->
+        <div class="hidden lg:block sticky top-0 z-30 bg-card border-b border-border">
+            <div class="px-6 py-4 flex items-center justify-end gap-4">
+                <!-- Notifications -->
+                <a routerLink="/app/notifications" class="relative p-2 rounded-xl hover:bg-muted transition-all">
+                    <lucide-icon [img]="BellIcon" class="h-5 w-5"></lucide-icon>
+                    <span *ngIf="unreadNotifications > 0"
+                        class="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                        {{ unreadNotifications }}
+                    </span>
+                </a>
+
+                <!-- Profile Link -->
+                <a routerLink="/app/user-profile"
+                    class="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-muted transition-all">
+                    <div
+                        class="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                        {{ getUserInitials() }}
+                    </div>
+                    <div class="text-left">
+                        <div class="text-sm font-semibold">{{ userName }}</div>
+                        <div class="text-xs text-muted-foreground">View Profile</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="pt-16 pb-20 lg:pt-0 lg:pb-0">
+            <router-outlet></router-outlet>
+        </div>
+    </main>
+
+    <!-- Global WebRTC Call Components -->
+    <app-call-overlay></app-call-overlay>
+    <app-incoming-call></app-incoming-call>
+</div>

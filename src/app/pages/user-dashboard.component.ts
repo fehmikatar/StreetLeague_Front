@@ -1,0 +1,367 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { LucideAngularModule, Trophy, MapPin, Calendar, Activity, Users, TrendingUp, Clock, Star, ArrowRight, Bell, Target, X, type LucideIconData } from 'lucide-angular';
+import { Subscription } from 'rxjs';
+import { BookingService, Reservation, Notification } from '../services/booking.service';
+
+/** Internal type that replaces the string icon key with a resolved Lucide icon */
+interface ActivityItem extends Omit<Notification, 'icon'> {
+  icon: LucideIconData;
+}
+
+const ICON_MAP: Record<string, LucideIconData> = {
+  bell: Bell,
+  calendar: Calendar,
+  trophy: Trophy,
+  activity: Activity,
+  users: Users,
+  'map-pin': MapPin,
+  clock: Clock,
+  star: Star,
+  target: Target,
+};
+
+@Component({
+  selector: 'app-user-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule, LucideAngularModule],
+  template: `
+    <div class="min-h-screen bg-background p-4 md:p-6">
+      <div class="max-w-7xl mx-auto">
+        <!-- Welcome Header -->
+        <div class="mb-8">
+          <h1 class="mb-2">Welcome, <span class="text-primary">{{ userName }}</span> 👋</h1>
+          <p class="text-muted-foreground">Here is an overview of your sports activity</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+          <a routerLink="/app/booking" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="CalendarIcon" class="w-6 h-6 text-primary"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Book</div><div class="text-sm text-muted-foreground">A field</div></div>
+            </div>
+          </a>
+          <a routerLink="/app/matches" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="TrophyIcon" class="w-6 h-6 text-accent"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Matches</div><div class="text-sm text-muted-foreground">View all</div></div>
+            </div>
+          </a>
+          <a routerLink="/app/team" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="UsersIcon" class="w-6 h-6 text-primary"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Team</div><div class="text-sm text-muted-foreground">Manage</div></div>
+            </div>
+          </a>
+          <a routerLink="/app/performance" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <lucide-icon [img]="ActivityIcon" class="w-6 h-6 text-accent"></lucide-icon>
+              </div>
+              <div><div class="font-semibold mb-1">Stats</div><div class="text-sm text-muted-foreground">View my performances</div></div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid md:grid-cols-4 gap-4 mb-8">
+          <div *ngFor="let stat of stats" class="bg-card rounded-2xl p-6 border border-border">
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                <lucide-icon [img]="stat.icon" class="w-6 h-6 text-primary"></lucide-icon>
+              </div>
+              <span class="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-lg">{{ stat.trend }}</span>
+            </div>
+            <div class="text-3xl font-bold mb-1">{{ stat.value }}</div>
+            <div class="text-sm text-muted-foreground">{{ stat.label }}</div>
+          </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid lg:grid-cols-3 gap-6">
+          <!-- Upcoming Matches -->
+          <div class="lg:col-span-2">
+            <div class="bg-card rounded-2xl p-6 border border-border">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="flex items-center gap-2">
+                  <lucide-icon [img]="CalendarIcon" class="w-5 h-5 text-primary"></lucide-icon>
+                  Upcoming matches {{ upcomingMatches.length > 0 ? '(' + upcomingMatches.length + ')' : '' }}
+                </h3>
+                <a routerLink="/app/matches" class="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
+                  View all <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
+                </a>
+              </div>
+              <div class="space-y-4">
+                <div *ngIf="upcomingMatches.length === 0" class="text-center py-6 text-muted-foreground">
+                  No matches scheduled at the moment.
+                </div>
+                <div *ngFor="let match of upcomingMatches" class="bg-muted/50 rounded-xl p-4 hover:bg-muted transition-all group" [ngClass]="{'opacity-60': match.status === 'cancelled'}">
+                  <div class="flex items-start justify-between gap-4">
+                    <a [routerLink]="match.status !== 'cancelled' ? ['/app/matches', match.id] : null" class="flex-1 block" [class.pointer-events-none]="match.status === 'cancelled'">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full" [ngClass]="getReservationStatusBadge(match.status)">
+                          {{ getReservationStatusLabel(match.status) }}
+                        </span>
+                        <h4 class="font-semibold" [ngClass]="{'group-hover:text-primary transition-colors': match.status !== 'cancelled', 'text-muted-foreground': match.status === 'cancelled'}">{{ match.title }}</h4>
+                      </div>
+                      <div class="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div class="flex items-center gap-1"><lucide-icon [img]="MapPinIcon" class="w-4 h-4"></lucide-icon><span>{{ match.fieldName }}</span></div>
+                        <div class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon><span>{{ match.time }} ({{match.duration}}h)</span></div>
+                      </div>
+                      <div *ngIf="isAwaitingConfirmation(match)" class="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700">
+                        Presence confirmation required before the slot.
+                      </div>
+                    </a>
+                    <div class="flex items-center gap-2">
+                      <div class="text-right">
+                        <div class="text-sm font-semibold">{{ formatDate(match.date) }}</div>
+                      </div>
+                      <button 
+                        *ngIf="canConfirmReservation(match)"
+                        (click)="confirmReservationPresence(match)" 
+                        [disabled]="confirmingReservationId === match.id"
+                        class="px-2.5 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all flex-shrink-0"
+                        title="Confirm presence">
+                        {{ confirmingReservationId === match.id ? '...' : 'Confirm' }}
+                      </button>
+                      <button 
+                        *ngIf="canCancelReservation(match)" 
+                        (click)="cancelReservation(match)" 
+                        [disabled]="cancelingReservationId === match.id"
+                        class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
+                        title="Cancel booking">
+                        <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <a routerLink="/app/booking" class="block bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl p-6 text-center border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all mt-4">
+                  <lucide-icon [img]="TargetIcon" class="w-8 h-8 text-primary mx-auto mb-2"></lucide-icon>
+                  <div class="font-semibold mb-1">Organize a new match</div>
+                  <div class="text-sm text-muted-foreground">Book a field and invite your team</div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity & Performance -->
+          <div class="space-y-6">
+            <div class="bg-card rounded-2xl p-6 border border-border">
+              <div class="flex items-center justify-between mb-6">
+                <h3 class="flex items-center gap-2"><lucide-icon [img]="BellIcon" class="w-5 h-5 text-accent"></lucide-icon>Recent activity</h3>
+                <a routerLink="/app/notifications" class="text-sm text-primary font-semibold hover:underline">View all</a>
+              </div>
+              <div class="space-y-4">
+                <div *ngFor="let activity of recentActivities | slice:0:3" class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" [ngClass]="activity.bgColor || 'bg-muted'">
+                    <lucide-icon [img]="activity.icon" class="w-5 h-5" [ngClass]="activity.iconColor || 'text-muted-foreground'"></lucide-icon>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="font-semibold text-sm mb-1">{{ activity.title }}</div>
+                    <div class="text-sm text-muted-foreground mb-1 truncate">{{ activity.message }}</div>
+                    <div class="text-xs text-muted-foreground">{{ activity.time }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-card rounded-2xl p-6 border border-border">
+              <div class="flex items-center gap-2 mb-4">
+                <lucide-icon [img]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
+                <h3>Progress this month</h3>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Matches won</span><span class="font-semibold">75%</span></div>
+                <div class="w-full h-2 bg-muted rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full" style="width:75%"></div></div>
+                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Monthly goal</span><span class="font-semibold">8/10</span></div>
+                <div class="w-full h-2 bg-muted rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:80%"></div></div>
+              </div>
+              <a routerLink="/app/performance" class="mt-6 flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary/10 text-primary rounded-xl font-semibold hover:bg-primary/20 transition-all">
+                View my full stats <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+})
+export class UserDashboardComponent implements OnInit, OnDestroy {
+  readonly CalendarIcon = Calendar;
+  readonly TrophyIcon = Trophy;
+  readonly UsersIcon = Users;
+  readonly ActivityIcon = Activity;
+  readonly MapPinIcon = MapPin;
+  readonly ClockIcon = Clock;
+  readonly ArrowRightIcon = ArrowRight;
+  readonly BellIcon = Bell;
+  readonly TargetIcon = Target;
+  readonly TrendingUpIcon = TrendingUp;
+  readonly XIcon = X;
+
+  userName = '';
+  cancelingReservationId: number | null = null;
+  confirmingReservationId: number | null = null;
+
+  stats = [
+    { label: 'Matches played', value: '24', icon: Trophy, trend: '+12%' },
+    { label: 'Playing hours', value: '48h', icon: Clock, trend: '+8%' },
+    { label: 'Fields visited', value: '12', icon: MapPin, trend: '+3' },
+    { label: 'Average rating', value: '4.8', icon: Star, trend: '+0.2' },
+  ];
+
+  upcomingMatches: Reservation[] = [];
+  recentActivities: ActivityItem[] = [];
+
+  private subs: Subscription = new Subscription();
+
+  constructor(private bookingService: BookingService) { }
+
+  ngOnInit() {
+    this.userName = localStorage.getItem('user_name') || 'User';
+    const userId = localStorage.getItem('user_id') || '1';
+
+    this.bookingService.loadMyReservations();
+    this.subs.add(
+      this.bookingService.myReservations$.subscribe(reservations => {
+        // Combined filtering logic: use the robust service-level subscription and filter using integration rules
+        this.upcomingMatches = reservations.filter(r => this.isUpcomingReservation(r));
+      })
+    );
+    this.subs.add(
+      this.bookingService.notifications$.subscribe(notifs => {
+        // Resolve string icon keys -> actual Lucide icon objects
+        this.recentActivities = notifs.map(n => ({
+          ...n,
+          icon: ICON_MAP[n.icon] ?? Bell,
+        }));
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
+
+  formatDate(dateStr: string): string {
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    } catch {
+      return dateStr;
+    }
+  }
+
+  isAwaitingConfirmation(reservation: Reservation): boolean {
+    return this.bookingService.isAwaitingPresenceConfirmation(reservation.status);
+  }
+
+  canConfirmReservation(reservation: Reservation): boolean {
+    return this.isAwaitingConfirmation(reservation) && !this.isPastReservation(reservation);
+  }
+
+  canCancelReservation(reservation: Reservation): boolean {
+    return ['pending_confirmation', 'reminder_sent', 'confirmed'].includes(reservation.status)
+      && !this.isPastReservation(reservation);
+  }
+
+  getReservationStatusLabel(status: Reservation['status']): string {
+    switch (status) {
+      case 'pending_confirmation':
+        return 'Pending';
+      case 'reminder_sent':
+        return 'Confirmation required';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'confirmed':
+      default:
+        return 'Confirmed';
+    }
+  }
+
+  getReservationStatusBadge(status: Reservation['status']): string {
+    switch (status) {
+      case 'pending_confirmation':
+        return 'bg-amber-100 text-amber-700';
+      case 'reminder_sent':
+        return 'bg-orange-100 text-orange-700';
+      case 'completed':
+        return 'bg-sky-100 text-sky-700';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700';
+      case 'confirmed':
+      default:
+        return 'bg-primary/10 text-primary';
+    }
+  }
+
+  confirmReservationPresence(reservation: Reservation): void {
+    const shouldConfirm = confirm(`Confirm your presence for "${reservation.fieldName}" on ${this.formatDate(reservation.date)} at ${reservation.time} ?`);
+
+    if (!shouldConfirm) {
+      return;
+    }
+
+    this.confirmingReservationId = reservation.id;
+
+    this.subs.add(
+      this.bookingService.confirmReservationPresence(reservation.id).subscribe({
+        next: () => {
+          this.confirmingReservationId = null;
+          this.bookingService.loadMyReservations();
+        },
+        error: (err) => {
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Error during confirmation';
+          alert('Unable to confirm presence: ' + errorMsg);
+          this.confirmingReservationId = null;
+        }
+      })
+    );
+  }
+
+  private isPastReservation(reservation: Reservation): boolean {
+    const start = new Date(`${reservation.date}T${reservation.time}:00`);
+    const end = new Date(start.getTime() + reservation.duration * 60 * 60 * 1000);
+    return end.getTime() < Date.now();
+  }
+
+  private isUpcomingReservation(reservation: Reservation): boolean {
+    return !['cancelled', 'completed'].includes(reservation.status) && !this.isPastReservation(reservation);
+  }
+
+  cancelReservation(reservation: Reservation): void {
+    const confirmCancel = confirm(`Are you sure you want to cancel the booking for "${reservation.fieldName}" on ${this.formatDate(reservation.date)} at ${reservation.time} ?`);
+    
+    if (!confirmCancel) {
+      return;
+    }
+
+    console.log('🗑️ Cancelling reservation ID:', reservation.id);
+    this.cancelingReservationId = reservation.id;
+
+    this.subs.add(
+      this.bookingService.cancelReservation(reservation.id).subscribe({
+        next: (response) => {
+          console.log('✅ Reservation cancelled successfully:', response);
+          this.cancelingReservationId = null;
+          this.bookingService.loadMyReservations();
+        },
+        error: (err) => {
+          console.error('❌ Error during cancellation:', err);
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Error during reservation cancellation';
+          alert('Unable to cancel the booking: ' + errorMsg);
+          this.cancelingReservationId = null;
+        }
+      })
+    );
+  }
+}
