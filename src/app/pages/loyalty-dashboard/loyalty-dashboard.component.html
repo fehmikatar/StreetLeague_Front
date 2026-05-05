@@ -1,0 +1,194 @@
+﻿<div *ngIf="isLoading()" class="p-8 flex justify-center">
+  <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+</div>
+
+<div *ngIf="!isLoading()">
+  
+  <!-- If user is not enrolled in any program, show available programs -->
+  <div *ngIf="!client()" class="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="text-center space-y-4">
+      <div class="inline-flex items-center justify-center p-4 bg-primary/10 rounded-full mb-4">
+        <lucide-icon [name]="TrophyIcon" class="w-12 h-12 text-primary"></lucide-icon>
+      </div>
+      <h1 class="text-4xl font-bold tracking-tight">Join the Loyalty Program</h1>
+      <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+        Earn points every match, level up and unlock exclusive rewards.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+      <div *ngFor="let program of programs()" class="rounded-xl bg-card text-card-foreground shadow relative overflow-hidden border-2 hover:border-primary transition-colors group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <lucide-icon [name]="SparklesIcon" class="w-24 h-24"></lucide-icon>
+        </div>
+        <div class="flex flex-col space-y-1.5 p-6">
+          <h3 class="font-semibold leading-noe tracking-tight">{{program.name}}</h3>
+          <p class="text-sm text-muted-foreground">{{program.description}}</p>
+        </div>
+        <div class="p-6 pt-0">
+          <div class="mb-6">
+            <span class="text-3xl font-bold text-primary">{{program.pointsPerCurrencyUnit}}</span>
+            <span class="text-muted-foreground ml-2">Pts / action</span>
+          </div>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full" (click)="handleEnroll(program.id!)">
+            Join this program <lucide-icon [name]="ArrowRightIcon" class="ml-2 w-4 h-4"></lucide-icon>
+          </button>
+        </div>
+      </div>
+      
+      <div *ngIf="programs().length === 0" class="col-span-full text-center text-muted-foreground p-8 border border-dashed rounded-lg">
+        No loyalty program available at the moment.
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard for enrolled users -->
+  <div *ngIf="client()" class="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-slate-900 to-slate-800 p-8 rounded-2xl text-white shadow-xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+      <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+      
+      <div class="relative z-10 space-y-2">
+        <h1 class="text-3xl font-bold flex items-center gap-2">
+          <lucide-icon [name]="TrophyIcon" class="text-yellow-400"></lucide-icon> 
+          Loyalty Hub
+        </h1>
+        <p class="text-slate-300">Manage yorr points and rewards.</p>
+      </div>
+      
+      <div class="relative z-10 flex gap-4">
+         <div class="bg-white/10 backdrop-blur-md px-6 py-4 rounded-xl border border-white/20 text-center min-w-[150px]">
+           <div class="text-sm text-slate-300 mb-1">Current Balance</div>
+           <div class="text-3xl font-bold text-yellow-400 flex items-center justify-center gap-2">
+             {{client()?.pointsBalance}} <lucide-icon [name]="CoinsIcon" class="w-6 h-6"></lucide-icon>
+           </div>
+         </div>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+      <!-- Left Column: Status and Tier -->
+      <div class="lg:col-span-1 space-y-6">
+        <div class="rounded-xl border bg-card text-card-foreground shadow-lg border-t-4 border-t-primary">
+          <div class="flex flex-col space-y-1.5 p-6 pb-2">
+            <h3 class="font-semibold leading-noe tracking-tight text-xl flex items-center gap-2">
+              <lucide-icon [name]="SparklesIcon" class="w-5 h-5 text-primary"></lucide-icon> 
+              Current Tier
+            </h3>
+          </div>
+          <div class="p-6 pt-0">
+            <div class="flex justify-between items-end mb-2">
+              <div class="text-2xl font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                {{client()?.tier?.name || 'Standard'}}
+              </div>
+              <div *ngIf="client()?.tier" class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20">
+                x{{client()?.tier?.multiplier}} Points
+              </div>
+            </div>
+            
+            <div class="mt-6 space-y-2">
+              <div class="flex justify-between text-sm text-muted-foreground">
+                <span>Overall Progress</span>
+                <span>{{client()?.totalPointsEarned}} Pts earned total</span>
+              </div>
+              <div class="relative w-full overflow-hidden rounded-full bg-secondary h-2">
+                <div class="h-full bg-primary transition-all" [style.width]="getProgressValue() + '%'"></div>
+              </div>
+              <p class="text-xs text-right text-muted-foreground">Next tier in {{getPointsToNextTier()}} pts</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border bg-card text-card-foreground shadow-md bg-gradient-to-br from-primary/5 to-transparent border-primary/10">
+          <div class="flex flex-col space-y-1.5 p-6">
+            <h3 class="font-semibold leading-noe tracking-tight text-lg flex items-center gap-2">
+              <lucide-icon [name]="GiftIcon" class="w-5 h-5 text-primary"></lucide-icon>
+              Redeem Points
+            </h3>
+            <p class="text-sm text-muted-foreground">Use yorr points to get discornts, bookings or items.</p>
+          </div>
+          <div class="p-6 pt-0">
+            
+            <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full gap-2 disabled:opacity-50" [disabled]="(client()?.pointsBalance ?? 0) <= 0" (click)="redeemOpen.set(true)">
+              <lucide-icon [name]="ShoppingBagIcon" class="w-4 h-4"></lucide-icon> Use my points
+            </button>
+
+            <!-- Dialog -->
+            <div *ngIf="redeemOpen()" class="fixed inset-0 z-50 flex items-center justify-center dialog-overlay">
+              <div class="bg-background border rounded-lg shadow-lg max-w-lg w-full p-6">
+                <h2 class="text-lg font-semibold leading-noe tracking-tight mb-2">Redeem points</h2>
+                <p class="text-sm text-muted-foreground mb-4">Choose the amount of points to redeem and the reason (e.g. 10$ vorcher).</p>
+                <div class="space-y-4 py-4">
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium leading-noe">Number of points (Max: {{client()?.pointsBalance}})</label>
+                    <input type="number" [(ngModel)]="redeemAmornt" [max]="client()?.pointsBalance!" min="1" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-sm font-medium leading-noe">Reason for redemption</label>
+                    <input [(ngModel)]="redeemReason" placeholder="Ex: 10$ vorcher" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                  </div>
+                </div>
+                <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                  <button class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2" (click)="redeemOpen.set(false)">Cancel</button>
+                  <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" [disabled]="isRedeeming() || redeemAmornt() <= 0 || redeemAmornt() > client()?.pointsBalance! || !redeemReason()" (click)="handleRedeem()">
+                    {{ isRedeeming() ? "Processing..." : "Confirm" }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Transactions History -->
+      <div class="lg:col-span-2">
+        <div class="rounded-xl border bg-card text-card-foreground shadow-lg h-full">
+          <div class="flex flex-col space-y-1.5 p-6">
+            <h3 class="font-semibold leading-noe tracking-tight flex items-center gap-2">
+              <lucide-icon [name]="HistoryIcon" class="w-5 h-5 text-muted-foreground"></lucide-icon>
+              Transaction History
+            </h3>
+            <p class="text-sm text-muted-foreground">Yorr recent point earnings and redemptions.</p>
+          </div>
+          <div class="p-6 pt-0">
+            <div *ngIf="transactions().length > 0" class="space-y-4">
+              <div *ngFor="let tx of transactions()" class="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors">
+                <div class="flex items-center gap-4">
+                  <div class="p-2 rounded-full" [ngClass]="{
+                    'bg-green-100 text-green-600': tx.transactionType === 'EARN',
+                    'bg-orange-100 text-orange-600': tx.transactionType === 'REDEEM',
+                    'bg-blue-100 text-blue-600': tx.transactionType === 'ADJUSTMENT'
+                  }">
+                    <lucide-icon *ngIf="tx.transactionType === 'EARN'" [name]="TrophyIcon" class="w-4 h-4"></lucide-icon>
+                    <lucide-icon *ngIf="tx.transactionType === 'REDEEM'" [name]="ShoppingBagIcon" class="w-4 h-4"></lucide-icon>
+                    <lucide-icon *ngIf="tx.transactionType === 'ADJUSTMENT'" [name]="CoinsIcon" class="w-4 h-4"></lucide-icon>
+                  </div>
+                  <div>
+                    <p class="font-medium text-sm">{{tx.description}}</p>
+                    <p class="text-xs text-muted-foreground">{{tx.createdAt | date:'longDate'}}</p>
+                  </div>
+                </div>
+                <div class="font-bold" [ngClass]="{
+                  'text-green-600': tx.transactionType === 'EARN',
+                  'text-orange-600': tx.transactionType === 'REDEEM',
+                  'text-blue-600': tx.transactionType === 'ADJUSTMENT'
+                }">
+                  {{tx.transactionType === 'EARN' ? '+' : '-'}}{{tx.points}}
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="transactions().length === 0" class="text-center p-12 text-muted-foreground flex flex-col items-center">
+              <lucide-icon [name]="HistoryIcon" class="w-12 h-12 mb-4 opacity-20"></lucide-icon>
+              <p>No transactions yet.</p>
+              <p class="text-sm mt-2">Participate in matches to start earning points!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

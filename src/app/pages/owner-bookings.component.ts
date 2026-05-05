@@ -16,17 +16,17 @@ import { BookingService, Reservation } from '../services/booking.service';
             <lucide-icon [img]="ArrowLeftIcon" class="w-5 h-5"></lucide-icon>
           </a>
           <div>
-            <h1 class="text-2xl font-bold text-foreground">Réservations de mes terrains</h1>
-            <p class="text-muted-foreground">Consultez les réservations reçues sur tous vos terrains</p>
+            <h1 class="text-2xl font-bold text-foreground">My Fields Bookings</h1>
+            <p class="text-muted-foreground">View bookings received on all your fields</p>
           </div>
         </div>
 
         <div *ngIf="loading" class="rounded-2xl border border-border bg-card p-10 text-center text-muted-foreground">
-          Chargement des réservations...
+          Loading bookings...
         </div>
 
         <div *ngIf="!loading && reservations.length === 0" class="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
-          Aucune réservation trouvée pour vos terrains.
+          No bookings found for your fields.
         </div>
 
         <div *ngIf="!loading && reservations.length > 0" class="space-y-4">
@@ -44,11 +44,11 @@ import { BookingService, Reservation } from '../services/booking.service';
                 <div class="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                   <div class="flex items-center gap-2">
                     <lucide-icon [img]="UserIcon" class="w-4 h-4"></lucide-icon>
-                    <span>{{ reservation.userName || ('Utilisateur #' + (reservation.userId || '?')) }}</span>
+                    <span>{{ reservation.userName || ('User #' + (reservation.userId || '?')) }}</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <lucide-icon [img]="MapPinIcon" class="w-4 h-4"></lucide-icon>
-                    <span>{{ reservation.location || 'Localisation non précisée' }}</span>
+                    <span>{{ reservation.location || 'Location not specified' }}</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <lucide-icon [img]="CalendarIcon" class="w-4 h-4"></lucide-icon>
@@ -157,16 +157,16 @@ export class OwnerBookingsComponent implements OnInit {
   getStatusLabel(status: Reservation['status']): string {
     switch (status) {
       case 'pending_confirmation':
-        return 'En attente';
+        return 'Pending';
       case 'reminder_sent':
-        return 'Confirmation requise';
+        return 'Confirmation required';
       case 'completed':
-        return 'Terminée';
+        return 'Completed';
       case 'cancelled':
-        return 'Annulée';
+        return 'Cancelled';
       case 'confirmed':
       default:
-        return 'Confirmée';
+        return 'Confirmed';
     }
   }
 

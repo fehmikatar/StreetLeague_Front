@@ -14,19 +14,19 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
       <div class="max-w-5xl mx-auto">
         <button (click)="goBack()" class="mb-4 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 transition-colors">
           <lucide-icon [name]="ArrowLeftIcon" [size]="16"></lucide-icon>
-          Retour à la liste
+          Back to list
         </button>
 
         <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
           <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-          Chargement du détail de l'équipe...
+          Loading team details...
         </div>
 
         <div *ngIf="errorBanner" class="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300 flex items-center justify-between gap-4">
           <span>{{ errorBanner }}</span>
           <button (click)="loadTeam()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors">
             <lucide-icon [name]="RefreshCcwIcon" [size]="14"></lucide-icon>
-            Réessayer
+            Retry
           </button>
         </div>
 
@@ -47,7 +47,7 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
 
             <div class="p-6 md:p-8 space-y-4">
               <div>
-                <h1 class="text-3xl font-bold">{{ team.name || 'Équipe sans nom' }}</h1>
+                <h1 class="text-3xl font-bold">{{ team.name || 'Unnamed Team' }}</h1>
                 <div class="flex flex-wrap gap-3 text-sm text-muted-foreground mt-2">
                   <span class="font-semibold text-foreground">{{ team.sport || '-' }}</span>
                   <span>•</span>
@@ -55,7 +55,7 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
                 </div>
               </div>
 
-              <p class="text-foreground/80">{{ team.description || 'Aucune description disponible.' }}</p>
+              <p class="text-foreground/80">{{ team.description || 'No description available.' }}</p>
 
               <div *ngIf="isPlayer" class="rounded-2xl border border-border bg-muted/20 p-4 space-y-3">
                 <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -105,8 +105,8 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
               </div>
 
               <div class="grid sm:grid-cols-2 gap-3 text-sm">
-                <div class="rounded-xl border border-border p-3"><span class="font-semibold">Ville:</span> {{ team.city || '-' }}</div>
-                <div class="rounded-xl border border-border p-3"><span class="font-semibold">Créée le:</span> {{ team.createdAt ? (team.createdAt | date:'short') : '-' }}</div>
+                <div class="rounded-xl border border-border p-3"><span class="font-semibold">City:</span> {{ team.city || '-' }}</div>
+                <div class="rounded-xl border border-border p-3"><span class="font-semibold">Created on:</span> {{ team.createdAt ? (team.createdAt | date:'short') : '-' }}</div>
               </div>
             </div>
           </div>
@@ -115,7 +115,7 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
           <div class="bg-card border border-border rounded-2xl overflow-hidden">
             <div class="border-b border-border p-6 md:p-8 flex items-center gap-3">
               <lucide-icon [name]="UsersIcon" [size]="24"></lucide-icon>
-              <h2 class="text-xl font-bold">Équipe ({{ team.members?.length || 0 }})</h2>
+              <h2 class="text-xl font-bold">Team ({{ team.members?.length || 0 }})</h2>
             </div>
 
             <div *ngIf="team.members && team.members.length > 0; else noMembers" class="grid grid-cols-1 md:grid-cols-2 gap-4 p-6 md:p-8">
@@ -158,7 +158,7 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
                     <span class="font-semibold text-sm">{{ member.rating.toFixed(1) }}</span>
                   </div>
                   <span *ngIf="member.skillLevel !== undefined && member.skillLevel !== null" class="text-xs text-muted-foreground">
-                    Niveau: {{ member.skillLevel }}/10
+                    Level: {{ member.skillLevel }}/10
                   </span>
                 </div>
 
@@ -177,7 +177,7 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
                   <button (click)="messageMember(member)"
                           class="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-700 dark:text-blue-300 hover:bg-blue-500/30 transition-colors">
                     <lucide-icon [name]="MessageSquareIcon" [size]="14"></lucide-icon>
-                    Envoyer
+                    Send
                   </button>
                   <button *ngIf="isAdmin" (click)="removeMember(member)"
                           class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-500/20 text-red-700 dark:text-red-300 hover:bg-red-500/30 transition-colors">
@@ -190,14 +190,14 @@ import { Team, TeamMember, TeamService } from '../services/team.service';
             <ng-template #noMembers>
               <div class="p-8 text-center text-muted-foreground">
                 <lucide-icon [name]="UsersIcon" [size]="32" class="mx-auto mb-3 opacity-50"></lucide-icon>
-                <p>Aucun membre dans cette équipe.</p>
+                <p>No members in this team.</p>
               </div>
             </ng-template>
 
             <!-- Add New Member Button -->
             <div class="border-t border-border p-6 md:p-8">
               <button *ngIf="isAdmin" class="w-full px-4 py-2.5 rounded-xl border border-dashed border-primary/50 text-primary font-semibold hover:bg-primary/10 transition-colors">
-                + Ajouter un nouveau membre
+                + Add a new member
               </button>
             </div>
           </div>
@@ -245,7 +245,7 @@ export class TeamDetailComponent implements OnInit {
     this.teamId = Number.isFinite(id) ? id : null;
     if (!this.teamId) {
       this.loading = false;
-      this.errorBanner = 'Identifiant équipe invalide.';
+      this.errorBanner = 'Invalid team ID.';
       return;
     }
 
@@ -318,7 +318,7 @@ get canOpenTeamChat(): boolean {
               this.cdr.detectChanges();
             },
             error: (membersErr) => {
-              console.warn('Impossible de charger les membres:', membersErr);
+              console.warn('Unable to load members:', membersErr);
               // Continuer quand même avec l'équipe sans membres
               if (this.team) {
                 this.team.members = [];
@@ -354,7 +354,7 @@ private loadBasicTeamFallback(): void {
   this.teamService.getTeamById(this.teamId).subscribe({
     next: (team) => {
       this.team = { ...team, members: team.members || [] };
-      this.warningBanner = 'Les détails des membres sont protégés pour cette équipe. Affichage des informations générales uniquement.';
+      this.warningBanner = 'Member details are protected for this team. Displaying general information only.';
       
       // ✅✅ AJOUTEZ CE BLOC - Charger les membres séparément
       if (this.teamId) {
@@ -368,7 +368,7 @@ private loadBasicTeamFallback(): void {
             this.cdr.detectChanges();
           },
           error: (membersErr) => {
-            console.warn('Impossible de charger les membres:', membersErr);
+            console.warn('Unable to load members:', membersErr);
             if (this.team) {
               this.team.members = [];
             }
@@ -400,13 +400,13 @@ private loadBasicTeamFallback(): void {
 
     const token = localStorage.getItem('auth_token');
     if (!token) {
-      this.showToast('Veuillez vous connecter pour envoyer une demande.');
+      this.showToast('Please log in to send a request.');
       this.router.navigate(['/auth/login']);
       return;
     }
 
     if (!this.isPlayer) {
-      this.showToast('Seuls les joueurs peuvent envoyer une demande d\'adhésion.');
+      this.showToast('Only players can send a join request.');
       return;
     }
 
@@ -417,7 +417,7 @@ private loadBasicTeamFallback(): void {
     const userIdRaw = localStorage.getItem('user_id');
     const playerId = Number(userIdRaw);
     if (!Number.isFinite(playerId) || playerId <= 0) {
-      this.showToast('Utilisateur non identifié. Reconnectez-vous puis réessayez.');
+      this.showToast('Unidentified user. Please log in again and try again.');
       return;
     }
 
@@ -431,7 +431,7 @@ private loadBasicTeamFallback(): void {
         this.joinMessage = '';
         this.joinFeedback = 'Pending Approval';
         this.persistJoinState('pending');
-        this.showToast('Demande d\'adhésion envoyée avec succès.');
+        this.showToast('Join request sent successfully.');
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -451,7 +451,7 @@ private loadBasicTeamFallback(): void {
             this.joinState = 'pending';
             this.joinFeedback = 'Request already pending.';
             this.persistJoinState('pending');
-            this.showToast('Une demande est déjà en attente pour cette équipe.');
+            this.showToast('A request is already pending for this team.');
           } else {
             this.joinState = 'default';
             this.joinFeedback = readable;
@@ -488,13 +488,13 @@ private loadBasicTeamFallback(): void {
 
     const memberUserId = Number((member as any).userId || (member as any).id || 0);
     if (!Number.isFinite(memberUserId) || memberUserId <= 0) {
-      this.showToast('Impossible d\'ouvrir cette conversation privee.');
+      this.showToast('Unable to open this private conversation.');
       return;
     }
 
     const currentUserId = this.getCurrentUserId();
     if (currentUserId && memberUserId === currentUserId) {
-      this.showToast('Vous ne pouvez pas ouvrir une conversation privée avec vous-même.');
+      this.showToast('You cannot open a private conversation with yourself.');
       return;
     }
 
@@ -502,7 +502,7 @@ private loadBasicTeamFallback(): void {
   }
 
   removeMember(member: TeamMember): void {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${member.firstName} ${member.lastName} de l'équipe?`)) {
+    if (confirm(`Are you sure you want to remove ${member.firstName} ${member.lastName} from the team?`)) {
       this.teamService.removeMember(member.userId).subscribe({
         next: () => {
           // Remove from local array
@@ -513,7 +513,7 @@ private loadBasicTeamFallback(): void {
         },
         error: (err) => {
           const message = this.toReadableError(err);
-          alert(`Erreur lors de la suppression: ${message}`);
+          alert(`Error during removal: ${message}`);
         }
       });
     }

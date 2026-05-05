@@ -13,12 +13,12 @@ import { PendingChangesService } from '../services/pending-changes.service';
     imports: [CommonModule, FormsModule, LucideAngularModule],
     template: `
     <div class="p-6 max-w-3xl mx-auto space-y-6">
-      <h1 class="text-2xl font-bold text-foreground">Mon Profil</h1>
+      <h1 class="text-2xl font-bold text-foreground">My Profile</h1>
 
       <!-- Loading state -->
       <div *ngIf="isLoading" class="bg-card rounded-xl border border-border p-12 flex flex-col items-center justify-center">
         <div class="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin mb-4"></div>
-        <p class="text-muted-foreground">Chargement de votre profil...</p>
+        <p class="text-muted-foreground">Loading your profile...</p>
       </div>
 
       <!-- Profile content (only show when loaded) -->
@@ -46,7 +46,7 @@ import { PendingChangesService } from '../services/pending-changes.service';
                 <div class="flex items-center gap-3">
                   <h2 class="text-xl font-semibold text-foreground">{{profile.firstName}} {{profile.lastName}}</h2>
                   <span *ngIf="hasUnsavedChanges" class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
-                    💾 Changements en attente
+                    💾 Pending changes
                   </span>
                 </div>
                 <p class="text-muted-foreground">{{profile.role}}</p>
@@ -64,7 +64,7 @@ import { PendingChangesService } from '../services/pending-changes.service';
             <!-- Player Info Display -->
             <div *ngIf="!editing && isPlayer" class="mt-4 pt-4 border-t border-border/50 grid grid-cols-2 gap-4">
               <div>
-                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Niveau</p>
+                <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Level</p>
                 <p class="text-sm font-medium text-foreground">
                   <span class="inline-flex items-center px-2 py-1 rounded bg-primary/10 text-primary">
                     <lucide-icon [img]="ActivityIcon" [size]="14" class="mr-1"></lucide-icon>
@@ -86,11 +86,11 @@ import { PendingChangesService } from '../services/pending-changes.service';
             <div *ngIf="editing" class="space-y-4">
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-xs font-medium text-foreground mb-2">Prénom</label>
+                  <label class="block text-xs font-medium text-foreground mb-2">First Name</label>
                   <input type="text" [(ngModel)]="editedProfile.firstName" (ngModelChange)="onProfileFieldChange()" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-foreground mb-2">Nom</label>
+                  <label class="block text-xs font-medium text-foreground mb-2">Last Name</label>
                   <input type="text" [(ngModel)]="editedProfile.lastName" (ngModelChange)="onProfileFieldChange()" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                 </div>
               </div>
@@ -99,44 +99,44 @@ import { PendingChangesService } from '../services/pending-changes.service';
                 <input type="email" [(ngModel)]="editedProfile.email" (ngModelChange)="onProfileFieldChange()" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-foreground mb-2">Téléphone</label>
+                <label class="block text-xs font-medium text-foreground mb-2">Phone</label>
                 <input type="tel" [(ngModel)]="editedProfile.phone" (ngModelChange)="onProfileFieldChange()" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-foreground mb-2">Mot de passe (pour confirmer)</label>
-                <input type="password" [(ngModel)]="editedProfile.password" (ngModelChange)="onProfileFieldChange()" placeholder="Votre mot de passe" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                <p class="text-xs text-muted-foreground mt-1">Le mot de passe est requis pour protéger votre compte</p>
+                <label class="block text-xs font-medium text-foreground mb-2">Password (to confirm)</label>
+                <input type="password" [(ngModel)]="editedProfile.password" (ngModelChange)="onProfileFieldChange()" placeholder="Your password" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                <p class="text-xs text-muted-foreground mt-1">Password is required to protect your account</p>
               </div>
 
               <!-- Player specific fields form -->
               <div *ngIf="isPlayer" class="grid grid-cols-2 gap-3 pt-2 border-t border-border/50 mt-2">
                 <div>
-                  <label class="block text-xs font-medium text-foreground mb-2">Niveau (1-5)</label>
+                  <label class="block text-xs font-medium text-foreground mb-2">Level (1-5)</label>
                   <select [(ngModel)]="editedProfile.skillLevel" (ngModelChange)="onProfileFieldChange()" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                    <option [value]="1">1 - Débutant</option>
+                    <option [value]="1">1 - Beginner</option>
                     <option [value]="2">2 - Amateur</option>
-                    <option [value]="3">3 - Intermédiaire</option>
-                    <option [value]="4">4 - Avancé</option>
+                    <option [value]="3">3 - Intermediate</option>
+                    <option [value]="4">4 - Advanced</option>
                     <option [value]="5">5 - Pro</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs font-medium text-foreground mb-2">Position</label>
                   <select [(ngModel)]="editedProfile.position" (ngModelChange)="onProfileFieldChange()" class="w-full px-3 py-2 bg-muted rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary text-sm">
-                    <option value="DEFENDER">Défenseur</option>
-                    <option value="MIDFIELDER">Milieu</option>
-                    <option value="STRIKER">Attaquant</option>
-                    <option value="GOALKEEPER">Gardien</option>
-                    <option value="ANY">Peu importe</option>
+                    <option value="DEFENDER">Defender</option>
+                    <option value="MIDFIELDER">Midfielder</option>
+                    <option value="STRIKER">Striker</option>
+                    <option value="GOALKEEPER">Goalkeeper</option>
+                    <option value="ANY">Any</option>
                   </select>
                 </div>
               </div>
               <div class="flex gap-2 pt-2">
                 <button (click)="saveProfile()" [disabled]="savingProfile || !editedProfile.password" class="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors disabled:opacity-50">
-                  <span *ngIf="!savingProfile">✓ Enregistrer</span>
-                  <span *ngIf="savingProfile">Enregistrement...</span>
+                  <span *ngIf="!savingProfile">✓ Save</span>
+                  <span *ngIf="savingProfile">Saving...</span>
                 </button>
-                <button (click)="cancelEditing()" class="flex-1 px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors">Annuler</button>
+                <button (click)="cancelEditing()" class="flex-1 px-4 py-2 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-muted/80 transition-colors">Cancel</button>
               </div>
             </div>
           </div>
@@ -228,9 +228,9 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     };
 
     stats = [
-        { label: 'Matchs Joués', value: '47' },
-        { label: 'Buts Marqués', value: '23' },
-        { label: 'Équipes', value: '3' },
+        { label: 'Matches Played', value: '47' },
+        { label: 'Goals Scored', value: '23' },
+        { label: 'Teams', value: '3' },
     ];
 
     sections = [
@@ -238,18 +238,18 @@ export class UserProfileComponent implements OnInit, OnDestroy {
             title: 'Notifications',
             iconComponent: Bell,
             items: [
-                { label: 'Nouveaux matchs', value: true },
-                { label: 'Messages équipe', value: true },
-                { label: 'Rappels réservation', value: true },
+                { label: 'New matches', value: true },
+                { label: 'Team messages', value: true },
+                { label: 'Booking reminders', value: true },
                 { label: 'Newsletters', value: false },
             ]
         },
         {
-            title: 'Confidentialité',
+            title: 'Privacy',
             iconComponent: Shield,
             items: [
-                { label: 'Profil visible publiquement', value: true },
-                { label: 'Partager les statistiques', value: false },
+                { label: 'Publicly visible profile', value: true },
+                { label: 'Share statistics', value: false },
             ]
         }
     ];
@@ -291,7 +291,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
                     hasSavedChanges = true;
 
                     console.log('✅ Changements restaurés - Mode édition activé');
-                    this.showNotification('📝 Vos modifications précédentes ont été restaurées', 'success');
+                    this.showNotification('📝 Your previous changes have been restored', 'success');
                 }
             } catch (e) {
                 console.error('Erreur lors de la lecture des changements sauvegardés:', e);
@@ -379,7 +379,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         localStorage.removeItem('userProfilePendingChanges');
         localStorage.removeItem('pendingProfileChanges');
         sessionStorage.removeItem('pendingProfileSave');
-        this.showNotification('❌ Modifications annulées', 'error');
+        this.showNotification('❌ Changes cancelled', 'error');
     }
 
     /**
@@ -427,7 +427,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     saveProfile() {
         // Valider que le password est fourni
         if (!this.editedProfile.password || this.editedProfile.password.trim() === '') {
-            this.showNotification('❌ Veuillez entrer votre mot de passe pour confirmer', 'error');
+            this.showNotification('❌ Please enter your password to confirm', 'error');
             this.savingProfile = false;
             return;
         }
@@ -459,7 +459,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
                 sessionStorage.removeItem('pendingProfileSave');
 
                 console.log('✅ Profil SAUVEGARDÉ avec succès - Changements nettoyés');
-                this.showNotification('✅ Profil mise à jour avec succès!', 'success');
+                this.showNotification('✅ Profile updated successfully!', 'success');
             },
             error: (err) => {
                 this.savingProfile = false;
@@ -473,11 +473,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
                 } else if (err?.error?.message) {
                     errorMsg = `❌ ${err.error.message}`;
                 } else if (err?.status === 400) {
-                    errorMsg = '❌ Mot de passe incorrect ou données invalides';
+                    errorMsg = '❌ Incorrect password or invalid data';
                 } else if (err?.status === 401) {
-                    errorMsg = '❌ Non authentifié. Veuillez vous reconnecter';
+                    errorMsg = '❌ Not authenticated. Please log in again';
                 } else if (err?.status === 403) {
-                    errorMsg = '❌ Accès refusé (403) - Le backend a refusé votre demande';
+                    errorMsg = '❌ Access denied (403) - The backend refused your request';
                 }
 
                 // ⚠️ ERREUR: Garder leschangements sauvegardés pour nouvelle tentative
@@ -494,7 +494,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
             // Vérifier la taille (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
-                this.showNotification('❌ Image trop grande (max 5MB)', 'error');
+                this.showNotification('❌ Image too large (max 5MB)', 'error');
                 return;
             }
 
@@ -511,11 +511,11 @@ export class UserProfileComponent implements OnInit, OnDestroy {
                 next: () => {
                     this.uploadingImage = false;
                     this.loadProfileImage();
-                    this.showNotification('✅ Photo de profil téléchargée!', 'success');
+                    this.showNotification('✅ Profile picture uploaded!', 'success');
                 },
                 error: (err) => {
                     this.uploadingImage = false;
-                    let errorMsg = '❌ Erreur lors du téléchargement';
+                    let errorMsg = '❌ Error during upload';
 
                     console.error('Upload error details:', {
                         status: err.status,
@@ -525,23 +525,23 @@ export class UserProfileComponent implements OnInit, OnDestroy {
                     });
 
                     if (err.status === 403) {
-                        errorMsg = '❌ Accès refusé (403) - Permissions insuffisantes';
-                        console.error('🔐 403 Forbidden: Le backend refuse l\'accès à POST /api/users/{userId}/profile-image');
-                        console.error('   ➜ Vérifiez les permissions sur le serveur');
-                        console.error('   ➜ L\'endpoint doit autoriser les uploads d\'image');
+                        errorMsg = '❌ Access denied (403) - Insufficient permissions';
+                        console.error('🔐 403 Forbidden: Backend denied access to POST /api/users/{userId}/profile-image');
+                        console.error('   ➜ Check server permissions');
+                        console.error('   ➜ Endpoint must allow image uploads');
                     } else if (err.status === 401) {
-                        errorMsg = '❌ Non authentifié (401) - Reconnectez-vous';
-                        console.error('🔑 401 Unauthorized: Le token d\'authentification est invalide');
+                        errorMsg = '❌ Not authenticated (401) - Please log in again';
+                        console.error('🔑 401 Unauthorized: Authentication token is invalid');
                     } else if (err.status === 400) {
-                        errorMsg = `❌ Requête invalide: ${err.error?.message || 'Format d\'image non supporté'}`;
+                        errorMsg = `❌ Invalid request: ${err.error?.message || 'Image format not supported'}`;
                     } else if (err.status === 413) {
-                        errorMsg = '❌ Image trop grande pour le serveur';
+                        errorMsg = '❌ Image too large for the server';
                     } else if (err.status === 500) {
-                        errorMsg = '❌ Erreur serveur (500) - Réessayez plus tard';
+                        errorMsg = '❌ Server error (500) - Try again later';
                     } else if (!err.status) {
-                        errorMsg = '❌ Erreur réseau - Vérifiez votre connexion';
+                        errorMsg = '❌ Network error - Check your connection';
                     } else {
-                        errorMsg = `❌ Erreur ${err.status}: ${err.statusText || 'Inconnue'}`;
+                        errorMsg = `❌ Error ${err.status}: ${err.statusText || 'Unknown'}`;
                     }
 
                     this.showNotification(errorMsg, 'error');

@@ -5,6 +5,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { teamChatGuard } from './core/guards/team-chat.guard';
 import { UnsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 import { ProfileResolver } from './core/guards/profile.resolver';
+import { roleGuard } from './core/guards/role.guard';
 
 // Public pages
 import { PublicHomePageComponent } from './pages/public/public-home-page.component';
@@ -77,6 +78,14 @@ import { PerformanceDashboardComponent } from './pages/performances/performance-
 import { PerformanceListComponent } from './pages/performances/performance-list.component';
 import { PerformanceDetailComponent } from './pages/performances/performance-detail.component';
 import { PerformanceFormComponent } from './pages/performances/performance-form.component';
+import { AiCoachComponent } from './pages/performances/ai-coach/ai-coach.component';
+
+// Loyalty pages
+import { LoyaltyDashboardComponent } from './pages/loyalty-dashboard/loyalty-dashboard.component';
+import { AdminLoyaltyComponent } from './pages/admin-loyalty/admin-loyalty.component';
+
+// Promotions pages
+import { AdminPromotionsComponent } from './pages/admin-promotions/admin-promotions.component';
 
 // 404
 import { NotFoundComponent } from './pages/not-found.component';
@@ -138,26 +147,30 @@ export const routes: Routes = [
             { path: 'performance', component: PerformanceComponent },
             { path: 'sponsors', component: SponsorsComponent },
             { path: 'sponsors/:id', component: ProductDetailComponent },
-            { path: 'admin', component: AdminComponent },
-            { path: 'admin/users', component: AdminUsersComponent },
-            { path: 'admin/products', component: AdminProductsComponent },
-            { path: 'admin/categories', component: AdminCategoriesComponent },
-            { path: 'admin/orders', component: AdminOrdersComponent },
-            { path: 'admin/stats', component: AdminStatsComponent },
+            { path: 'admin', component: AdminComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/users', component: AdminUsersComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/products', component: AdminProductsComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/categories', component: AdminCategoriesComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/orders', component: AdminOrdersComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/stats', component: AdminStatsComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/loyalty', component: AdminLoyaltyComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/promotions', component: AdminPromotionsComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/advertisements', loadComponent: () => import('./pages/competitions/advertisement-dashboard.component').then(m => m.AdvertisementDashboardComponent), canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
             
             // Admin - Badge Management (specific routes before parameter-based routes)
-            { path: 'admin/badges/dashboard', component: BadgeDashboardComponent },
-            { path: 'admin/badges/create', component: BadgeFormComponent },
-            { path: 'admin/badges/:id/edit', component: BadgeFormComponent },
-            { path: 'admin/badges/:id', component: BadgeDetailComponent },
-            { path: 'admin/badges', component: BadgeCatalogComponent },
+            { path: 'admin/badges/dashboard', component: BadgeDashboardComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/badges/create', component: BadgeFormComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/badges/:id/edit', component: BadgeFormComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/badges/:id', component: BadgeDetailComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/badges', component: BadgeCatalogComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
 
             // Admin - Performance Management (specific routes before parameter-based routes)
-            { path: 'admin/performances/dashboard', component: PerformanceDashboardComponent },
-            { path: 'admin/performances/create', component: PerformanceFormComponent },
-            { path: 'admin/performances/:id/edit', component: PerformanceFormComponent },
-            { path: 'admin/performances/:id', component: PerformanceDetailComponent },
-            { path: 'admin/performances', component: PerformanceListComponent },
+            { path: 'admin/performances/dashboard', component: PerformanceDashboardComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/performances/create', component: PerformanceFormComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/performances/:id/edit', component: PerformanceFormComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/performances/:id', component: PerformanceDetailComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'admin/performances', component: PerformanceListComponent, canActivate: [roleGuard], data: { roles: ['ROLE_ADMIN'] } },
+            { path: 'performances/ai-coach', component: AiCoachComponent, canActivate: [roleGuard], data: { roles: ['ROLE_PLAYER'] } },
             
             { 
                 path: 'smart-matching', 
@@ -168,6 +181,7 @@ export const routes: Routes = [
             { path: 'orders', component: UserOrdersComponent },
             { path: 'notifications', component: NotificationsComponent },
             { path: 'favorites', component: FavoritesComponent },
+            { path: 'loyalty', component: LoyaltyDashboardComponent, canActivate: [roleGuard], data: { roles: ['ROLE_PLAYER'] } },
 
             // Competitions Module
             { path: 'competitions', component: CompetitionListComponent },

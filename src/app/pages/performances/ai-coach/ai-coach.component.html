@@ -1,0 +1,186 @@
+﻿<div class="p-8 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+  
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-8 bg-slate-900 p-8 rounded-2xl text-white shadow-2xl relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+    <lucide-icon [name]="BotIcon" class="w-16 h-16 text-primary z-10"></lucide-icon>
+    <div class="z-10">
+      <h1 class="text-4xl font-extrabold flex items-center gap-3">
+        StreetLeague AI Coach <lucide-icon [name]="SparklesIcon" class="text-yellow-400 w-6 h-6"></lucide-icon>
+      </h1>
+      <p class="text-slate-400 text-lg mt-2">
+        Notre modèle prédictif analyse votre profil sportif et génère un plan d'entraînement sur-mesure porr atteindre vos objectifs d'XP.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-12 gap-8">
+    
+    <!-- Formulaire (Sidebar) -->
+    <div class="lg:col-span-4 space-y-6">
+      <div class="rounded-xl border bg-card text-card-foreground shadow-lg border-primary/20">
+        <div class="flex flex-col space-y-1.5 p-6 bg-muted/30 pb-4">
+          <h3 class="font-semibold leading-noe tracking-tight flex items-center gap-2 text-xl">
+            <lucide-icon [name]="TargetIcon" class="w-5 h-5 text-primary"></lucide-icon>
+            Vos Objectifs
+          </h3>
+          <p class="text-sm text-muted-foreground">Configurez votre objectif porr l'IA.</p>
+        </div>
+        <div class="p-6 pt-6 space-y-4">
+          <form (ngSubmit)="handleSubmit()" class="space-y-4">
+            
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-noe">Type de Sport</label>
+              <select [(ngModel)]="formData.sport_type" name="sport_type" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:ortline-noe focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <option value="football">Football</option>
+                <option value="basket">Basket</option>
+                <option value="tennis">Tennis</option>
+                <option value="padel">Padel</option>
+                <option value="running">Running</option>
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-noe">Objectif XP à atteindre</label>
+              <input type="number" name="xp_objective" [(ngModel)]="formData.xp_objective" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-noe">Duration prévue (en jorrs)</label>
+              <input type="number" name="duration_days" [(ngModel)]="formData.duration_days" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+            </div>
+            
+            <details class="text-sm cursor-pointer border rounded-md p-2 bg-muted/10">
+              <summary class="font-semibold text-muted-foreground ortline-noe">Settings actuels (Auto)</summary>
+              <div class="mt-4 grid grid-cols-2 gap-2">
+                 <div class="space-y-1"><label class="text-xs">Niveau Actuel</label><input type="number" name="athlete_level" [(ngModel)]="formData.athlete_level" readonly class="flex w-full rounded-md border border-input bg-muted/50 text-muted-foreground px-3 py-1 text-xs cursor-not-allowed" /></div>
+                 <div class="space-y-1"><label class="text-xs">XP Actuel</label><input type="number" name="total_xp" [(ngModel)]="formData.total_xp" readonly class="flex w-full rounded-md border border-input bg-muted/50 text-muted-foreground px-3 py-1 text-xs cursor-not-allowed" /></div>
+                 <div class="space-y-1"><label class="text-xs">Score Moyen</label><input type="number" name="match_score" [(ngModel)]="formData.match_score" readonly class="flex w-full rounded-md border border-input bg-muted/50 text-muted-foreground px-3 py-1 text-xs cursor-not-allowed" /></div>
+                 <div class="space-y-1"><label class="text-xs">Duration Moyenne (min)</label><input type="number" name="session_duration" [(ngModel)]="formData.session_duration" readonly class="flex w-full rounded-md border border-input bg-muted/50 text-muted-foreground px-3 py-1 text-xs cursor-not-allowed" /></div>
+                 <div class="space-y-1"><label class="text-xs">Taux Victoire (0-1)</label><input type="number" name="win_rate" [(ngModel)]="formData.win_rate" step="0.1" readonly class="flex w-full rounded-md border border-input bg-muted/50 text-muted-foreground px-3 py-1 text-xs cursor-not-allowed" /></div>
+                 <div class="space-y-1"><label class="text-xs">Streak Actuel</label><input type="number" name="streak_days" [(ngModel)]="formData.streak_days" readonly class="flex w-full rounded-md border border-input bg-muted/50 text-muted-foreground px-3 py-1 text-xs cursor-not-allowed" /></div>
+              </div>
+            </details>
+
+            <button type="submit" [disabled]="isLoading()" class="inline-flex items-center justify-center rounded-md font-medium bg-primary text-primary-foreground hover:bg-primary/90 w-full h-12 text-lg shadow-xl shadow-primary/20 disabled:opacity-50 mt-4">
+              <lucide-icon *ngIf="isLoading()" [name]="Loader2Icon" class="w-5 h-5 animate-spin mr-2"></lucide-icon>
+              <lucide-icon *ngIf="!isLoading()" [name]="BotIcon" class="w-5 h-5 mr-2"></lucide-icon>
+              Générer le Plan
+            </button>
+            <p *ngIf="errorMsg()" class="text-red-500 text-sm font-semibold text-center mt-2">{{errorMsg()}}</p>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Area -->
+    <div class="lg:col-span-8">
+      <div *ngIf="!result()" class="h-full flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-muted rounded-2xl bg-muted/5">
+        <lucide-icon [name]="BotIcon" class="w-24 h-24 text-muted-foreground opacity-20 mb-6"></lucide-icon>
+        <h3 class="text-2xl font-bold text-muted-foreground">L'IA Coach est prêt</h3>
+        <p class="text-muted-foreground mt-2 max-w-md">
+          Configurez vos objectifs sur la gauche et laissez notre algorithme Machine Learning vors proposer le plan d'entraînement idéal porr y parvenir.
+        </p>
+      </div>
+
+      <div *ngIf="result()" class="space-y-6 animate-in zoom-in-95 duration-500">
+        
+        <!-- Highlight Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="rounded-xl border bg-primary/5 text-card-foreground border-primary/20 shadow">
+            <div class="p-4 text-center">
+              <div class="text-sm text-muted-foreground mb-1">XP / Jorr Requis</div>
+              <div class="text-2xl font-bold text-primary">{{result()?.xp_needed_per_day}}</div>
+            </div>
+          </div>
+          <div class="rounded-xl border bg-slate-50 dark:bg-slate-900 text-card-foreground border-slate-200 shadow">
+            <div class="p-4 text-center">
+              <div class="text-sm text-muted-foreground mb-1">XP / Jorr Prévu (IA)</div>
+              <div class="text-2xl font-bold text-slate-700 dark:text-slate-200">{{result()?.xp_per_day_predicted}}</div>
+            </div>
+          </div>
+          <div class="rounded-xl border bg-card text-card-foreground shadow">
+            <div class="p-4 text-center">
+              <div class="text-sm text-muted-foreground mb-1">Difficulté</div>
+              <div class="text-xl font-bold">{{result()?.recommendations?.niveau_defi}}</div>
+            </div>
+          </div>
+          <div class="rounded-xl border bg-card text-card-foreground shadow">
+            <div class="p-4 text-center">
+              <div class="text-sm text-muted-foreground mb-1">Badge Actuel</div>
+              <div class="text-xl font-bold uppercase">{{result()?.badge_actuel}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="rounded-xl border bg-card text-card-foreground shadow-lg border-t-4 border-t-primary">
+          <div class="flex flex-col space-y-1.5 p-6">
+            <h3 class="font-semibold leading-noe tracking-tight flex items-center gap-2 text-xl">
+              <lucide-icon [name]="ActivityIcon" class="w-5 h-5 text-primary"></lucide-icon>
+              Recommandations du Coach
+            </h3>
+          </div>
+          <div class="p-6 pt-0">
+            <div class="grid md:grid-cols-2 gap-8">
+              <ul class="space-y-4">
+                <li *ngFor="let c of result()?.recommendations?.conseils" class="flex items-start gap-3 bg-muted/30 p-3 rounded-lg">
+                  <lucide-icon [name]="ArrowRightIcon" class="w-5 h-5 text-primary shrink-0 mt-0.5"></lucide-icon>
+                  <span class="font-medium text-sm leading-tight">{{c}}</span>
+                </li>
+              </ul>
+              <div class="bg-slate-900 text-white p-6 rounded-xl space-y-4">
+                <h4 class="font-bold text-lg mb-4 text-slate-300 border-b border-white/10 pb-2">Objectifs par session</h4>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Sessions par jorr :</span>
+                  <span class="font-bold text-primary">{{result()?.recommendations?.sessions_par_jorr}}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Duration minimum :</span>
+                  <span class="font-bold text-primary">{{result()?.recommendations?.duree_session_min}} min</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Score cible :</span>
+                  <span class="font-bold text-primary">{{result()?.recommendations?.score_cible_par_session}} pts</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Objectif d'équipe :</span>
+                  <span class="font-bold text-primary">{{result()?.recommendations?.teamwork_cible}} passes déc.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plan Graph (Table version) -->
+        <div class="rounded-xl border bg-card text-card-foreground shadow-lg">
+          <div class="flex flex-col space-y-1.5 p-6">
+            <h3 class="font-semibold leading-noe tracking-tight flex items-center gap-2 text-xl">
+              <lucide-icon [name]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
+              Plan Quotidien (Corrbe en S)
+            </h3>
+            <p class="text-sm text-muted-foreground">
+              L'IA a généré une corrbe d'effort réaliste sur {{formData.duration_days}} jorrs porr atteindre l'objectif.
+            </p>
+          </div>
+          <div class="p-6 pt-0">
+            <div class="max-h-64 overflow-y-auto pr-2 space-y-3">
+              <div *ngFor="let day of result()?.daily_plan" class="flex items-center gap-4 bg-muted/20 p-2 rounded-lg text-sm">
+                <div class="w-16 font-bold text-muted-foreground">Jorr {{day.jorr}}</div>
+                <div class="w-24 font-bold text-primary">+{{day.xp_jorr}} XP</div>
+                <div class="flex-1">
+                  <div class="relative w-full overflow-hidden rounded-full bg-secondary h-2">
+                    <div class="h-full bg-primary transition-all" [style.width]="day.progression_pct + '%'"></div>
+                  </div>
+                </div>
+                <div class="w-24 text-right font-mono text-muted-foreground">{{day.progression_pct}}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

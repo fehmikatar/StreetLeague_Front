@@ -1,0 +1,177 @@
+﻿<div class="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+  
+  <div class="flex justify-between items-center bg-slate-900 text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+    <div class="relative z-10">
+      <h1 class="text-3xl font-bold flex items-center gap-2">
+        <lucide-icon [name]="ShieldIcon" class="text-primary"></lucide-icon> 
+        Administration - Loyalty
+      </h1>
+      <p class="text-slate-300 mt-1">Manage programs, tiers and distribute points.</p>
+    </div>
+    <lucide-icon [name]="TrophyIcon" class="w-24 h-24 absolute right-0 top-1/2 -translate-y-1/2 text-white/5"></lucide-icon>
+  </div>
+
+  <div class="w-full">
+    <div class="grid w-full grid-cols-3 mb-8 bg-muted rounded-md p-1">
+      <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all" [class.bg-background]="activeTab() === 'programs'" [class.shadow-sm]="activeTab() === 'programs'" (click)="activeTab.set('programs')">Programs</button>
+      <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all" [class.bg-background]="activeTab() === 'tiers'" [class.shadow-sm]="activeTab() === 'tiers'" (click)="activeTab.set('tiers')">Tiers</button>
+      <button class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all" [class.bg-background]="activeTab() === 'points'" [class.shadow-sm]="activeTab() === 'points'" (click)="activeTab.set('points')">Point Distribution</button>
+    </div>
+    
+    <!-- PROGRAMS TAB -->
+    <div *ngIf="activeTab() === 'programs'" class="space-y-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold">Active Programs</h2>
+        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:ortline-noe focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-noe disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 gap-2" (click)="isProgramDialogOpen.set(true)">
+          <lucide-icon [name]="PlusIcon" class="w-4 h-4"></lucide-icon> New Program
+        </button>
+
+        <!-- Dialog -->
+        <div *ngIf="isProgramDialogOpen()" class="fixed inset-0 z-50 flex items-center justify-center dialog-overlay">
+          <div class="bg-background border rounded-lg shadow-lg max-w-lg w-full p-6">
+            <h2 class="text-lg font-semibold leading-noe tracking-tight mb-4">Create a program</h2>
+            <div class="space-y-4 py-4">
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-noe">Name</label>
+                <input [(ngModel)]="programForm.name" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Ex: Street League Rewards" />
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-noe">Description</label>
+                <input [(ngModel)]="programForm.description" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-medium leading-noe">Point Value (default pts earned)</label>
+                <input type="number" [(ngModel)]="programForm.pointsPerCurrencyUnit" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+              </div>
+            </div>
+            <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+              <button class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2" (click)="isProgramDialogOpen.set(false)">Cancel</button>
+              <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" (click)="handleCreateProgram()">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let program of programs()" class="rounded-xl border bg-card text-card-foreground shadow border-2 transition-colors cursor-pointer" [class.border-primary]="selectedProgramId() === program.id" [class.hover:border-primary/50]="selectedProgramId() !== program.id" (click)="selectProgram(program.id!)">
+          <div class="flex flex-col space-y-1.5 p-6 pb-2">
+            <div class="flex justify-between items-start">
+              <h3 class="font-semibold leading-noe tracking-tight text-lg">{{program.name}}</h3>
+              <button class="inline-flex items-center justify-center rounded-md text-sm font-medium hover:bg-red-50 hover:text-red-600 h-8 w-8 text-red-500" (click)="$event.stopPropagation(); handleDeleteProgram(program.id!)">
+                <lucide-icon [name]="TrashIcon" class="w-4 h-4"></lucide-icon>
+              </button>
+            </div>
+            <p class="text-sm text-muted-foreground">{{program.description}}</p>
+          </div>
+          <div class="p-6 pt-0">
+            <div class="text-sm font-medium text-primary">Base value : {{program.pointsPerCurrencyUnit}} pts</div>
+          </div>
+        </div>
+        <div *ngIf="programs().length === 0" class="text-muted-foreground italic">No programs. Create one.</div>
+      </div>
+    </div>
+
+    <!-- TIERS TAB -->
+    <div *ngIf="activeTab() === 'tiers'" class="space-y-4">
+      <div *ngIf="!selectedProgramId()" class="p-8 text-center border-2 border-dashed rounded-lg text-muted-foreground">
+        Please select or create a program in the "Programs" tab first.
+      </div>
+      <div *ngIf="selectedProgramId()">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold flex items-center gap-2">
+            Tiers for program <span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-secondary-foreground">Program {{selectedProgramId()}}</span>
+          </h2>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 gap-2" (click)="isTierDialogOpen.set(true)">
+            <lucide-icon [name]="PlusIcon" class="w-4 h-4"></lucide-icon> Add a Tier
+          </button>
+
+          <!-- Dialog -->
+          <div *ngIf="isTierDialogOpen()" class="fixed inset-0 z-50 flex items-center justify-center dialog-overlay">
+            <div class="bg-background border rounded-lg shadow-lg max-w-lg w-full p-6">
+              <h2 class="text-lg font-semibold mb-4">Create a VIP tier</h2>
+              <div class="space-y-4 py-4">
+                <div class="space-y-2">
+                  <label class="text-sm font-medium leading-noe">Tier Name (ex: GOLD)</label>
+                  <input [(ngModel)]="tierForm.name" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="BRONZE, SILVER, GOLD..." />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium leading-noe">Minimum Points Required</label>
+                  <input type="number" [(ngModel)]="tierForm.minPoints" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium leading-noe">Point Multiplier (ex: 1.5)</label>
+                  <input type="number" step="0.1" [(ngModel)]="tierForm.multiplier" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <div class="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                <button class="inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2" (click)="isTierDialogOpen.set(false)">Cancel</button>
+                <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" (click)="handleCreateTier()">Create</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border bg-card text-card-foreground shadow">
+          <div class="relative w-full overflow-auto">
+            <table class="w-full caption-bottom text-sm">
+              <thead class="[&_tr]:border-b">
+                <tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Name</th>
+                  <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Minimum Points</th>
+                  <th class="h-10 px-4 text-left align-middle font-medium text-muted-foreground">Multiplier</th>
+                  <th class="h-10 px-4 text-right align-middle font-medium text-muted-foreground">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="[&_tr:last-child]:border-0">
+                <tr *ngFor="let tier of tiers()" class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                  <td class="p-4 align-middle font-bold">{{tier.name}}</td>
+                  <td class="p-4 align-middle">{{tier.minPoints}}</td>
+                  <td class="p-4 align-middle">x{{tier.multiplier}}</td>
+                  <td class="p-4 align-middle text-right">
+                    <button class="inline-flex items-center justify-center rounded-md text-sm font-medium hover:bg-red-50 hover:text-red-600 h-8 w-8 text-red-500" (click)="handleDeleteTier(tier.id!)">
+                      <lucide-icon [name]="TrashIcon" class="w-4 h-4"></lucide-icon>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="tiers().length === 0">
+                  <td colspan="4" class="p-4 align-middle text-center py-8 text-muted-foreground">No tiers defined for this program.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISTRIBUTE POINTS TAB -->
+    <div *ngIf="activeTab() === 'points'" class="max-w-2xl mx-auto mt-8">
+      <div class="rounded-xl border bg-card text-card-foreground border-t-4 border-t-primary shadow-lg">
+        <div class="flex flex-col space-y-1.5 p-6">
+          <h3 class="font-semibold leading-noe tracking-tight flex items-center gap-2">
+            <lucide-icon [name]="CoinsIcon" class="text-yellow-500"></lucide-icon>
+            Assign Points
+          </h3>
+          <p class="text-sm text-muted-foreground">Manually give points to a user (special reward, event, etc.)</p>
+        </div>
+        <div class="p-6 pt-0 space-y-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-noe">User ID</label>
+            <input type="number" placeholder="User ID" [(ngModel)]="addPointsForm.userId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-noe">Number of Points</label>
+            <input type="number" placeholder="Ex: 500" [(ngModel)]="addPointsForm.points" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-noe">Reason / Description</label>
+            <input placeholder="Ex: Summer torrnament winner" [(ngModel)]="addPointsForm.reason" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+          </div>
+          <button class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full mt-4 disabled:opacity-50" [disabled]="!addPointsForm.userId || !addPointsForm.points || !addPointsForm.reason" (click)="handleAddPoints()">
+            Distribute points
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

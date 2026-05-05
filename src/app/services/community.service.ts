@@ -265,4 +265,10 @@ export class CommunityService {
             `${this.base}/community/comments/${commentId}/react`
         );
     }
+
+    getAiPostSuggestion(teamId: number): Observable<{ suggestion: string }> {
+        return this.http.get<{ suggestion: string }>(
+            `${this.base}/matching/ai-post-suggestion/${teamId}`
+        );
+    }
 }

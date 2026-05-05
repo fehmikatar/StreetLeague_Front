@@ -63,14 +63,14 @@ interface SmartMatchTeamProfile {
                 <lucide-icon [name]="ShieldIcon" [size]="48" class="text-white"></lucide-icon>
               </div>
               <div>
-                <h1 class="mb-2">Équipes</h1>
+                <h1 class="mb-2">Teams</h1>
                 <div class="flex items-center gap-4 text-sm text-muted-foreground">
                   <span class="flex items-center gap-1">
                     <lucide-icon [name]="UsersIcon" [size]="16"></lucide-icon>
-                    {{ teams.length }} Équipe(s)
+                    {{ teams.length }} Team(s)
                   </span>
-                  <span *ngIf="isAdmin">Mode admin: vue globale des équipes</span>
-                  <span *ngIf="!isAdmin">Mode utilisateur: la liste peut être filtrée côté backend</span>
+                  <span *ngIf="isAdmin">Admin mode: global view of teams</span>
+                  <span *ngIf="!isAdmin">User mode: filtered view</span>
                 </div>
               </div>
             </div>
@@ -86,11 +86,11 @@ interface SmartMatchTeamProfile {
           </button>
           <button *ngIf="isAdmin" (click)="openManageRequests()" class="flex items-center gap-2 px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-all border border-border">
             <lucide-icon [name]="EyeIcon" [size]="16"></lucide-icon>
-            Manage Request
+            Manage Requests
           </button>
           <button *ngIf="isAdmin" (click)="openCreateModal()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30">
             <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>
-            Créer une équipe
+            Create a team
           </button>
         </div>
 
@@ -98,7 +98,7 @@ interface SmartMatchTeamProfile {
           <span>{{ errorBanner }}</span>
           <button (click)="loadTeams()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors">
             <lucide-icon [name]="RefreshCcwIcon" [size]="14"></lucide-icon>
-            Réessayer
+            Retry
           </button>
         </div>
 
@@ -112,15 +112,15 @@ interface SmartMatchTeamProfile {
             </div>
 
             <div *ngIf="!smartMatchType" class="space-y-4">
-              <p class="text-sm text-muted-foreground">Choisissez un type de profil. Ensuite, nous poserons les questions une par une.</p>
+              <p class="text-sm text-muted-foreground">Choose a profile type. Then, we will ask questions one by one.</p>
               <div class="grid sm:grid-cols-2 gap-4">
                 <button (click)="selectSmartMatchType('PLAYER')" class="p-4 rounded-xl border border-border hover:border-primary/60 hover:bg-primary/5 text-left transition-all">
                   <div class="font-semibold">PLAYER</div>
-                  <div class="text-sm text-muted-foreground mt-1">Profil joueur pour matching intelligent.</div>
+                  <div class="text-sm text-muted-foreground mt-1">Player profile for smart matching.</div>
                 </button>
                 <button (click)="selectSmartMatchType('TEAM')" class="p-4 rounded-xl border border-border hover:border-primary/60 hover:bg-primary/5 text-left transition-all">
                   <div class="font-semibold">TEAM</div>
-                  <div class="text-sm text-muted-foreground mt-1">Profil équipe avec besoins de postes.</div>
+                  <div class="text-sm text-muted-foreground mt-1">Team profile with position needs.</div>
                 </button>
               </div>
             </div>
@@ -128,7 +128,7 @@ interface SmartMatchTeamProfile {
             <div *ngIf="smartMatchType" class="space-y-4">
               <div class="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Type: {{ smartMatchType }}</span>
-                <span>Formulaire de Matching</span>
+                <span>Matching Form</span>
               </div>
 
               <div *ngIf="!smartMatchSubmitted" class="w-full h-1.5 rounded-full bg-muted overflow-hidden">
@@ -143,56 +143,56 @@ interface SmartMatchTeamProfile {
                 <div *ngIf="smartMatchType === 'PLAYER'" class="space-y-4">
                   <!-- Nom (Auto-rempli) -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5">Nom complet</label>
+                    <label class="block text-sm font-semibold mb-1.5">Full Name</label>
                     <input [(ngModel)]="smartPlayerProfile.name" readonly class="w-full px-4 py-2 bg-muted/50 border border-border rounded-xl focus:outline-none cursor-not-allowed opacity-70">
                   </div>
 
                   <!-- Sport -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Quel sport pratiquez-vous ? *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">What sport do you practice? *</label>
                     <select [(ngModel)]="smartPlayerProfile.sportType" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none">
-                      <option value="" disabled>Sélectionner un sport</option>
+                      <option value="" disabled>Select a sport</option>
                       <option *ngFor="let sport of smartSportTypeOptions" [value]="sport">{{ sport }}</option>
                     </select>
                   </div>
 
                   <!-- Niveau -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Quel est votre niveau ? *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">What is your level? *</label>
                     <select [(ngModel)]="smartPlayerProfile.skillLevel" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none">
-                      <option value="" disabled>Sélectionner un niveau</option>
+                      <option value="" disabled>Select a level</option>
                       <option *ngFor="let level of smartLevelOptions" [value]="level">{{ level }}</option>
                     </select>
                   </div>
 
                   <!-- Poste -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Quel est votre poste préféré ? *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">What is your preferred position? *</label>
                     <select [(ngModel)]="smartPlayerProfile.position" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none">
-                      <option value="" disabled>Sélectionner un poste</option>
+                      <option value="" disabled>Select a position</option>
                       <option *ngFor="let pos of smartPlayerPositionsForSelectedSport" [value]="pos">{{ pos }}</option>
                     </select>
                   </div>
 
                   <!-- Ville -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Dans quelle ville habitez-vous ? *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">In which city do you live? *</label>
                     <input [(ngModel)]="smartPlayerProfile.city" placeholder="Ex: Tunis, Sousse..." class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none">
                   </div>
 
                   <!-- Disponibilités -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Quelles sont vos disponibilités ? *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">What are your availabilities? *</label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <select [(ngModel)]="smartPlayerAvailabilityDraft.dayOfWeek" class="px-3 py-2 bg-muted border border-border rounded-xl text-sm">
-                        <option value="" disabled>Jour</option>
+                        <option value="" disabled>Day</option>
                         <option *ngFor="let day of smartDayOfWeekOptions" [value]="day">{{ day }}</option>
                       </select>
                       <input [(ngModel)]="smartPlayerAvailabilityDraft.startTime" type="time" class="px-3 py-2 bg-muted border border-border rounded-xl text-sm">
                       <input [(ngModel)]="smartPlayerAvailabilityDraft.endTime" type="time" class="px-3 py-2 bg-muted border border-border rounded-xl text-sm">
                     </div>
                     <button (click)="addSmartPlayerAvailability()" class="mt-2 text-xs text-primary font-bold flex items-center gap-1 hover:underline">
-                      <lucide-icon [name]="PlusIcon" [size]="14"></lucide-icon> Ajouter un créneau
+                      <lucide-icon [name]="PlusIcon" [size]="14"></lucide-icon> Add a slot
                     </button>
                     <div *ngIf="smartPlayerProfile.availability.length > 0" class="flex flex-wrap gap-2 mt-2">
                       <div *ngFor="let avail of smartPlayerProfile.availability; let i = index" class="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] flex items-center gap-1.5">
@@ -204,9 +204,9 @@ interface SmartMatchTeamProfile {
 
                   <!-- Style -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5">Quel est votre style de jeu ?</label>
+                    <label class="block text-sm font-semibold mb-1.5">What is your playing style?</label>
                     <select [(ngModel)]="smartPlayerProfile.preferredPlayStyle" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none">
-                      <option value="">Indifférent</option>
+                      <option value="">Indifferent</option>
                       <option *ngFor="let style of smartPlayStyleOptions" [value]="style">{{ style }}</option>
                     </select>
                   </div>
@@ -215,46 +215,46 @@ interface SmartMatchTeamProfile {
                 <div *ngIf="smartMatchType === 'TEAM'" class="space-y-4">
                   <!-- Nom Team -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Nom de l'équipe *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">Team Name *</label>
                     <input [(ngModel)]="smartTeamProfile.teamName" placeholder="Ex: Les Aigles" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none">
                   </div>
 
                   <!-- Sport Team -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Sport de l'équipe *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">Team Sport *</label>
                     <select [(ngModel)]="smartTeamProfile.sportType" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none">
-                      <option value="" disabled>Sélectionner un sport</option>
+                      <option value="" disabled>Select a sport</option>
                       <option *ngFor="let sport of smartSportTypeOptions" [value]="sport">{{ sport }}</option>
                     </select>
                   </div>
 
                   <!-- Niveau Team -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Niveau de l'équipe *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">Team Level *</label>
                     <select [(ngModel)]="smartTeamProfile.teamLevel" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none">
-                      <option value="" disabled>Sélectionner un niveau</option>
+                      <option value="" disabled>Select a level</option>
                       <option *ngFor="let level of smartLevelOptions" [value]="level">{{ level }}</option>
                     </select>
                   </div>
 
                   <!-- Ville Team -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Ville de l'équipe *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">Team City *</label>
                     <input [(ngModel)]="smartTeamProfile.city" placeholder="Ex: Tunis" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none">
                   </div>
 
                   <!-- Postes Requis -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Postes recherchés *</label>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">Positions sought *</label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <select [(ngModel)]="smartTeamRequiredPositionDraft.position" class="px-3 py-2 bg-muted border border-border rounded-xl text-sm">
-                        <option value="" disabled>Poste</option>
+                        <option value="" disabled>Position</option>
                         <option *ngFor="let pos of smartTeamPositionsForSelectedSport" [value]="pos">{{ pos }}</option>
                       </select>
-                      <input [(ngModel)]="smartTeamRequiredPositionDraft.neededCount" type="number" min="1" placeholder="Nombre" class="px-3 py-2 bg-muted border border-border rounded-xl text-sm">
+                      <input [(ngModel)]="smartTeamRequiredPositionDraft.neededCount" type="number" min="1" placeholder="Number" class="px-3 py-2 bg-muted border border-border rounded-xl text-sm">
                     </div>
                     <button (click)="addSmartTeamPosition()" class="mt-2 text-xs text-primary font-bold flex items-center gap-1 hover:underline">
-                      <lucide-icon [name]="PlusIcon" [size]="14"></lucide-icon> Ajouter un poste
+                      <lucide-icon [name]="PlusIcon" [size]="14"></lucide-icon> Add a position
                     </button>
                     <div *ngIf="smartTeamProfile.requiredPositions.length > 0" class="flex flex-wrap gap-2 mt-2">
                       <div *ngFor="let pos of smartTeamProfile.requiredPositions; let i = index" class="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] flex items-center gap-1.5">
@@ -266,8 +266,8 @@ interface SmartMatchTeamProfile {
 
                   <!-- Description -->
                   <div>
-                    <label class="block text-sm font-semibold mb-1.5 text-primary">Description de l'équipe *</label>
-                    <textarea [(ngModel)]="smartTeamProfile.description" rows="3" placeholder="Décrivez votre équipe" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none"></textarea>
+                    <label class="block text-sm font-semibold mb-1.5 text-primary">Team Description *</label>
+                    <textarea [(ngModel)]="smartTeamProfile.description" rows="3" placeholder="Describe your team" class="w-full px-4 py-2 bg-muted border border-border rounded-xl outline-none"></textarea>
                   </div>
                 </div>
               </div>
@@ -276,16 +276,16 @@ interface SmartMatchTeamProfile {
               <div *ngIf="smartMatchSubmitted" class="space-y-4 py-2">
                 <div *ngIf="smartMatchSubmitting" class="flex flex-col items-center gap-3 py-10">
                   <lucide-icon [name]="Loader2Icon" [size]="40" class="animate-spin text-primary"></lucide-icon>
-                  <p class="font-medium">Analyse intelligente en cours...</p>
+                  <p class="font-medium">Smart analysis in progress...</p>
                 </div>
 
                 <div *ngIf="!smartMatchSubmitting && smartMatchRecommendations.length === 0" class="text-center py-10">
-                  <p class="text-muted-foreground">Désolé, nous n'avons pas trouvé de correspondances pour le moment.</p>
-                  <button (click)="smartMatchSubmitted = false" class="mt-4 text-primary font-bold hover:underline">Modifier le formulaire</button>
+                  <p class="text-muted-foreground">Sorry, we didn't find any matches at the moment.</p>
+                  <button (click)="smartMatchSubmitted = false" class="mt-4 text-primary font-bold hover:underline">Edit form</button>
                 </div>
 
                 <div *ngIf="!smartMatchSubmitting && smartMatchRecommendations.length > 0" class="grid grid-cols-1 gap-4">
-                  <p class="text-sm font-bold text-foreground">Top {{ smartMatchRecommendations.length }} Recommandations :</p>
+                  <p class="text-sm font-bold text-foreground">Top {{ smartMatchRecommendations.length }} Recommendations:</p>
                   <div *ngFor="let rec of smartMatchRecommendations; let idx = index" class="bg-card rounded-2xl border border-border p-4 hover:shadow-lg transition-all border-l-4 border-l-primary">
                     <div class="flex items-center justify-between mb-2">
                       <h4 class="font-bold">#{{ idx + 1 }} - {{ rec.name }}</h4>
@@ -293,26 +293,26 @@ interface SmartMatchTeamProfile {
                     </div>
                     <p class="text-xs text-muted-foreground mb-4">{{ rec.matchDetails }}</p>
                     <div class="flex gap-2">
-                      <button (click)="viewRecommendedTeam(rec)" class="flex-1 py-2 text-xs bg-muted rounded-xl hover:bg-muted/70 transition-all font-semibold">Voir détails</button>
+                      <button (click)="viewRecommendedTeam(rec)" class="flex-1 py-2 text-xs bg-muted rounded-xl hover:bg-muted/70 transition-all font-semibold">View details</button>
                       <button (click)="joinRecommendedTeam(rec)" 
                         [disabled]="isJoining(rec.id) || pendingTeamIds.has(rec.id)" 
                         [class.bg-emerald-500]="pendingTeamIds.has(rec.id)"
                         [class.text-white]="pendingTeamIds.has(rec.id)"
                         class="flex-1 py-2 text-xs bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all font-bold disabled:opacity-60">
-                        {{ isJoining(rec.id) ? 'Envoi...' : (pendingTeamIds.has(rec.id) ? 'Déjà envoyé' : 'Rejoindre') }}
+                        {{ isJoining(rec.id) ? 'Sending...' : (pendingTeamIds.has(rec.id) ? 'Already sent' : 'Join') }}
                       </button>
                     </div>
                   </div>
-                  <button (click)="smartMatchSubmitted = false" class="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">Modifier mes réponses</button>
+                  <button (click)="smartMatchSubmitted = false" class="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted">Edit my answers</button>
                 </div>
               </div>
 
               <div *ngIf="!smartMatchSubmitted" class="flex justify-end gap-3 pt-4 border-t border-border mt-4">
                 <button (click)="resetSmartMatchState()" class="px-4 py-2 rounded-xl bg-muted hover:bg-muted/70 font-semibold transition-colors">
-                  Réinitialiser
+                  Reset
                 </button>
                 <button (click)="submitSmartMatchForm()" class="px-8 py-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg shadow-primary/20 transition-all">
-                  Matcher !
+                  Match!
                 </button>
               </div>
             </div>
@@ -322,7 +322,7 @@ interface SmartMatchTeamProfile {
         <div *ngIf="showTeamFormModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-xl font-bold text-foreground">{{ editingTeamId ? 'Modifier une équipe' : 'Créer une équipe' }}</h3>
+              <h3 class="text-xl font-bold text-foreground">{{ editingTeamId ? 'Edit Team' : 'Create Team' }}</h3>
               <button (click)="closeFormModal()" class="p-2 hover:bg-muted rounded-lg transition-colors">
                 <lucide-icon [name]="XIcon" [size]="20" class="text-muted-foreground"></lucide-icon>
               </button>
@@ -330,7 +330,7 @@ interface SmartMatchTeamProfile {
 
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium mb-1">Nom de l'équipe *</label>
+                <label class="block text-sm font-medium mb-1">Team Name *</label>
                 <input [(ngModel)]="teamForm.name" placeholder="Ex: Les Aigles"
                   class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
               </div>
@@ -339,7 +339,7 @@ interface SmartMatchTeamProfile {
                 <div>
                   <label class="block text-sm font-medium mb-1">Sport *</label>
                   <select [(ngModel)]="teamForm.sport" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
-                    <option value="" disabled>Sélectionner un sport</option>
+                    <option value="" disabled>Select a sport</option>
                     <option *ngFor="let sport of sportOptions" [value]="sport">{{ sport }}</option>
                   </select>
                 </div>
@@ -347,37 +347,37 @@ interface SmartMatchTeamProfile {
                   <label class="block text-sm font-medium mb-1">Niveau *</label>
                   <select [(ngModel)]="teamForm.level" class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
                     <option value="AMATEUR">Amateur</option>
-                    <option value="INTERMEDIATE">Intermédiaire</option>
-                    <option value="ADVANCED">Avancé</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="ADVANCED">Advanced</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-1">Ville</label>
+                <label class="block text-sm font-medium mb-1">City</label>
                 <input [(ngModel)]="teamForm.city" placeholder="Ex: Paris"
                   class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
               </div>
 
               <div>
                 <label class="block text-sm font-medium mb-1">Description</label>
-                <textarea [(ngModel)]="teamForm.description" rows="3" placeholder="Décrivez brièvement l'équipe"
+                <textarea [(ngModel)]="teamForm.description" rows="3" placeholder="Describe the team briefly"
                   class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-1">Logo (URL optionnelle)</label>
+                <label class="block text-sm font-medium mb-1">Logo (Optional URL)</label>
                 <input [(ngModel)]="teamForm.logo" placeholder="https://example.com/logo.png"
                   class="w-full px-4 py-2 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
               </div>
             </div>
 
             <div class="flex gap-3 justify-end mt-6">
-              <button (click)="closeFormModal()" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="closeFormModal()" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Cancel</button>
               <button (click)="submitTeam()" [disabled]="saving || !teamForm.name || !teamForm.sport || !teamForm.level"
                 class="px-5 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2">
                 <lucide-icon *ngIf="saving" [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
-                {{ saving ? (editingTeamId ? 'Mise à jour...' : 'Création...') : (editingTeamId ? 'Mettre à jour' : 'Créer') }}
+                {{ saving ? (editingTeamId ? 'Updating...' : 'Creating...') : (editingTeamId ? 'Update' : 'Create') }}
               </button>
             </div>
           </div>
@@ -385,15 +385,15 @@ interface SmartMatchTeamProfile {
 
         <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
           <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-          Chargement des équipes...
+          Loading teams...
         </div>
 
         <div *ngIf="!loading && teams.length === 0" class="text-center py-20 text-muted-foreground">
           <div class="text-6xl mb-4">⚽</div>
-          <p class="font-semibold mb-2 text-lg">Aucune équipe trouvée</p>
-          <p class="text-sm mb-6">Le backend peut retourner une liste vide selon votre rôle.</p>
+          <p class="font-semibold mb-2 text-lg">No teams found</p>
+          <p class="text-sm mb-6">The backend might return an empty list depending on your role.</p>
           <button (click)="loadTeams()" class="px-6 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
-            Actualiser
+            Refresh
           </button>
         </div>
 
@@ -405,23 +405,23 @@ interface SmartMatchTeamProfile {
               </div>
             </div>
             <div class="p-6">
-              <h3 class="mb-1">{{ team.name || 'Équipe sans nom' }}</h3>
+              <h3 class="mb-1">{{ team.name || 'Unnamed Team' }}</h3>
               <p class="text-sm text-muted-foreground mb-2">{{ team.sport || '-' }} • {{ team.city || '-' }}</p>
-              <p class="text-xs text-muted-foreground mb-2">Niveau: {{ team.level || '-' }}</p>
-              <p class="text-xs text-muted-foreground mb-2">Statut: {{ team.status || '-' }}</p>
-              <p class="text-xs text-muted-foreground mb-4">Créée le: {{ team.createdAt ? (team.createdAt | date:'short') : '-' }}</p>
+              <p class="text-xs text-muted-foreground mb-2">Level: {{ team.level || '-' }}</p>
+              <p class="text-xs text-muted-foreground mb-2">Status: {{ team.status || '-' }}</p>
+              <p class="text-xs text-muted-foreground mb-4">Created on: {{ team.createdAt ? (team.createdAt | date:'short') : '-' }}</p>
 
               <div class="flex gap-2">
                 <button (click)="viewTeam(team)" class="flex-1 py-2 text-sm bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all inline-flex items-center justify-center gap-1">
                   <lucide-icon [name]="EyeIcon" [size]="14"></lucide-icon>
-                  Détail
+                  Details
                 </button>
                 <button *ngIf="isPlayer" (click)="joinTeam(team)" [disabled]="isJoining(team.id)" class="flex-1 py-2 text-sm bg-emerald-500/10 text-emerald-700 rounded-lg hover:bg-emerald-500/20 transition-all disabled:opacity-60">
-                  {{ isJoining(team.id) ? 'Envoi...' : 'Rejoindre' }}
+                  {{ isJoining(team.id) ? 'Sending...' : 'Join' }}
                 </button>
-                <button *ngIf="isAdmin" (click)="openEditModal(team)" class="flex-1 py-2 text-sm bg-muted rounded-lg hover:bg-muted/70 transition-all">Modifier</button>
+                <button *ngIf="isAdmin" (click)="openEditModal(team)" class="flex-1 py-2 text-sm bg-muted rounded-lg hover:bg-muted/70 transition-all">Edit</button>
                 <button *ngIf="isAdmin" (click)="deleteTeam(team)" [disabled]="isDeleting(team.id)" class="flex-1 py-2 text-sm bg-red-500/10 text-red-600 rounded-lg hover:bg-red-500/20 transition-all disabled:opacity-60">
-                  {{ isDeleting(team.id) ? 'Suppression...' : 'Supprimer' }}
+                  {{ isDeleting(team.id) ? 'Deleting...' : 'Delete' }}
                 </button>
               </div>
             </div>
@@ -546,7 +546,7 @@ export class TeamComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         const message = this.getReadableErrorMessage(err);
-        this.errorBanner = `Impossible de charger les équipes: ${message}`;
+        this.errorBanner = `Unable to load teams: ${message}`;
         this.showToast(this.errorBanner);
         this.cdr.detectChanges();
       }
@@ -604,7 +604,7 @@ export class TeamComponent implements OnInit {
       },
       error: (err) => {
         this.closeFormModal();
-        this.showToast(`Erreur chargement édition: ${this.getReadableErrorMessage(err)}`);
+        this.showToast(`Error loading edit: ${this.getReadableErrorMessage(err)}`);
       }
     });
 
@@ -708,7 +708,7 @@ export class TeamComponent implements OnInit {
     this.saving = false;
     this.editingTeamId = null;
     this.editingTeamMeta = null;
-    this.showToast(wasEditing ? 'Mise à jour en cours...' : 'Création en cours...');
+    this.showToast(wasEditing ? 'Updating...' : 'Creating...');
 
     const operation$ = wasEditing && editingId !== null
       ? this.teamService.updateTeam(editingId, payload, effectiveUserId)
@@ -724,15 +724,15 @@ export class TeamComponent implements OnInit {
           const withoutDuplicate = this.teams.filter((team) => team.id !== optimisticTeam.id && team.id !== effectiveTeam.id);
           this.teams = [effectiveTeam, ...withoutDuplicate];
         }
-        this.showToast(wasEditing ? 'Équipe mise à jour avec succès.' : 'Équipe créée avec succès.');
+        this.showToast(wasEditing ? 'Team updated successfully.' : 'Team created successfully.');
         // Keep UI responsive: refresh in background without blocking the list.
         this.loadTeams(false);
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.teams = previousTeams;
-        const action = wasEditing ? 'la mise à jour' : 'la création';
-        this.showToast(`Erreur pendant ${action}: ${this.getReadableErrorMessage(err)}`);
+        const action = wasEditing ? 'the update' : 'the creation';
+        this.showToast(`Error during ${action}: ${this.getReadableErrorMessage(err)}`);
         this.cdr.detectChanges();
       }
     });
@@ -748,7 +748,7 @@ export class TeamComponent implements OnInit {
   }
 
   deleteTeam(team: Team) {
-    const confirmDelete = window.confirm(`Supprimer l'équipe "${team.name || '-' }" ?`);
+    const confirmDelete = window.confirm(`Delete team "${team.name || '-' }" ?`);
     if (!confirmDelete) {
       return;
     }
@@ -760,13 +760,13 @@ export class TeamComponent implements OnInit {
     this.teamService.deleteTeam(team.id).subscribe({
       next: () => {
         this.deletingTeamIds.delete(team.id);
-        this.showToast('Équipe supprimée avec succès.');
+        this.showToast('Team deleted successfully.');
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.deletingTeamIds.delete(team.id);
         this.teams = previousTeams;
-        this.showToast(`Erreur suppression: ${this.getReadableErrorMessage(err)}`);
+        this.showToast(`Error during deletion: ${this.getReadableErrorMessage(err)}`);
         this.cdr.detectChanges();
       }
     });
@@ -785,12 +785,12 @@ export class TeamComponent implements OnInit {
     const userId = Number(userIdRaw);
 
     if (!Number.isFinite(userId) || userId <= 0) {
-      this.showToast('Impossible d\'envoyer la demande: utilisateur non identifié.');
+      this.showToast('Unable to send request: unidentified user.');
       return;
     }
 
     if (!team?.id) {
-      this.showToast('Impossible d\'envoyer la demande: équipe invalide.');
+      this.showToast('Unable to send request: invalid team.');
       return;
     }
 
@@ -798,7 +798,7 @@ export class TeamComponent implements OnInit {
     this.teamService.requestJoinTeam(team.id, 'I want to join this team').subscribe({
       next: () => {
         this.joiningTeamIds.delete(team.id);
-        this.showToast(`Demande d'adhésion envoyée à l'admin de "${team.name}".`);
+        this.showToast(`Join request sent to the admin of "${team.name}".`);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -807,9 +807,9 @@ export class TeamComponent implements OnInit {
         const errorMessage = this.teamService.extractErrorMessage(err);
         
         if (httpError?.status === 409 || (httpError?.status === 400 && errorMessage.toLowerCase().includes('already'))) {
-          this.showToast('Vous avez déjà une demande en attente pour cette équipe.');
+          this.showToast('You already have a pending request for this team.');
         } else {
-          this.showToast(`Échec envoi demande: ${this.getReadableErrorMessage(err)}`);
+          this.showToast(`Failed to send request: ${this.getReadableErrorMessage(err)}`);
         }
         this.cdr.detectChanges();
       }
@@ -869,18 +869,18 @@ export class TeamComponent implements OnInit {
 
   get currentSmartMatchQuestion(): string {
     switch (this.currentSmartMatchStep) {
-      case 'sportType': return 'Quel sport pratiquez-vous ?';
-      case 'skillLevel': return 'Quel est votre niveau ?';
-      case 'position': return 'Quel est votre poste préféré ?';
-      case 'city': return 'Dans quelle ville habitez-vous ?';
-      case 'availability': return 'Quelles sont vos disponibilités ?';
-      case 'preferredPlayStyle': return 'Quel est votre style de jeu ?';
-      case 'teamName': return 'Nom de l\'équipe';
-      case 'teamSportType': return 'Sport de l\'équipe';
-      case 'teamLevel': return 'Niveau de l\'équipe';
-      case 'teamCity': return 'Ville de l\'équipe';
-      case 'requiredPositions': return 'Postes recherchés';
-      case 'description': return 'Description de l\'équipe';
+      case 'sportType': return 'What sport do you practice?';
+      case 'skillLevel': return 'What is your level?';
+      case 'position': return 'What is your preferred position?';
+      case 'city': return 'In which city do you live?';
+      case 'availability': return 'What are your availabilities?';
+      case 'preferredPlayStyle': return 'What is your playing style?';
+      case 'teamName': return 'Team name';
+      case 'teamSportType': return 'Team sport';
+      case 'teamLevel': return 'Team level';
+      case 'teamCity': return 'Team city';
+      case 'requiredPositions': return 'Positions sought';
+      case 'description': return 'Team description';
       default: return '';
     }
   }
@@ -895,15 +895,12 @@ export class TeamComponent implements OnInit {
 
   get smartMatchPrimaryActionLabel(): string {
     if (this.currentSmartMatchStep === 'review' && this.smartMatchType === 'PLAYER') {
-      if (this.smartMatchSubmitting) {
-        return 'Analyse...';
-      }
-      return this.smartMatchSubmitted ? 'Terminer' : 'Envoyer et recommander';
+      return this.smartMatchSubmitted ? 'Finish' : 'Send and recommend';
     }
     if (this.currentSmartMatchStep === 'teamReview') {
-      return 'Terminer';
+      return 'Finish';
     }
-    return 'Suivant';
+    return 'Next';
   }
 
   get smartPlayerPositionsForSelectedSport(): string[] {
@@ -948,22 +945,22 @@ export class TeamComponent implements OnInit {
     const fail = (msg: string) => { this.smartMatchError = msg; };
 
     if (this.smartMatchType === 'PLAYER') {
-      if (!this.smartPlayerProfile.sportType) { fail("Veuillez sélectionner un sport."); return; }
-      if (!this.smartPlayerProfile.skillLevel) { fail("Veuillez sélectionner votre niveau."); return; }
-      if (!this.smartPlayerProfile.position) { fail("Veuillez sélectionner votre poste."); return; }
-      if (!this.smartPlayerProfile.city.trim()) { fail("La ville est obligatoire."); return; }
-      if (this.smartPlayerProfile.availability.length === 0) { fail("Veuillez ajouter au moins un créneau de disponibilité."); return; }
+      if (!this.smartPlayerProfile.sportType) { fail("Please select a sport."); return; }
+      if (!this.smartPlayerProfile.skillLevel) { fail("Please select your level."); return; }
+      if (!this.smartPlayerProfile.position) { fail("Please select your position."); return; }
+      if (!this.smartPlayerProfile.city.trim()) { fail("City is required."); return; }
+      if (this.smartPlayerProfile.availability.length === 0) { fail("Please add at least one availability slot."); return; }
       
       this.submitPlayerSmartMatchAndRecommend();
     } else if (this.smartMatchType === 'TEAM') {
-      if (!this.smartTeamProfile.teamName.trim()) { fail("Le nom de l'équipe est obligatoire."); return; }
-      if (!this.smartTeamProfile.sportType) { fail("Veuillez sélectionner le sport de l'équipe."); return; }
-      if (!this.smartTeamProfile.teamLevel) { fail("Veuillez sélectionner le niveau de l'équipe."); return; }
-      if (!this.smartTeamProfile.city.trim()) { fail("La ville de l'équipe est obligatoire."); return; }
-      if (this.smartTeamProfile.requiredPositions.length === 0) { fail("Veuillez ajouter au moins un poste recherché."); return; }
-      if (!this.smartTeamProfile.description.trim()) { fail("La description est obligatoire."); return; }
+      if (!this.smartTeamProfile.teamName.trim()) { fail("Team name is required."); return; }
+      if (!this.smartTeamProfile.sportType) { fail("Please select the team's sport."); return; }
+      if (!this.smartTeamProfile.teamLevel) { fail("Please select the team's level."); return; }
+      if (!this.smartTeamProfile.city.trim()) { fail("Team city is required."); return; }
+      if (this.smartTeamProfile.requiredPositions.length === 0) { fail("Please add at least one position sought."); return; }
+      if (!this.smartTeamProfile.description.trim()) { fail("Description is required."); return; }
 
-      this.showToast("Profil équipe validé !");
+      this.showToast("Team profile validated!");
       this.closeSmartMatchModal();
     }
   }
@@ -1027,10 +1024,10 @@ export class TeamComponent implements OnInit {
 
     switch (step) {
       case 'name':
-        return (this.smartPlayerProfile.name || '').trim().length > 0 || fail('Le nom du joueur est obligatoire.');
+        return (this.smartPlayerProfile.name || '').trim().length > 0 || fail('Player name is required.');
       case 'sportType': {
         if (!this.smartSportTypeOptions.includes(this.smartPlayerProfile.sportType)) {
-          return fail('Sport Type invalide. Veuillez sélectionner une valeur de la liste.');
+          return fail('Invalid Sport Type. Please select a value from the list.');
         }
         if (!this.smartPlayerPositionsForSelectedSport.includes(this.smartPlayerProfile.position)) {
           this.smartPlayerProfile.position = '';
@@ -1038,33 +1035,33 @@ export class TeamComponent implements OnInit {
         return true;
       }
       case 'skillLevel':
-        return this.smartLevelOptions.includes(this.smartPlayerProfile.skillLevel) || fail('Skill Level invalide.');
+        return this.smartLevelOptions.includes(this.smartPlayerProfile.skillLevel) || fail('Invalid Skill Level.');
       case 'position':
-        return this.smartPlayerPositionsForSelectedSport.includes(this.smartPlayerProfile.position) || fail('Position invalide pour le sport sélectionné.');
+        return this.smartPlayerPositionsForSelectedSport.includes(this.smartPlayerProfile.position) || fail('Invalid position for the selected sport.');
       case 'city':
-        return (this.smartPlayerProfile.city || '').trim().length > 0 || fail('La ville est obligatoire.');
+        return (this.smartPlayerProfile.city || '').trim().length > 0 || fail('City is required.');
       case 'latitude':
-        return this.isValidLatitude(this.smartPlayerProfile.latitude) || fail('Latitude invalide (-90 à 90).');
+        return this.isValidLatitude(this.smartPlayerProfile.latitude) || fail('Invalid latitude (-90 to 90).');
       case 'longitude':
-        return this.isValidLongitude(this.smartPlayerProfile.longitude) || fail('Longitude invalide (-180 à 180).');
+        return this.isValidLongitude(this.smartPlayerProfile.longitude) || fail('Invalid longitude (-180 to 180).');
       case 'availability':
-        return this.smartPlayerProfile.availability.length > 0 || fail('Veuillez ajouter au moins un créneau de disponibilité.');
+        return this.smartPlayerProfile.availability.length > 0 || fail('Please add at least one availability slot.');
       case 'teamName':
-        return (this.smartTeamProfile.teamName || '').trim().length > 0 || fail('Le nom de l\'équipe est obligatoire.');
+        return (this.smartTeamProfile.teamName || '').trim().length > 0 || fail('Team name is required.');
       case 'teamSportType': {
         if (!this.smartSportTypeOptions.includes(this.smartTeamProfile.sportType)) {
-          return fail('Veuillez sélectionner un sport.');
+          return fail('Please select a sport.');
         }
         return true;
       }
       case 'teamLevel':
-        return this.smartLevelOptions.includes(this.smartTeamProfile.teamLevel) || fail('Niveau équipe invalide.');
+        return this.smartLevelOptions.includes(this.smartTeamProfile.teamLevel) || fail('Invalid team level.');
       case 'teamCity':
-        return (this.smartTeamProfile.city || '').trim().length > 0 || fail('La ville de l\'équipe est obligatoire.');
+        return (this.smartTeamProfile.city || '').trim().length > 0 || fail('Team city is required.');
       case 'requiredPositions':
-        return this.smartTeamProfile.requiredPositions.length > 0 || fail('Veuillez ajouter au moins un poste recherché.');
+        return this.smartTeamProfile.requiredPositions.length > 0 || fail('Please add at least one position sought.');
       case 'description':
-        return (this.smartTeamProfile.description || '').trim().length > 0 || fail('La description est obligatoire.');
+        return (this.smartTeamProfile.description || '').trim().length > 0 || fail('Description is required.');
       default:
         return true;
     }

@@ -260,11 +260,11 @@ interface TeamChatUiMessage {
     
     <!-- Bouton de bascule (Design Pro) -->
     <div *ngIf="message.transcript" class="flex justify-between items-center mb-1">
-      <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Message Vocal</span>
+      <span class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Voice Message</span>
       <button (click)="showTranscripts[message.id] = !showTranscripts[message.id]" 
               class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-all text-[10px] font-bold uppercase">
-        <span *ngIf="!showTranscripts[message.id]">✨ Convertir en Texte</span>
-        <span *ngIf="showTranscripts[message.id]">🎧 Écouter l'Audio</span>
+        <span *ngIf="!showTranscripts[message.id]">✨ Convert to Text</span>
+        <span *ngIf="showTranscripts[message.id]">🎧 Listen to Audio</span>
       </button>
     </div>
 
@@ -283,7 +283,7 @@ interface TeamChatUiMessage {
          class="px-3 py-3 rounded-xl bg-primary/10 border border-primary/20 italic text-sm text-foreground leading-relaxed animate-in zoom-in-95 duration-300 shadow-inner">
       <div class="flex items-center gap-2 mb-2 opacity-50">
         <span class="text-xs">📝</span>
-        <span class="text-[9px] font-black uppercase tracking-tighter">Transcription IA</span>
+        <span class="text-[9px] font-black uppercase tracking-tighter">AI Transcription</span>
       </div>
       "{{ message.transcript }}"
     </div>
@@ -1118,7 +1118,7 @@ export class TeamChatComponent implements OnInit, OnDestroy {
     if (!SpeechRecognition) return;
 
     this.recognition = new SpeechRecognition();
-    this.recognition.lang = 'fr-FR';
+    this.recognition.lang = 'en-US';
     this.recognition.interimResults = true;
     this.recognition.continuous = true;
 

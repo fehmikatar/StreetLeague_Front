@@ -20,7 +20,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
       
       <!-- Top Banner -->
       <div class="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold text-center py-2.5 uppercase tracking-widest relative z-20 shadow-md">
-        Livraison gratuite dès 300DT d'achat &nbsp;|&nbsp; Retours gratuits sous 30 jours
+        Free shipping from 300DT &nbsp;|&nbsp; Free returns within 30 days
       </div>
 
       <!-- Main Header -->
@@ -167,7 +167,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                        (click)="addToCart(prod); $event.stopPropagation(); cdr.detectChanges()"
                        [disabled]="prod.stock === 0 || ($any(prod).status && $any(prod).status !== 'EN_STOCK' && $any(prod).status !== 'IN_STOCK') || addingToCartId === prod.id"
                        class="absolute bottom-3 left-3 right-3 h-11 bg-primary/95 backdrop-blur-sm text-primary-foreground font-bold text-[11px] uppercase tracking-widest shadow-lg rounded-xl lg:opacity-0 lg:translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-20 flex items-center justify-center disabled:opacity-50 hover:bg-primary hover:shadow-primary/30 cursor-pointer">
-                       <span *ngIf="addingToCartId !== prod.id">{{ prod.stock === 0 ? 'Indisponible' : 'Ajout Rapide' }}</span>
+                       <span *ngIf="addingToCartId !== prod.id">{{ prod.stock === 0 ? 'Unavailable' : 'Quick Add' }}</span>
                        <lucide-icon *ngIf="addingToCartId === prod.id" [img]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
                     </button>
                   </div>
@@ -187,8 +187,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                   </button>
 
                  <div *ngIf="prod.stock < 5 && prod.stock > 0" class="absolute top-3 left-0 bg-destructive text-destructive-foreground text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Fast Out</div>
-                 <div *ngIf="prod.stock === 0 || $any(prod).status === 'RUPTURE_DE_STOCK'" class="absolute top-3 left-0 bg-muted-foreground text-white text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Épuisé</div>
-                 <div *ngIf="$any(prod).status === 'ARRIVING_SOON' || $any(prod).status === 'EN_ARRIVAGE'" class="absolute top-3 left-0 bg-accent text-accent-foreground text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Bientôt</div>
+                 <div *ngIf="prod.stock === 0 || $any(prod).status === 'RUPTURE_DE_STOCK'" class="absolute top-3 left-0 bg-muted-foreground text-white text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Out of Stock</div>
+                 <div *ngIf="$any(prod).status === 'ARRIVING_SOON' || $any(prod).status === 'EN_ARRIVAGE'" class="absolute top-3 left-0 bg-accent text-accent-foreground text-[10px] font-black px-3 py-1 rounded-r-lg uppercase z-20 shadow-sm">Soon</div>
 
                  <div class="py-4 px-4 flex flex-col flex-1">
                     <div *ngIf="prod.category?.nom === 'Clothing' || prod.category?.name === 'Clothing'" class="flex gap-1.5 mb-2">
@@ -209,7 +209,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
                     <div *ngIf="isAdmin" class="flex gap-2 pt-3 mt-auto border-t border-border/50">
                        <button type="button" (click)="editProduct(prod); $event.stopPropagation(); $event.preventDefault(); cdr.detectChanges()" class="flex-1 h-9 bg-amber-500 text-white font-black text-[10px] uppercase tracking-tight rounded-lg shadow-sm flex items-center justify-center hover:bg-amber-600 active:scale-95 transition-all gap-2 cursor-pointer">
-                          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon> Modifier
+                          <lucide-icon [img]="EditIcon" [size]="14"></lucide-icon> Edit
                        </button>
                        <button type="button" (click)="deleteProduct(prod.id); $event.stopPropagation(); $event.preventDefault(); cdr.detectChanges()" class="h-9 w-9 bg-red-600 text-white rounded-lg flex items-center justify-center hover:bg-red-700 active:scale-95 transition-all shadow-sm cursor-pointer">
                           <lucide-icon [img]="Trash2Icon" [size]="14"></lucide-icon>
@@ -236,7 +236,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
          <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="closeAddModal()"></div>
          <div class="relative bg-card border border-border shadow-[0_0_50px_rgba(0,0,0,0.3)] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
             <div class="bg-green-500 px-8 py-6 flex items-center justify-between text-white relative">
-               <h2 class="text-2xl font-black">{{ editingId ? 'Modifier le produit' : 'Add un produit' }}</h2>
+               <h2 class="text-2xl font-black">{{ editingId ? 'Edit Product' : 'Add Product' }}</h2>
                <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="h-10 w-10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer text-white">
                   <lucide-icon [img]="XIcon" [size]="20"></lucide-icon>
                </button>
@@ -246,7 +246,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                   <!-- Nom & Brand -->
                   <div class="grid grid-cols-2 gap-6">
                      <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Nom</label>
+                        <label class="text-sm font-bold text-foreground ml-1">Name</label>
                         <input type="text" [(ngModel)]="newProduct.nom" name="nom" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="ex: pull taraji">
                      </div>
                      <div class="space-y-2">
@@ -258,7 +258,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                   <!-- Description -->
                   <div class="space-y-2">
                      <label class="text-sm font-bold text-foreground ml-1">Description</label>
-                     <textarea [(ngModel)]="newProduct.description" name="desc" rows="3" class="w-full p-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none resize-none" placeholder="Description du produit..."></textarea>
+                     <textarea [(ngModel)]="newProduct.description" name="desc" rows="3" class="w-full p-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none resize-none" placeholder="Product description..."></textarea>
                   </div>
 
                   <!-- Price & Stock Global -->
@@ -283,11 +283,11 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                         </select>
                      </div>
                      <div class="space-y-2">
-                        <label class="text-sm font-bold text-foreground ml-1">Status du Produit</label>
+                        <label class="text-sm font-bold text-foreground ml-1">Product Status</label>
                         <select [(ngModel)]="newProduct.status" name="status" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                           <option value="EN_STOCK">EN STOCK</option>
-                           <option value="EN_ARRIVAGE">EN ARRIVAGE</option>
-                           <option value="RUPTURE_DE_STOCK">RUPTURE DE STOCK</option>
+                           <option value="EN_STOCK">IN STOCK</option>
+                           <option value="EN_ARRIVAGE">ARRIVING SOON</option>
+                           <option value="RUPTURE_DE_STOCK">OUT OF STOCK</option>
                         </select>
                      </div>
                   </div>
@@ -298,27 +298,27 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                      
                      <div class="space-y-4">
                         <div class="space-y-2">
-                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Type d'Article</label>
+                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Item Type</label>
                            <select [(ngModel)]="productType" name="type" (change)="onTypeChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                              <option value="">Sélectionner un type...</option>
+                              <option value="">Select a type...</option>
                               <option value="vetement">Clothing (Pull, Short, Tenue)</option>
                               <option value="chaussure">Footwear (Crampons, Baskets)</option>
                            </select>
                         </div>
 
                         <div *ngIf="productType === 'chaussure'" class="space-y-2">
-                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Genre / Categorie</label>
+                           <label class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Gender / Category</label>
                            <select [(ngModel)]="productGender" name="gender" (change)="onGenderChange()" class="w-full h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none appearance-none">
-                              <option value="">Genre...</option>
-                              <option value="homme">Homme</option>
-                              <option value="femme">Femme</option>
-                              <option value="enfant">Enfant</option>
+                              <option value="">Gender...</option>
+                              <option value="homme">Men</option>
+                              <option value="femme">Women</option>
+                              <option value="enfant">Kids</option>
                            </select>
                         </div>
 
                         <!-- Sizes Selection -->
                         <div *ngIf="productType" class="space-y-3">
-                           <label class="text-xs font-bold text-muted-foreground">Cochez les tailles disponibles :</label>
+                           <label class="text-xs font-bold text-muted-foreground">Check available sizes:</label>
                            <div class="flex flex-wrap gap-2">
                               <button *ngFor="let size of availableSizes" type="button" 
                                  (click)="toggleSize(size)"
@@ -331,7 +331,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
                         <!-- Colors Selection -->
                         <div *ngIf="productType === 'vetement'" class="space-y-3">
-                           <label class="text-xs font-bold text-muted-foreground">Couleurs disponibles :</label>
+                           <label class="text-xs font-bold text-muted-foreground">Available colors:</label>
                            <div class="flex flex-wrap gap-4">
                               <button *ngFor="let col of CLOTHING_COLORS" type="button" 
                                  (click)="toggleColor(col.name)"
@@ -351,19 +351,19 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
                         <!-- Stock for each size -->
                         <div *ngIf="selectedSizes.length > 0" class="space-y-3 pt-4 border-t border-border/50">
-                           <label class="text-xs font-bold text-muted-foreground">Stock pour chaque taille :</label>
+                           <label class="text-xs font-bold text-muted-foreground">Stock for each size:</label>
                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                               <div *ngFor="let size of selectedSizes" class="flex items-center gap-2 bg-muted/10 border border-border p-2 rounded-xl">
                                  <span class="text-xs font-black w-8 text-center text-primary">{{ size }}</span>
                                  <input type="number" [(ngModel)]="variantStocks[size]" [name]="'stock-'+size" (ngModelChange)="calculateTotalStock()" class="w-full bg-transparent border-none outline-none text-right text-sm font-bold" placeholder="0">
                               </div>
                            </div>
-                           <p class="text-[10px] text-muted-foreground italic">* Mettez le stock à 0 pour afficher la taille en "rupture de stock".</p>
+                           <p class="text-[10px] text-muted-foreground italic">* Set stock to 0 to show size as "out of stock".</p>
                         </div>
 
                         <!-- Stock for each color -->
                         <div *ngIf="selectedColors.length > 0" class="space-y-3 pt-4 border-t border-border/50">
-                           <label class="text-xs font-bold text-muted-foreground">Stock pour chaque couleur :</label>
+                           <label class="text-xs font-bold text-muted-foreground">Stock for each color:</label>
                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                               <div *ngFor="let col of selectedColors" class="flex items-center gap-2 bg-muted/10 border border-border p-2 rounded-xl">
                                  <span class="text-[10px] font-black w-12 truncate text-primary uppercase">{{ col }}</span>
@@ -376,14 +376,14 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
                   <!-- Image Section -->
                   <div class="space-y-2">
-                     <label class="text-sm font-bold text-foreground ml-1">Image (URL ou Fichier)</label>
+                     <label class="text-sm font-bold text-foreground ml-1">Image (URL or File)</label>
                      <div class="flex items-center gap-4">
                         <input type="text" [(ngModel)]="newImageUrl" name="imgUrl" class="flex-1 h-12 px-4 bg-muted/20 border border-border focus:border-primary rounded-xl text-sm font-medium transition-all outline-none" placeholder="https://...">
-                        <span class="text-xs font-black text-muted-foreground">OU</span>
+                        <span class="text-xs font-black text-muted-foreground">OR</span>
                         <div class="relative">
                            <input type="file" (change)="onFileSelected($event)" class="absolute inset-0 opacity-0 cursor-pointer z-10">
                            <button type="button" class="h-12 px-6 bg-muted/30 hover:bg-muted/50 text-green-600 font-bold rounded-xl transition-all flex items-center gap-2">
-                              Choisir un fichier
+                              Choose a file
                            </button>
                         </div>
                         <div *ngIf="isUploading" class="animate-spin text-primary">
@@ -397,7 +397,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
                <button type="button" (click)="closeAddModal(); $event.stopPropagation(); cdr.detectChanges()" class="px-8 py-3 font-bold text-sm hover:bg-muted rounded-2xl transition-all cursor-pointer">Cancel</button>
                <button type="button" (click)="submitNewProduct(); cdr.detectChanges()" [disabled]="addingProduct || isUploading" class="px-10 h-14 bg-green-500 text-white font-black uppercase text-sm tracking-tighter rounded-2xl shadow-lg hover:bg-green-600 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 cursor-pointer">
                   <lucide-icon *ngIf="addingProduct" [img]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
-                  {{ editingId ? 'Enregistrer les modifications' : 'Add le produit' }}
+                  {{ editingId ? 'Save Changes' : 'Add Product' }}
                </button>
             </div>
          </div>

@@ -27,12 +27,12 @@ interface CommunityCard {
       <div class="max-w-7xl mx-auto">
         <div class="flex items-center justify-between mb-8">
           <div>
-            <h1 class="mb-2">Communauté</h1>
-            <p class="text-muted-foreground">Les communautés sont générées à partir des catégories sportives</p>
+            <h1 class="mb-2">Community</h1>
+            <p class="text-muted-foreground">Communities are generated from sports categories</p>
           </div>
           <button (click)="openNewPost()" class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all">
             <lucide-icon [name]="PlusIcon" [size]="16"></lucide-icon>
-            Nouveau post
+            New Post
           </button>
         </div>
 
@@ -40,25 +40,25 @@ interface CommunityCard {
           <div class="lg:col-span-3 bg-card rounded-2xl p-6 border border-border">
             <div class="flex items-center justify-between gap-3 mb-4">
               <div>
-                <h3 class="mb-1">Communautés</h3>
+                <h3 class="mb-1">Communities</h3>
                 <p class="text-sm text-muted-foreground">
-                  {{ isAdmin ? 'Vue complète pour l\'administrateur' : 'Vue limitée aux communautés validées par vos équipes' }}
+                  {{ isAdmin ? 'Full view for administrator' : 'View limited to communities validated by your teams' }}
                 </p>
               </div>
               <button (click)="reloadCommunities()" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-muted border border-border hover:bg-muted/70 transition-colors text-sm">
                 <lucide-icon [name]="Loader2Icon" [size]="16" [class.animate-spin]="loadingCommunities"></lucide-icon>
-                Actualiser
+                Refresh
               </button>
             </div>
 
             <div *ngIf="loadingCommunities" class="flex items-center gap-2 text-muted-foreground text-sm py-8">
               <lucide-icon [name]="Loader2Icon" [size]="18" class="animate-spin"></lucide-icon>
-              Chargement des communautés...
+              Loading communities...
             </div>
 
             <div *ngIf="!loadingCommunities && visibleCommunities.length === 0" class="rounded-xl border border-dashed border-border p-6 text-center text-muted-foreground">
-              <p class="font-semibold mb-1">Aucune communauté visible</p>
-              <p class="text-sm">Les joueurs voient seulement les communautés correspondant aux équipes approuvées.</p>
+              <p class="font-semibold mb-1">No communities visible</p>
+              <p class="text-sm">Players only see communities matching approved teams.</p>
             </div>
 
             <div *ngIf="!loadingCommunities && visibleCommunities.length > 0" class="grid gap-3 md:grid-cols-2">
@@ -71,30 +71,30 @@ interface CommunityCard {
                 <div class="flex items-start justify-between gap-3">
                   <div>
                     <div class="font-semibold text-foreground mb-1">{{ community.name }}</div>
-                    <p class="text-xs text-muted-foreground line-clamp-2">{{ community.description || 'Aucune description' }}</p>
+                    <p class="text-xs text-muted-foreground line-clamp-2">{{ community.description || 'No description' }}</p>
                   </div>
                   <div class="px-2 py-1 rounded-full text-[11px] font-semibold" [ngClass]="community.access === 'ALL' ? 'bg-emerald-500/15 text-emerald-700' : 'bg-amber-500/15 text-amber-700'">
-                    {{ community.access === 'ALL' ? 'Visible par tous' : 'Accès validé' }}
+                    {{ community.access === 'ALL' ? 'Visible to all' : 'Validated access' }}
                   </div>
                 </div>
                 <div class="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>{{ community.teamCount }} équipes</span>
-                  <span>{{ community.memberCount }} membres</span>
+                  <span>{{ community.teamCount }} teams</span>
+                  <span>{{ community.memberCount }} members</span>
                 </div>
               </button>
             </div>
           </div>
 
           <div class="bg-card rounded-2xl p-6 border border-border">
-            <h3 class="mb-4">Visibilité</h3>
+            <h3 class="mb-4">Visibility</h3>
             <div class="space-y-3 text-sm text-muted-foreground">
               <div class="rounded-xl bg-muted/40 p-3 border border-border">
                 <div class="font-semibold text-foreground mb-1">Admin</div>
-                <div>Voit toutes les communautés générées à partir des catégories.</div>
+                <div>Sees all communities generated from categories.</div>
               </div>
               <div class="rounded-xl bg-muted/40 p-3 border border-border">
-                <div class="font-semibold text-foreground mb-1">Utilisateur</div>
-                <div>Voit seulement les communautés des catégories où il est membre d'une équipe approuvée.</div>
+                <div class="font-semibold text-foreground mb-1">User</div>
+                <div>Sees only communities of categories where they are a member of an approved team.</div>
               </div>
             </div>
           </div>
@@ -104,20 +104,20 @@ interface CommunityCard {
         <div *ngIf="showNewPostModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div class="bg-card rounded-2xl border border-border p-6 w-full max-w-lg shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold text-foreground">Nouveau Post</h3>
+              <h3 class="font-semibold text-foreground">New Post</h3>
               <button (click)="showNewPostModal = false" class="p-2 hover:bg-muted rounded-lg transition-colors">
                 <lucide-icon [name]="XIcon" [size]="18" class="text-muted-foreground"></lucide-icon>
               </button>
             </div>
             <div class="mb-3 text-sm text-muted-foreground">
-              Publication ciblée: {{ selectedCommunityName }}
+              Targeted publication: {{ selectedCommunityName }}
             </div>
-            <textarea [(ngModel)]="newPostContent" rows="4" placeholder="Partagez quelque chose avec la communauté..."
+            <textarea [(ngModel)]="newPostContent" rows="4" placeholder="Share something with the community..."
               class="w-full px-4 py-3 bg-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none mb-4"></textarea>
             <div class="flex gap-3 justify-end">
-              <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Annuler</button>
+              <button (click)="showNewPostModal = false" class="px-4 py-2 bg-muted text-foreground rounded-xl hover:bg-muted/70 transition-colors">Cancel</button>
               <button (click)="submitPost()" [disabled]="posting" class="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
-                {{ posting ? 'Publication...' : 'Publier' }}
+                {{ posting ? 'Posting...' : 'Post' }}
               </button>
             </div>
           </div>
@@ -128,12 +128,12 @@ interface CommunityCard {
           <div class="lg:col-span-2 space-y-6">
             <div *ngIf="loading" class="flex flex-col items-center py-20 gap-3 text-muted-foreground">
               <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-              Chargement des posts...
+              Loading posts...
             </div>
 
             <div *ngIf="!loading && posts.length === 0" class="text-center py-20 text-muted-foreground">
               <div class="text-5xl mb-4">💬</div>
-              <p>Aucun post pour le moment. Soyez le premier !</p>
+              <p>No posts yet. Be the first!</p>
             </div>
 
             <div *ngFor="let post of filteredPosts" class="bg-card rounded-2xl p-6 border border-border">
@@ -142,7 +142,7 @@ interface CommunityCard {
                   {{ getInitials(post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author)) }}
                 </div>
                 <div class="flex-1">
-                  <div class="font-semibold">{{ post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author || 'Utilisateur') }}</div>
+                  <div class="font-semibold">{{ post.authorFirstName ? (post.authorFirstName + ' ' + post.authorLastName) : (post.authorName || post.author || 'User') }}</div>
                   <div class="text-sm text-muted-foreground">{{ formatDate(post.createdAt || post.time) }}</div>
                 </div>
               </div>
@@ -172,7 +172,7 @@ interface CommunityCard {
                 <div *ngIf="!post.loadingComments" class="space-y-3 mb-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   <div *ngFor="let comment of post.commentList" class="flex items-start gap-2">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold shrink-0 text-xs mt-1">
-                      {{ getInitials(comment.authorFirstName ? (comment.authorFirstName + ' ' + comment.authorLastName) : 'Utilisateur') }}
+                      {{ getInitials(comment.authorFirstName ? (comment.authorFirstName + ' ' + comment.authorLastName) : 'User') }}
                     </div>
                     <div class="flex-1">
                       <div class="bg-muted px-4 py-2.5 rounded-2xl inline-block max-w-full">
@@ -183,7 +183,7 @@ interface CommunityCard {
                     </div>
                   </div>
                   <div *ngIf="post.commentList && post.commentList.length === 0" class="text-sm text-center text-muted-foreground py-2">
-                    Soyez le premier à commenter !
+                    Be the first to comment!
                   </div>
                 </div>
 
@@ -193,7 +193,7 @@ interface CommunityCard {
                     {{ currentUserInitials }}
                   </div>
                   <div class="flex-1 flex gap-2">
-                    <input [(ngModel)]="post.commentInput" placeholder="Écrire un commentaire..."
+                    <input [(ngModel)]="post.commentInput" placeholder="Write a comment..."
                       (keyup.enter)="addComment(post)"
                       class="flex-1 px-4 py-2 bg-muted border border-border rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-primary">
                     <button (click)="addComment(post)" 
@@ -260,7 +260,7 @@ export class CommunityComponent implements OnInit {
   communities: CommunityCard[] = [];
   visibleCommunities: CommunityCard[] = [];
   selectedCommunityId: number | null = null;
-  selectedCommunityName = 'Communauté globale';
+  selectedCommunityName = 'Global Community';
   currentRole = (localStorage.getItem('user_type') || '').toUpperCase();
   currentUserId = Number(localStorage.getItem('user_id') || 0);
   currentUserInitials = 'ME';
@@ -300,7 +300,7 @@ export class CommunityComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.currentUserInitials = this.getInitials(localStorage.getItem('user_name') || 'Moi');
+    this.currentUserInitials = this.getInitials(localStorage.getItem('user_name') || 'Me');
     this.loadCommunities();
     this.loadPosts();
   }
@@ -349,7 +349,7 @@ export class CommunityComponent implements OnInit {
   selectCommunity(communityId: number): void {
     this.selectedCommunityId = communityId;
     const selected = this.visibleCommunities.find((community) => community.id === communityId);
-    this.selectedCommunityName = selected?.name || 'Communauté globale';
+    this.selectedCommunityName = selected?.name || 'Global Community';
   }
 
   loadPosts() {
@@ -384,7 +384,7 @@ export class CommunityComponent implements OnInit {
         // Revert UI on error
         post.liked = !post.liked;
         post.likesCount = (post.likesCount ?? 0) + (post.liked ? 1 : -1);
-        this.showToast('Erreur lors de l\'ajout du like');
+        this.showToast('Error adding like');
       }
     });
   }
@@ -401,7 +401,7 @@ export class CommunityComponent implements OnInit {
         },
         error: () => {
           post.loadingComments = false;
-          this.showToast('Impossible de charger les commentaires');
+          this.showToast('Unable to load comments');
         }
       });
     }
@@ -423,7 +423,7 @@ export class CommunityComponent implements OnInit {
       },
       error: () => {
         post.addingComment = false;
-        this.showToast('Erreur lors de l\'envoi du commentaire');
+        this.showToast('Error sending comment');
       }
     });
   }
@@ -454,11 +454,11 @@ export class CommunityComponent implements OnInit {
         this.showNewPostModal = false;
         this.newPostContent = '';
         this.posting = false;
-        this.showToast('Post publié ! 🎉');
+        this.showToast('Post published! 🎉');
       },
       error: () => {
         this.posting = false;
-        this.showToast('Erreur lors de la publication');
+        this.showToast('Error during publication');
       }
     });
   }
@@ -475,9 +475,9 @@ export class CommunityComponent implements OnInit {
     const date = new Date(d);
     const diffMs = Date.now() - date.getTime();
     const diffH = Math.floor(diffMs / 3600000);
-    if (diffH < 1) return 'À l\'instant';
-    if (diffH < 24) return `Il y a ${diffH}h`;
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    if (diffH < 1) return 'Just now';
+    if (diffH < 24) return `${diffH}h ago`;
+    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
 
   showToast(msg: string) {

@@ -24,11 +24,11 @@ type NotificationItem = {
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-foreground">Notifications</h1>
-          <p class="text-muted-foreground">Toutes vos alertes et mises a jour</p>
+          <p class="text-muted-foreground">All your alerts and updates</p>
         </div>
         <button (click)="markAllRead()" class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground px-3 py-2 rounded-lg hover:bg-muted transition-colors">
           <lucide-icon [name]="checkAllIcon" [size]="14"></lucide-icon>
-          Tout lire
+          Mark all as read
         </button>
       </div>
 
@@ -43,10 +43,10 @@ type NotificationItem = {
         </button>
       </div>
 
-      <div *ngIf="loading" class="text-center py-10 text-muted-foreground">Chargement...</div>
+      <div *ngIf="loading" class="text-center py-10 text-muted-foreground">Loading...</div>
 
       <div *ngIf="!loading" class="space-y-2">
-        <div *ngIf="visibleNotifs.length === 0" class="text-center py-6 text-muted-foreground">Aucune notification.</div>
+        <div *ngIf="visibleNotifs.length === 0" class="text-center py-6 text-muted-foreground">No notifications.</div>
         <div
           *ngFor="let n of visibleNotifs"
           class="flex items-start gap-4 p-4 rounded-xl hover:bg-muted/50 transition-colors border border-transparent"
@@ -82,8 +82,8 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   loading = true;
   notifications: NotificationItem[] = [];
   tabs = [
-    { id: 'all', label: 'Tout' },
-    { id: 'unread', label: 'Non lus' },
+    { id: 'all', label: 'All' },
+    { id: 'unread', label: 'Unread' },
   ];
 
   private apiNotifications: NotificationItem[] = [];
@@ -224,7 +224,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   formatDate(dateStr: string): string {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleString('fr-FR', {
+    return new Date(dateStr).toLocaleString('en-US', {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',
@@ -252,7 +252,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   private toIsoDate(value: string): string {
-    if (!value || value === 'Maintenant') {
+    if (!value || value === 'Now') {
       return new Date().toISOString();
     }
 

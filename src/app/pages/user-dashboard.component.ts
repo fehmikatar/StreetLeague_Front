@@ -31,8 +31,8 @@ const ICON_MAP: Record<string, LucideIconData> = {
       <div class="max-w-7xl mx-auto">
         <!-- Welcome Header -->
         <div class="mb-8">
-          <h1 class="mb-2">Bienvenue, <span class="text-primary">{{ userName }}</span> 👋</h1>
-          <p class="text-muted-foreground">Voici un aperçu de votre activité sportive</p>
+          <h1 class="mb-2">Welcome, <span class="text-primary">{{ userName }}</span> 👋</h1>
+          <p class="text-muted-foreground">Here is an overview of your sports activity</p>
         </div>
 
         <!-- Quick Actions -->
@@ -42,7 +42,7 @@ const ICON_MAP: Record<string, LucideIconData> = {
               <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <lucide-icon [img]="CalendarIcon" class="w-6 h-6 text-primary"></lucide-icon>
               </div>
-              <div><div class="font-semibold mb-1">Réserver</div><div class="text-sm text-muted-foreground">Un terrain</div></div>
+              <div><div class="font-semibold mb-1">Book</div><div class="text-sm text-muted-foreground">A field</div></div>
             </div>
           </a>
           <a routerLink="/app/matches" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
@@ -50,7 +50,7 @@ const ICON_MAP: Record<string, LucideIconData> = {
               <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <lucide-icon [img]="TrophyIcon" class="w-6 h-6 text-accent"></lucide-icon>
               </div>
-              <div><div class="font-semibold mb-1">Matchs</div><div class="text-sm text-muted-foreground">Voir tout</div></div>
+              <div><div class="font-semibold mb-1">Matches</div><div class="text-sm text-muted-foreground">View all</div></div>
             </div>
           </a>
           <a routerLink="/app/team" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
@@ -58,7 +58,7 @@ const ICON_MAP: Record<string, LucideIconData> = {
               <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <lucide-icon [img]="UsersIcon" class="w-6 h-6 text-primary"></lucide-icon>
               </div>
-              <div><div class="font-semibold mb-1">Équipe</div><div class="text-sm text-muted-foreground">Gérer</div></div>
+              <div><div class="font-semibold mb-1">Team</div><div class="text-sm text-muted-foreground">Manage</div></div>
             </div>
           </a>
           <a routerLink="/app/performance" class="bg-card border border-border rounded-2xl p-6 hover:shadow-xl transition-all group">
@@ -66,7 +66,7 @@ const ICON_MAP: Record<string, LucideIconData> = {
               <div class="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                 <lucide-icon [img]="ActivityIcon" class="w-6 h-6 text-accent"></lucide-icon>
               </div>
-              <div><div class="font-semibold mb-1">Stats</div><div class="text-sm text-muted-foreground">Voir mes performances</div></div>
+              <div><div class="font-semibold mb-1">Stats</div><div class="text-sm text-muted-foreground">View my performances</div></div>
             </div>
           </a>
         </div>
@@ -93,15 +93,15 @@ const ICON_MAP: Record<string, LucideIconData> = {
               <div class="flex items-center justify-between mb-6">
                 <h3 class="flex items-center gap-2">
                   <lucide-icon [img]="CalendarIcon" class="w-5 h-5 text-primary"></lucide-icon>
-                  Prochains matchs {{ upcomingMatches.length > 0 ? '(' + upcomingMatches.length + ')' : '' }}
+                  Upcoming matches {{ upcomingMatches.length > 0 ? '(' + upcomingMatches.length + ')' : '' }}
                 </h3>
                 <a routerLink="/app/matches" class="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
-                  Voir tout <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
+                  View all <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
                 </a>
               </div>
               <div class="space-y-4">
                 <div *ngIf="upcomingMatches.length === 0" class="text-center py-6 text-muted-foreground">
-                  Aucun match prévu pour le moment.
+                  No matches scheduled at the moment.
                 </div>
                 <div *ngFor="let match of upcomingMatches" class="bg-muted/50 rounded-xl p-4 hover:bg-muted transition-all group" [ngClass]="{'opacity-60': match.status === 'cancelled'}">
                   <div class="flex items-start justify-between gap-4">
@@ -117,7 +117,7 @@ const ICON_MAP: Record<string, LucideIconData> = {
                         <div class="flex items-center gap-1"><lucide-icon [img]="ClockIcon" class="w-4 h-4"></lucide-icon><span>{{ match.time }} ({{match.duration}}h)</span></div>
                       </div>
                       <div *ngIf="isAwaitingConfirmation(match)" class="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs font-medium text-amber-700">
-                        Confirmation de présence requise avant le créneau.
+                        Presence confirmation required before the slot.
                       </div>
                     </a>
                     <div class="flex items-center gap-2">
@@ -129,15 +129,15 @@ const ICON_MAP: Record<string, LucideIconData> = {
                         (click)="confirmReservationPresence(match)" 
                         [disabled]="confirmingReservationId === match.id"
                         class="px-2.5 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all flex-shrink-0"
-                        title="Confirmer la présence">
-                        {{ confirmingReservationId === match.id ? '...' : 'Confirmer' }}
+                        title="Confirm presence">
+                        {{ confirmingReservationId === match.id ? '...' : 'Confirm' }}
                       </button>
                       <button 
                         *ngIf="canCancelReservation(match)" 
                         (click)="cancelReservation(match)" 
                         [disabled]="cancelingReservationId === match.id"
                         class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
-                        title="Annuler la réservation">
+                        title="Cancel booking">
                         <lucide-icon [img]="XIcon" class="w-5 h-5"></lucide-icon>
                       </button>
                     </div>
@@ -145,8 +145,8 @@ const ICON_MAP: Record<string, LucideIconData> = {
                 </div>
                 <a routerLink="/app/booking" class="block bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl p-6 text-center border-2 border-dashed border-primary/20 hover:border-primary/40 transition-all mt-4">
                   <lucide-icon [img]="TargetIcon" class="w-8 h-8 text-primary mx-auto mb-2"></lucide-icon>
-                  <div class="font-semibold mb-1">Organiser un nouveau match</div>
-                  <div class="text-sm text-muted-foreground">Réservez un terrain et invitez votre équipe</div>
+                  <div class="font-semibold mb-1">Organize a new match</div>
+                  <div class="text-sm text-muted-foreground">Book a field and invite your team</div>
                 </a>
               </div>
             </div>
@@ -156,8 +156,8 @@ const ICON_MAP: Record<string, LucideIconData> = {
           <div class="space-y-6">
             <div class="bg-card rounded-2xl p-6 border border-border">
               <div class="flex items-center justify-between mb-6">
-                <h3 class="flex items-center gap-2"><lucide-icon [img]="BellIcon" class="w-5 h-5 text-accent"></lucide-icon>Activité récente</h3>
-                <a routerLink="/app/notifications" class="text-sm text-primary font-semibold hover:underline">Tout voir</a>
+                <h3 class="flex items-center gap-2"><lucide-icon [img]="BellIcon" class="w-5 h-5 text-accent"></lucide-icon>Recent activity</h3>
+                <a routerLink="/app/notifications" class="text-sm text-primary font-semibold hover:underline">View all</a>
               </div>
               <div class="space-y-4">
                 <div *ngFor="let activity of recentActivities | slice:0:3" class="flex items-start gap-3">
@@ -176,16 +176,16 @@ const ICON_MAP: Record<string, LucideIconData> = {
             <div class="bg-card rounded-2xl p-6 border border-border">
               <div class="flex items-center gap-2 mb-4">
                 <lucide-icon [img]="TrendingUpIcon" class="w-5 h-5 text-primary"></lucide-icon>
-                <h3>Progression ce mois-ci</h3>
+                <h3>Progress this month</h3>
               </div>
               <div class="space-y-3">
-                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Matchs gagnés</span><span class="font-semibold">75%</span></div>
+                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Matches won</span><span class="font-semibold">75%</span></div>
                 <div class="w-full h-2 bg-muted rounded-full overflow-hidden"><div class="h-full bg-primary rounded-full" style="width:75%"></div></div>
-                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Objectif mensuel</span><span class="font-semibold">8/10</span></div>
+                <div class="flex items-center justify-between"><span class="text-sm text-muted-foreground">Monthly goal</span><span class="font-semibold">8/10</span></div>
                 <div class="w-full h-2 bg-muted rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:80%"></div></div>
               </div>
               <a routerLink="/app/performance" class="mt-6 flex items-center justify-center gap-2 w-full px-4 py-3 bg-primary/10 text-primary rounded-xl font-semibold hover:bg-primary/20 transition-all">
-                Voir mes stats complètes <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
+                View my full stats <lucide-icon [img]="ArrowRightIcon" class="w-4 h-4"></lucide-icon>
               </a>
             </div>
           </div>
@@ -212,10 +212,10 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   confirmingReservationId: number | null = null;
 
   stats = [
-    { label: 'Matchs joués', value: '24', icon: Trophy, trend: '+12%' },
-    { label: 'Heures de jeu', value: '48h', icon: Clock, trend: '+8%' },
-    { label: 'Terrains visités', value: '12', icon: MapPin, trend: '+3' },
-    { label: 'Note moyenne', value: '4.8', icon: Star, trend: '+0.2' },
+    { label: 'Matches played', value: '24', icon: Trophy, trend: '+12%' },
+    { label: 'Playing hours', value: '48h', icon: Clock, trend: '+8%' },
+    { label: 'Fields visited', value: '12', icon: MapPin, trend: '+3' },
+    { label: 'Average rating', value: '4.8', icon: Star, trend: '+0.2' },
   ];
 
   upcomingMatches: Reservation[] = [];
@@ -226,7 +226,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   constructor(private bookingService: BookingService) { }
 
   ngOnInit() {
-    this.userName = localStorage.getItem('user_name') || 'Utilisateur';
+    this.userName = localStorage.getItem('user_name') || 'User';
     const userId = localStorage.getItem('user_id') || '1';
 
     this.bookingService.loadMyReservations();
@@ -253,7 +253,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
 
   formatDate(dateStr: string): string {
     try {
-      return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+      return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     } catch {
       return dateStr;
     }
@@ -275,16 +275,16 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   getReservationStatusLabel(status: Reservation['status']): string {
     switch (status) {
       case 'pending_confirmation':
-        return 'En attente';
+        return 'Pending';
       case 'reminder_sent':
-        return 'Confirmation requise';
+        return 'Confirmation required';
       case 'completed':
-        return 'Terminée';
+        return 'Completed';
       case 'cancelled':
-        return 'Annulée';
+        return 'Cancelled';
       case 'confirmed':
       default:
-        return 'Confirmée';
+        return 'Confirmed';
     }
   }
 
@@ -305,7 +305,7 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   }
 
   confirmReservationPresence(reservation: Reservation): void {
-    const shouldConfirm = confirm(`Confirmer votre présence pour "${reservation.fieldName}" le ${this.formatDate(reservation.date)} à ${reservation.time} ?`);
+    const shouldConfirm = confirm(`Confirm your presence for "${reservation.fieldName}" on ${this.formatDate(reservation.date)} at ${reservation.time} ?`);
 
     if (!shouldConfirm) {
       return;
@@ -320,8 +320,8 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
           this.bookingService.loadMyReservations();
         },
         error: (err) => {
-          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Erreur lors de la confirmation';
-          alert('Impossible de confirmer la présence: ' + errorMsg);
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Error during confirmation';
+          alert('Unable to confirm presence: ' + errorMsg);
           this.confirmingReservationId = null;
         }
       })
@@ -339,26 +339,26 @@ export class UserDashboardComponent implements OnInit, OnDestroy {
   }
 
   cancelReservation(reservation: Reservation): void {
-    const confirmCancel = confirm(`Êtes-vous sûr de vouloir annuler la réservation pour "${reservation.fieldName}" le ${this.formatDate(reservation.date)} à ${reservation.time} ?`);
+    const confirmCancel = confirm(`Are you sure you want to cancel the booking for "${reservation.fieldName}" on ${this.formatDate(reservation.date)} at ${reservation.time} ?`);
     
     if (!confirmCancel) {
       return;
     }
 
-    console.log('🗑️ Annulation de la réservation ID:', reservation.id);
+    console.log('🗑️ Cancelling reservation ID:', reservation.id);
     this.cancelingReservationId = reservation.id;
 
     this.subs.add(
       this.bookingService.cancelReservation(reservation.id).subscribe({
         next: (response) => {
-          console.log('✅ Réservation annulée avec succès:', response);
+          console.log('✅ Reservation cancelled successfully:', response);
           this.cancelingReservationId = null;
           this.bookingService.loadMyReservations();
         },
         error: (err) => {
-          console.error('❌ Erreur lors de l\'annulation:', err);
-          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Erreur lors de l\'annulation de la réservation';
-          alert('Impossible d\'annuler la réservation: ' + errorMsg);
+          console.error('❌ Error during cancellation:', err);
+          const errorMsg = err?.error?.error || err?.error?.message || err?.message || 'Error during reservation cancellation';
+          alert('Unable to cancel the booking: ' + errorMsg);
           this.cancelingReservationId = null;
         }
       })

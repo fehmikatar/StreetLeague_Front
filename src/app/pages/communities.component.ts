@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription, catchError, forkJoin, of } from 'rxjs';
-import { LucideAngularModule, ArrowLeft, Building2, Loader2, RefreshCcw, Shield, Users, Eye, AlertTriangle, Heart, MessageCircle, Plus, X, Trash2, Send, ChevronDown, ChevronUp, ImagePlus } from 'lucide-angular';
+import { LucideAngularModule, ArrowLeft, Building2, Loader2, RefreshCcw, Shield, Users, Eye, AlertTriangle, Heart, MessageCircle, Plus, X, Trash2, Send, ChevronDown, ChevronUp, ImagePlus, Sparkles } from 'lucide-angular';
 import { CommunityDetail, CommunityService, CommunitySummary, TeamPostResponse, TeamCommentResponse, PageResponse } from '../services/community.service';
 import { Category, ProductService } from '../services/product.service';
 import { Team, TeamService } from '../services/team.service';
@@ -37,7 +37,7 @@ interface TeamPostState {
         <button (click)="goBackToTeam()"
           class="mb-5 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 transition-colors text-sm font-medium">
           <lucide-icon [name]="ArrowLeftIcon" [size]="16"></lucide-icon>
-          Retour à l'équipe
+          Back to team
         </button>
 
         <div class="flex items-center gap-3 mb-6">
@@ -46,7 +46,7 @@ interface TeamPostState {
           </div>
           <div>
             <h1 class="text-xl font-bold text-foreground leading-tight">{{ teamName ? teamName + ' · Community' : 'Team Community' }}</h1>
-            <p class="text-xs text-muted-foreground">Partagez des moments avec votre équipe</p>
+            <p class="text-xs text-muted-foreground">Share moments with your team</p>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ interface TeamPostState {
           <button (click)="loadTeamPosts(true)"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors font-medium text-xs">
             <lucide-icon [name]="RefreshCcwIcon" [size]="13"></lucide-icon>
-            Réessayer
+            Retry
           </button>
         </div>
 
@@ -68,13 +68,13 @@ interface TeamPostState {
               {{ teamCurrentUserInitials }}
             </div>
             <textarea [value]="newTeamPostContent" (input)="onTeamPostInput($event)"
-              placeholder="Quoi de neuf ?" rows="2" [disabled]="submittingTeamPost"
+              placeholder="What's up?" rows="2" [disabled]="submittingTeamPost"
               class="flex-1 resize-none rounded-xl border border-border bg-muted/30 px-3 py-2 text-sm
                      text-foreground placeholder:text-muted-foreground focus:outline-none
                      focus:ring-2 focus:ring-primary/50 disabled:opacity-60 transition-all"></textarea>
           </div>
           <div *ngIf="newTeamPostImagePreview" class="mt-3 ml-12 relative inline-block">
-            <img [src]="newTeamPostImagePreview" alt="Aperçu" class="max-h-48 rounded-xl border border-border object-cover">
+            <img [src]="newTeamPostImagePreview" alt="Preview" class="max-h-48 rounded-xl border border-border object-cover">
             <button (click)="removeTeamPostImage()"
               class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive shadow-md flex items-center justify-center">
               <lucide-icon [name]="XIcon" [size]="12" class="text-white"></lucide-icon>
@@ -89,6 +89,14 @@ interface TeamPostState {
                 <input type="file" accept="image/jpeg,image/png,image/gif" class="hidden"
                   (change)="onTeamImageSelected($event)" [disabled]="submittingTeamPost">
               </label>
+              <button (click)="generateTeamAiSuggestion()"
+                [disabled]="submittingTeamPost || generatingTeamSuggestion"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                       text-primary hover:bg-primary/10 transition-colors select-none">
+                <lucide-icon *ngIf="!generatingTeamSuggestion" [name]="SparklesIcon" [size]="15"></lucide-icon>
+                <lucide-icon *ngIf="generatingTeamSuggestion" [name]="Loader2Icon" [size]="15" class="animate-spin"></lucide-icon>
+                AI Suggestion
+              </button>
               <span class="text-xs tabular-nums"
                 [ngClass]="newTeamPostContent.length > 4800 ? 'text-destructive font-medium' : 'text-muted-foreground'">
                 {{ 5000 - newTeamPostContent.length }}
@@ -101,7 +109,7 @@ interface TeamPostState {
                      disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               <lucide-icon *ngIf="submittingTeamPost" [name]="Loader2Icon" [size]="14" class="animate-spin"></lucide-icon>
               <lucide-icon *ngIf="!submittingTeamPost" [name]="SendIcon" [size]="14"></lucide-icon>
-              {{ submittingTeamPost ? 'Publication…' : 'Publier' }}
+              {{ submittingTeamPost ? 'Publishing…' : 'Post' }}
             </button>
           </div>
           <p *ngIf="teamPostError" class="mt-2 ml-12 text-xs text-destructive">{{ teamPostError }}</p>
@@ -110,7 +118,7 @@ interface TeamPostState {
         <!-- Loading -->
         <div *ngIf="loadingTeamPosts" class="flex flex-col items-center py-16 gap-3 text-muted-foreground">
           <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-          <span class="text-sm">Chargement des posts…</span>
+          <span class="text-sm">Loading posts…</span>
         </div>
 
         <!-- Empty -->
@@ -118,8 +126,8 @@ interface TeamPostState {
           <div class="h-16 w-16 rounded-2xl bg-muted mx-auto flex items-center justify-center mb-4">
             <lucide-icon [name]="UsersIcon" [size]="32" class="text-muted-foreground opacity-40"></lucide-icon>
           </div>
-          <p class="text-lg font-semibold text-foreground">Aucun post pour le moment</p>
-          <p class="text-sm text-muted-foreground mt-1">Soyez le premier à partager quelque chose !</p>
+          <p class="text-lg font-semibold text-foreground">No posts yet</p>
+          <p class="text-sm text-muted-foreground mt-1">Be the first to share something!</p>
         </div>
 
         <!-- Posts feed -->
@@ -189,7 +197,7 @@ interface TeamPostState {
                       [class.scale-125]="post.reactionAnimating">
                   {{ post.data.currentUserReaction ? getReactionEmoji(post.data.currentUserReaction) : '👍' }}
                 </span>
-                <span>{{ post.data.currentUserReaction ? getReactionLabel(post.data.currentUserReaction) : "J'aime" }}</span>
+                <span>{{ post.data.currentUserReaction ? getReactionLabel(post.data.currentUserReaction) : "Like" }}</span>
               </button>
 
               <span *ngIf="post.data.likeCount > 0"
@@ -209,7 +217,7 @@ interface TeamPostState {
             <button (click)="toggleTeamComments(post)"
               class="inline-flex items-center gap-1 text-xs text-muted-foreground
                      hover:text-foreground transition-colors px-2 py-1.5 rounded-lg hover:bg-muted/60">
-              {{ post.showComments ? 'Masquer' : 'Commentaires' }}
+              {{ post.showComments ? 'Hide' : 'Comments' }}
               <lucide-icon [name]="post.showComments ? ChevronUpIcon : ChevronDownIcon" [size]="13"></lucide-icon>
             </button>
           </div>
@@ -221,7 +229,7 @@ interface TeamPostState {
             <div *ngIf="!post.loadingComments" class="px-4 pt-3 space-y-3 max-h-72 overflow-y-auto">
               <div *ngIf="post.comments.length === 0"
                 class="text-center py-2 text-sm text-muted-foreground">
-                Soyez le premier à commenter !
+                Be the first to comment!
               </div>
               <div *ngFor="let comment of post.comments" class="space-y-3">
                 <div class="flex items-start gap-2.5">
@@ -262,18 +270,18 @@ interface TeamPostState {
                         <button (click)="selectCommentReaction(comment, comment.currentUserReaction ? null : 'LIKE')"
                                 class="text-xs font-medium hover:underline transition-colors bg-transparent border-none cursor-pointer"
                                 [style.color]="comment.currentUserReaction ? getReactionColor(comment.currentUserReaction) : 'var(--color-primary)'">
-                          {{ comment.currentUserReaction ? getReactionEmoji(comment.currentUserReaction) : "J'aime" }}
+                          {{ comment.currentUserReaction ? getReactionEmoji(comment.currentUserReaction) : "Like" }}
                         </button>
                       </div>
 
                       <button (click)="setTeamReplyingTo(post, comment)"
                         class="text-xs text-primary font-medium hover:underline">
-                        Répondre
+                        Reply
                       </button>
                       <button *ngIf="comment.author.id === teamCurrentUserId"
                         (click)="deleteTeamComment(post, comment)"
                         class="text-xs text-muted-foreground hover:text-destructive transition-colors">
-                        Supprimer
+                        Delete
                       </button>
                       <span *ngIf="(comment.likeCount || 0) > 0" class="text-[10px] text-muted-foreground">
                         {{ comment.likeCount }}
@@ -322,14 +330,14 @@ interface TeamPostState {
                           <button (click)="selectCommentReaction(reply, reply.currentUserReaction ? null : 'LIKE')"
                                   class="text-[11px] font-medium hover:underline transition-colors bg-transparent border-none cursor-pointer"
                                   [style.color]="reply.currentUserReaction ? getReactionColor(reply.currentUserReaction) : 'var(--color-primary)'">
-                            {{ reply.currentUserReaction ? getReactionEmoji(reply.currentUserReaction) : "J'aime" }}
+                            {{ reply.currentUserReaction ? getReactionEmoji(reply.currentUserReaction) : "Like" }}
                           </button>
                         </div>
 
                         <button *ngIf="reply.author.id === teamCurrentUserId"
                           (click)="deleteTeamComment(post, reply, comment)"
                           class="text-xs text-muted-foreground hover:text-destructive transition-colors">
-                          Supprimer
+                          Delete
                         </button>
                         <span *ngIf="(reply.likeCount || 0) > 0" class="text-[10px] text-muted-foreground">
                           {{ reply.likeCount }}
@@ -342,7 +350,7 @@ interface TeamPostState {
             </div>
             <div *ngIf="post.replyingTo" class="px-4 py-1.5 bg-muted/20 flex items-center justify-between border-t border-border">
               <span class="text-xs text-muted-foreground">
-                Réponse à <span class="font-semibold">{{ post.replyingTo.author.firstName }}</span>
+                Replying to <span class="font-semibold">{{ post.replyingTo.author.firstName }}</span>
               </span>
               <button (click)="post.replyingTo = null" class="text-muted-foreground hover:text-foreground">
                 <lucide-icon [name]="XIcon" [size]="12"></lucide-icon>
@@ -357,7 +365,7 @@ interface TeamPostState {
               <input type="text" [value]="post.newCommentText"
                 (input)="post.newCommentText = $any($event.target).value"
                 (keydown.enter)="submitTeamComment(post)"
-                placeholder="Écrire un commentaire…" [disabled]="post.submittingComment"
+                placeholder="Write a comment..." [disabled]="post.submittingComment"
                 class="flex-1 min-w-0 rounded-full border border-border bg-muted/30 px-4 py-1.5 text-sm
                        text-foreground placeholder:text-muted-foreground focus:outline-none
                        focus:ring-2 focus:ring-primary/50 disabled:opacity-60">
@@ -379,7 +387,7 @@ interface TeamPostState {
             class="px-6 py-2.5 rounded-xl border border-border bg-card hover:bg-muted/50 text-sm
                    font-medium transition-colors disabled:opacity-60 inline-flex items-center gap-2">
             <lucide-icon *ngIf="loadingMoreTeamPosts" [name]="Loader2Icon" [size]="15" class="animate-spin"></lucide-icon>
-            {{ loadingMoreTeamPosts ? 'Chargement…' : 'Charger plus' }}
+            {{ loadingMoreTeamPosts ? 'Loading...' : 'Load more' }}
           </button>
         </div>
       </div>
@@ -390,18 +398,18 @@ interface TeamPostState {
           <div>
             <h1 class="mb-2 text-3xl md:text-4xl font-black tracking-tight">Communautés</h1>
             <p class="text-muted-foreground text-sm md:text-base">
-              {{ isAdmin ? 'Vue globale des communautés' : 'Vous voyez uniquement les communautés auxquelles vous avez accès' }}
+              {{ isAdmin ? 'Global view of communities' : 'You only see the communities you have access to' }}
             </p>
           </div>
 
           <div class="flex flex-wrap gap-2">
             <button (click)="reload()" class="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 hover:bg-muted/70 transition-colors shadow-sm">
               <lucide-icon [name]="RefreshCcwIcon" [size]="16" [class.animate-spin]="loadingList"></lucide-icon>
-              Actualiser
+              Refresh
             </button>
             <button (click)="goBackToList()" *ngIf="selectedCommunityId" class="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 hover:bg-muted transition-colors shadow-sm">
               <lucide-icon [name]="ArrowLeftIcon" [size]="16"></lucide-icon>
-              Retour à la liste
+              Back to list
             </button>
           </div>
         </div>
@@ -410,7 +418,7 @@ interface TeamPostState {
           <span>{{ errorBanner }}</span>
           <button (click)="reload()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors">
             <lucide-icon [name]="RefreshCcwIcon" [size]="14"></lucide-icon>
-            Réessayer
+            Retry
           </button>
         </div>
 
@@ -424,24 +432,24 @@ interface TeamPostState {
             <div class="bg-card rounded-3xl border border-border p-5 md:p-6 shadow-sm">
               <div class="flex items-center justify-between gap-3 mb-4">
                 <div>
-                  <h3 class="mb-1 text-xl font-extrabold">Liste des communautés</h3>
+                  <h3 class="mb-1 text-xl font-extrabold">List of communities</h3>
                   <p class="text-sm text-muted-foreground">GET /api/communities</p>
                 </div>
                 <div class="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
                   <lucide-icon [name]="EyeIcon" [size]="13"></lucide-icon>
-                  {{ visibleCommunities.length }} visibles
+                  {{ visibleCommunities.length }} visible
                 </div>
               </div>
 
               <div *ngIf="loadingList" class="flex flex-col items-center py-16 gap-3 text-muted-foreground">
                 <lucide-icon [name]="Loader2Icon" [size]="32" class="animate-spin"></lucide-icon>
-                Chargement des communautés...
+                Loading communities...
               </div>
 
               <div *ngIf="!loadingList && visibleCommunities.length === 0" class="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
                 <div class="text-4xl mb-3">🏟️</div>
-                <p class="font-semibold mb-1">Aucune communauté disponible</p>
-                <p class="text-sm">Les communautés visibles apparaîtront ici selon votre accès.</p>
+                <p class="font-semibold mb-1">No communities available</p>
+                <p class="text-sm">Visible communities will appear here based on your access.</p>
               </div>
 
               <div *ngIf="!loadingList && visibleCommunities.length > 0" class="grid gap-4 md:grid-cols-2">
@@ -454,7 +462,7 @@ interface TeamPostState {
                   <div class="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <h4 class="font-bold text-foreground mb-1">{{ community.name }}</h4>
-                      <p class="text-xs text-muted-foreground line-clamp-2">{{ community.description || 'Aucune description disponible.' }}</p>
+                      <p class="text-xs text-muted-foreground line-clamp-2">{{ community.description || 'No description available.' }}</p>
                     </div>
                     <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold"
                           [ngClass]="isAdmin ? 'bg-emerald-500/15 text-emerald-700' : 'bg-blue-500/15 text-blue-700'">
@@ -463,8 +471,8 @@ interface TeamPostState {
                   </div>
 
                   <div class="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span class="inline-flex items-center gap-1"><lucide-icon [name]="Building2Icon" [size]="12"></lucide-icon>{{ community.categoryName || 'Catégorie' }}</span>
-                    <span class="inline-flex items-center gap-1"><lucide-icon [name]="UsersIcon" [size]="12"></lucide-icon>{{ community.memberCount || 0 }} membres</span>
+                    <span class="inline-flex items-center gap-1"><lucide-icon [name]="Building2Icon" [size]="12"></lucide-icon>{{ community.categoryName || 'Category' }}</span>
+                    <span class="inline-flex items-center gap-1"><lucide-icon [name]="UsersIcon" [size]="12"></lucide-icon>{{ community.memberCount || 0 }} members</span>
                   </div>
                 </button>
               </div>
@@ -474,7 +482,7 @@ interface TeamPostState {
           <div class="lg:col-span-5 bg-card rounded-3xl border border-border p-5 md:p-6 shadow-sm lg:sticky lg:top-6 h-fit">
             <div *ngIf="loadingDetail" class="flex flex-col items-center py-12 gap-3 text-muted-foreground">
               <lucide-icon [name]="Loader2Icon" [size]="28" class="animate-spin"></lucide-icon>
-              Chargement du détail...
+              Loading details...
             </div>
 
             <ng-container *ngIf="!loadingDetail">
@@ -491,15 +499,15 @@ interface TeamPostState {
 
                 <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3 mb-4">
                   <div>
-                    <div class="font-semibold text-sm">Partager avec la communauté</div>
-                    <div class="text-xs text-muted-foreground">Les joueurs peuvent publier dans cette communauté.</div>
+                    <div class="font-semibold text-sm">Share with the community</div>
+                    <div class="text-xs text-muted-foreground">Players can post in this community.</div>
                   </div>
                   <button
                     (click)="toggleComposer()"
                     class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
                   >
                     <lucide-icon [name]="PlusIcon" [size]="15"></lucide-icon>
-                    {{ showPostComposer ? 'Masquer le formulaire' : 'Ajouter un post' }}
+                    {{ showPostComposer ? 'Hide Form' : 'Add Post' }}
                   </button>
                 </div>
 
@@ -510,10 +518,10 @@ interface TeamPostState {
                       <div>
                         <div class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-2">
                           <lucide-icon [name]="MessageCircleIcon" [size]="12"></lucide-icon>
-                          Nouveau post
+                          New post
                         </div>
-                        <div class="font-semibold text-foreground">Publier dans {{ selectedCommunity.name }}</div>
-                        <div class="text-xs text-muted-foreground">Les membres peuvent publier directement dans cette communauté.</div>
+                        <div class="font-semibold text-foreground">Post in {{ selectedCommunity.name }}</div>
+                        <div class="text-xs text-muted-foreground">Members can post directly in this community.</div>
                       </div>
                       <button
                         (click)="submitPost()"
@@ -522,19 +530,19 @@ interface TeamPostState {
                       >
                         <lucide-icon *ngIf="!posting" [name]="RefreshCcwIcon" [size]="15"></lucide-icon>
                         <lucide-icon *ngIf="posting" [name]="Loader2Icon" [size]="15" class="animate-spin"></lucide-icon>
-                        Publier
+                        Post
                       </button>
                     </div>
 
                     <textarea
                       [(ngModel)]="newPostContent"
                       rows="3"
-                      placeholder="Partagez quelque chose avec cette communauté..."
+                      placeholder="Share something with this community..."
                       class="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                     ></textarea>
 
                     <div class="rounded-xl bg-muted/20 border border-border p-3 text-xs text-muted-foreground">
-                      Les nouveaux posts sont enregistrés dans la communauté sélectionnée et visibles après publication.
+                      New posts are saved in the selected community and visible after publication.
                     </div>
                   </div>
 
@@ -545,34 +553,34 @@ interface TeamPostState {
                   <div class="rounded-2xl border border-border bg-card p-4 mt-5">
                     <div class="flex items-center justify-between gap-3 mb-4">
                       <div>
-                        <div class="font-semibold text-base">Posts récents</div>
-                        <div class="text-xs text-muted-foreground">Filtrés sur la communauté sélectionnée</div>
+                        <div class="font-semibold text-base">Recent Posts</div>
+                        <div class="text-xs text-muted-foreground">Filtered for the selected community</div>
                       </div>
                       <button (click)="reloadPosts()" class="text-xs font-semibold text-primary hover:underline" [disabled]="loadingPosts">
-                        Actualiser
+                        Refresh
                       </button>
                     </div>
 
                     <div *ngIf="loadingPosts" class="flex items-center gap-2 text-sm text-muted-foreground py-4">
                       <lucide-icon [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
-                      Chargement des posts...
+                      Loading posts...
                     </div>
 
                     <div *ngIf="postsAccessDenied" class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
                       {{ usingFallbackCommunities
-                        ? 'Posts indisponibles: ces cartes viennent du fallback local et ne pointent pas vers une communauté backend autorisée.'
+                        ? 'Posts unavailable: these cards come from local fallback and do not point to an authorized backend community.'
                         : 'Access denied for this community. You are not allowed to view posts in this community.' }}
                     </div>
 
                     <div *ngIf="!loadingPosts && communityPosts.length === 0" class="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
-                      Aucun post pour cette communauté pour le moment.
+                      No posts for this community yet.
                     </div>
 
                     <div *ngIf="!loadingPosts && communityPosts.length > 0" class="space-y-3 max-h-72 overflow-auto pr-1">
                       <div *ngFor="let post of communityPosts" class="rounded-2xl border border-border bg-muted/20 p-3">
                         <div class="flex items-start justify-between gap-3 mb-2">
                           <div>
-                            <div class="font-semibold text-sm">{{ post.authorName || post.author || 'Utilisateur' }}</div>
+                            <div class="font-semibold text-sm">{{ post.authorName || post.author || 'User' }}</div>
                             <div class="text-[11px] text-muted-foreground">{{ formatDate(post.createdAt || post.time) }}</div>
                           </div>
                           <div class="rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">Post</div>
@@ -607,7 +615,7 @@ interface TeamPostState {
         [class.scale-125]="post.reactionAnimating">
     {{ post.myReaction ? getReactionEmoji(post.myReaction) : '👍' }}
   </span>
-  <span>{{ post.myReaction ? getReactionLabel(post.myReaction) : "J'aime" }}</span>
+  <span>{{ post.myReaction ? getReactionLabel(post.myReaction) : "Like" }}</span>
 </button>
 
 <!-- ✅ Compteur cliquable EN DEHORS du bouton -->
@@ -623,7 +631,7 @@ interface TeamPostState {
                           <button (click)="toggleComments(post)"
                                   class="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-muted transition-colors">
                             <lucide-icon [name]="MessageCircleIcon" [size]="14"></lucide-icon>
-                            {{ post.commentsCount ?? post.comments ?? 0 }} Commenter
+                            {{ post.commentsCount ?? post.comments ?? 0 }} Comment
                           </button>
 
                         </div>
@@ -631,14 +639,14 @@ interface TeamPostState {
                         <div *ngIf="post.showComment" class="mt-4 pt-4 border-t border-border space-y-3">
                           <div *ngIf="post.loadingComments" class="flex items-center gap-2 text-sm text-muted-foreground py-2">
                             <lucide-icon [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
-                            Chargement des commentaires...
+                            Loading comments...
                           </div>
 
                           <div *ngIf="!post.loadingComments" class="space-y-2 max-h-64 overflow-y-auto pr-1">
                             <div *ngFor="let comment of post.commentList" class="rounded-xl bg-card border border-border px-3 py-2">
                               <div class="flex items-start justify-between gap-3 mb-1">
                                 <div class="text-xs font-semibold text-foreground">
-                                  {{ comment.authorName || comment.authorFirstName || 'Utilisateur' }}
+                                  {{ comment.authorName || comment.authorFirstName || 'User' }}
                                 </div>
                                 <div class="text-[11px] text-muted-foreground">{{ formatDate(comment.createdAt) }}</div>
                               </div>
@@ -646,14 +654,14 @@ interface TeamPostState {
                             </div>
 
                             <div *ngIf="!post.commentList || post.commentList.length === 0" class="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-                              Soyez le premier à commenter.
+                              Be the first to comment.
                             </div>
                           </div>
 
                           <div class="flex gap-2 items-start">
                             <input
                               [(ngModel)]="post.commentInput"
-                              placeholder="Écrire un commentaire..."
+                              placeholder="Write a comment..."
                               (keyup.enter)="addComment(post)"
                               class="flex-1 rounded-full border border-border bg-card px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             />
@@ -662,12 +670,12 @@ interface TeamPostState {
                               [disabled]="post.addingComment || !post.commentInput?.trim()"
                               class="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
                             >
-                              {{ post.addingComment ? '...' : 'Envoyer' }}
+                              {{ post.addingComment ? '...' : 'Send' }}
                             </button>
                             <button
                               (click)="toggleComments(post)"
                               class="inline-flex items-center justify-center rounded-full border border-border bg-card px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                              aria-label="Fermer les commentaires"
+                              aria-label="Close comments"
                             >
                               <lucide-icon [name]="XIcon" [size]="14"></lucide-icon>
                             </button>
@@ -681,8 +689,8 @@ interface TeamPostState {
               <ng-template #emptyDetail>
                 <div class="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
                   <div class="text-4xl mb-3">🔎</div>
-                  <p class="font-semibold mb-1">Sélectionnez une communauté</p>
-                  <p class="text-sm">Le détail s’affiche ici.</p>
+                  <p class="font-semibold mb-1">Select a community</p>
+                  <p class="text-sm">Details will be shown here.</p>
                 </div>
               </ng-template>
             </ng-container>
@@ -704,7 +712,7 @@ interface TeamPostState {
 
     <!-- Header -->
     <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f0f0f0;">
-      <span style="font-size: 15px; font-weight: 600; color: #111;">Réactions</span>
+      <span style="font-size: 15px; font-weight: 600; color: #111;">Reactions</span>
       <button (click)="closeReactionsModal()"
               style="width: 28px; height: 28px; border-radius: 50%; border: 1px solid #e5e7eb; background: #f5f5f5; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #666; font-size: 14px;">✕</button>
     </div>
@@ -716,7 +724,7 @@ interface TeamPostState {
               [style.border]="activeReactionFilter === null ? '1.5px solid #378ADD' : '1px solid #e5e7eb'"
               [style.background]="activeReactionFilter === null ? '#E6F1FB' : 'white'"
               [style.color]="activeReactionFilter === null ? '#0C447C' : '#666'">
-        Tous
+        All
         <span style="border-radius: 10px; padding: 1px 7px; font-size: 11px;"
               [style.background]="activeReactionFilter === null ? '#378ADD' : '#f0f0f0'"
               [style.color]="activeReactionFilter === null ? 'white' : '#666'">
@@ -740,12 +748,12 @@ interface TeamPostState {
       <div *ngIf="loadingModalReactions"
            style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 2rem; color: #888; font-size: 13px;">
         <lucide-icon [name]="Loader2Icon" [size]="16" class="animate-spin"></lucide-icon>
-        Chargement...
+        Loading...
       </div>
 
       <div *ngIf="!loadingModalReactions && filteredModalUsers.length === 0"
            style="text-align: center; padding: 2rem; color: #888; font-size: 13px;">
-        Aucune réaction pour le moment.
+        No reactions yet.
       </div>
 
       <div *ngFor="let user of filteredModalUsers"
@@ -813,6 +821,7 @@ export class CommunitiesComponent implements OnInit, OnDestroy {
   readonly ChevronDownIcon = ChevronDown;
   readonly ChevronUpIcon = ChevronUp;
   readonly ImagePlusIcon = ImagePlus;
+  readonly SparklesIcon = Sparkles;
 
   // ── Team community mode ──────────────────────────────────────────────────
   teamMode = false;
@@ -827,6 +836,7 @@ export class CommunitiesComponent implements OnInit, OnDestroy {
   newTeamPostImage: File | null = null;
   newTeamPostImagePreview: string | null = null;
   submittingTeamPost = false;
+  generatingTeamSuggestion = false;
   teamPostError: string | null = null;
   teamCurrentUserId = 0;
   teamCurrentUserInitials = '';
@@ -871,7 +881,7 @@ export class CommunitiesComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private badWordsFilter: BadWordsFilterService  // ✅ ajout
+    private badWordsFilter: BadWordsFilterService
 
   ) { }
 
@@ -897,15 +907,15 @@ export class CommunitiesComponent implements OnInit, OnDestroy {
 
   get postComposerHint(): string {
     if (!this.isAuthenticated) {
-      return 'Connectez-vous pour publier dans cette communauté.';
+      return 'Log in to post in this community.';
     }
     if (this.postsAccessDenied) {
-      return 'Vous n\'êtes pas autorisé à publier dans cette communauté.';
+      return 'You are not authorized to post in this community.';
     }
     if (this.usingFallbackCommunities) {
-      return 'Communauté affichée en mode fallback. La publication peut dépendre de la disponibilité de la communauté backend.';
+      return 'Community displayed in fallback mode. Posting may depend on backend community availability.';
     }
-    return 'La publication est indisponible pour le moment.';
+    return 'Posting is unavailable at the moment.';
   }
 
   ngOnInit(): void {
@@ -1089,7 +1099,7 @@ loadCommunities(loadDetail = true): void {
           this.missingDetailCommunityIds.add(id);
         }
         if (status === 401) {
-          this.detailError = 'Session expirée. Reconnectez-vous pour voir cette communauté.';
+          this.detailError = 'Session expired. Please log in again to view this community.';
         } else if (status === 403) {
           this.detailError = 'You are not authorized to view this community.';
         } else if (status === 404) {
@@ -1158,13 +1168,13 @@ loadCommunities(loadDetail = true): void {
     const rawContent = this.newPostContent.trim();
     if (!rawContent || !this.selectedCommunityId || this.posting || !this.isAuthenticated) {
       if (!this.isAuthenticated) {
-        this.showToast('Connectez-vous pour publier dans cette communauté.');
+        this.showToast('Log in to post in this community.');
       }
       return;
     }
 
     if (this.loadingPosts) {
-      this.showToast('Vérification des permissions en cours...');
+      this.showToast('Verifying permissions...');
       return;
     }
 
@@ -1189,7 +1199,6 @@ loadCommunities(loadDetail = true): void {
       return;
     }
 
-    // ✅ Filtrer les bad words avant envoi
     const content = this.badWordsFilter.filter(rawContent);
     const title = this.derivePostTitle(content);
 
@@ -1204,7 +1213,7 @@ loadCommunities(loadDetail = true): void {
         this.posts.unshift(createdPost);
         this.newPostContent = '';
         this.posting = false;
-        this.showToast('Post publié dans la communauté.');
+        this.showToast('Post published in the community.');
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -1266,7 +1275,7 @@ loadCommunities(loadDetail = true): void {
       error: () => {
         post.liked = previousLiked;
         post.likesCount = previousLikesCount;
-        this.showToast('Erreur lors de l\'ajout du like');
+        this.showToast('Error adding like');
         this.cdr.detectChanges();
       }
     });
@@ -1292,7 +1301,7 @@ loadCommunities(loadDetail = true): void {
       },
       error: () => {
         post.loadingComments = false;
-        this.showToast('Impossible de charger les commentaires');
+        this.showToast('Unable to load comments');
         this.cdr.detectChanges();
       }
     });
@@ -1304,7 +1313,6 @@ loadCommunities(loadDetail = true): void {
       return;
     }
 
-    // ✅ Filtrer les bad words avant envoi
     const content = this.badWordsFilter.filter(rawContent);
 
     post.addingComment = true;
@@ -1321,7 +1329,7 @@ loadCommunities(loadDetail = true): void {
       },
       error: () => {
         post.addingComment = false;
-        this.showToast('Erreur lors de l\'envoi du commentaire');
+        this.showToast('Error sending comment');
         this.cdr.detectChanges();
       }
     });
@@ -1337,7 +1345,7 @@ loadCommunities(loadDetail = true): void {
     return {
       ...raw,
       id,
-      name: raw?.name || raw?.title || categoryName || `Communauté #${id}`,
+      name: raw?.name || raw?.title || categoryName || `Community #${id}`,
       description: raw?.description || raw?.summary || '',
       categoryId: Number(raw?.categoryId || category?.id || 0) || undefined,
       categoryName,
@@ -1367,7 +1375,6 @@ private normalizePost(post: any): any {
     addingComment: false
   };
 
-  // ✅ Charger la réaction de l'user au refresh
   this.communityService.getReactions(post.id).subscribe({
     next: (res: { myReaction: string | null; totalCount: number; counts: Record<string, number> }) => {
       normalized.myReaction = res.myReaction || null;
@@ -1390,20 +1397,20 @@ private normalizePost(post: any): any {
     const date = new Date(value);
     const diffMs = Date.now() - date.getTime();
     const diffHours = Math.floor(diffMs / 3600000);
-    if (diffHours < 1) return 'À l\'instant';
-    if (diffHours < 24) return `Il y a ${diffHours}h`;
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
 
   private toReadableError(error: unknown): string {
     const httpError = error as HttpErrorResponse;
-    if (httpError?.status === 401) return 'Session expirée. Reconnectez-vous.';
+    if (httpError?.status === 401) return 'Session expired. Please log in again.';
     if (httpError?.status === 403) return 'You are not authorized to view this community.';
-    if (httpError?.status === 404) return 'Communauté introuvable.';
-    if (httpError?.status === 0) return 'Impossible de joindre le serveur. Vérifiez votre connexion.';
+    if (httpError?.status === 404) return 'Community not found.';
+    if (httpError?.status === 0) return 'Unable to reach server. Check your connection.';
 
     const serverMessage = (httpError?.error?.message || httpError?.error?.error || httpError?.message || '').toString().trim();
-    return serverMessage || 'Erreur inattendue lors du chargement des communautés.';
+    return serverMessage || 'Unexpected error loading communities.';
   }
 
   private showToast(message: string): void {
@@ -1416,12 +1423,12 @@ private normalizePost(post: any): any {
 
 
   readonly reactions = [
-    { type: 'LIKE', emoji: '👍', label: "J'aime", color: '#1877f2' },
-    { type: 'LOVE', emoji: '❤️', label: "J'adore", color: '#f33e58' },
+    { type: 'LIKE', emoji: '👍', label: 'Like', color: '#1877f2' },
+    { type: 'LOVE', emoji: '❤️', label: 'Love', color: '#f33e58' },
     { type: 'HAHA', emoji: '😂', label: 'Haha', color: '#f7b125' },
     { type: 'WOW', emoji: '😮', label: 'Wow', color: '#f7b125' },
-    { type: 'SAD', emoji: '😢', label: 'Triste', color: '#f7b125' },
-    { type: 'ANGRY', emoji: '😡', label: 'Grrr', color: '#e9710f' },
+    { type: 'SAD', emoji: '😢', label: 'Sad', color: '#f7b125' },
+    { type: 'ANGRY', emoji: '😡', label: 'Angry', color: '#e9710f' },
   ];
 
   selectReaction(post: any, reaction: any): void {
@@ -1479,7 +1486,7 @@ private normalizePost(post: any): any {
   }
 
   getReactionLabel(type: string): string {
-    return this.reactions.find(r => r.type === type)?.label || "J'aime";
+    return this.reactions.find(r => r.type === type)?.label || 'Like';
   }
 
   getReactionColor(type: string): string {
@@ -1700,8 +1707,8 @@ private normalizePost(post: any): any {
         this.loadingMoreTeamPosts = false;
         const status = (err as any)?.status;
         this.teamErrorBanner = status === 403
-          ? 'Vous devez être membre de cette équipe pour accéder à la communauté.'
-          : 'Impossible de charger les posts. Vérifiez votre connexion.';
+          ? 'You must be a member of this team to access the community.'
+          : 'Unable to load posts. Check your connection.';
         this.cdr.detectChanges();
       }
     });
@@ -1746,6 +1753,25 @@ private normalizePost(post: any): any {
     this.newTeamPostImagePreview = null;
   }
 
+  generateTeamAiSuggestion(): void {
+    if (this.generatingTeamSuggestion || this.submittingTeamPost || !this.teamId) return;
+    this.generatingTeamSuggestion = true;
+    this.teamPostError = null;
+
+    this.communityService.getAiPostSuggestion(this.teamId).subscribe({
+      next: (res) => {
+        this.newTeamPostContent = res.suggestion;
+        this.generatingTeamSuggestion = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.generatingTeamSuggestion = false;
+        this.teamPostError = 'Could not generate suggestion. Please try again.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   submitTeamPost(): void {
     const content = this.newTeamPostContent.trim();
     if (!content || !this.teamId || this.submittingTeamPost) return;
@@ -1772,7 +1798,7 @@ private normalizePost(post: any): any {
       },
       error: (err) => {
         this.submittingTeamPost = false;
-        this.teamPostError = (err as any)?.error?.message || 'Erreur lors de la publication.';
+        this.teamPostError = (err as any)?.error?.message || 'Error during publishing.';
         this.cdr.detectChanges();
       }
     });
@@ -1787,13 +1813,13 @@ private normalizePost(post: any): any {
   }
 
   confirmDeleteTeamPost(post: TeamPostState): void {
-    if (!confirm('Supprimer ce post ?')) return;
+    if (!confirm('Delete this post?')) return;
     this.communityService.deleteTeamPost(post.data.id).subscribe({
       next: () => {
         this.teamPosts = this.teamPosts.filter(p => p !== post);
         this.cdr.detectChanges();
       },
-      error: () => this.showToast('Impossible de supprimer le post.')
+      error: () => this.showToast('Unable to delete post.')
     });
   }
 
@@ -1843,7 +1869,7 @@ private normalizePost(post: any): any {
   }
 
   deleteTeamComment(post: TeamPostState, comment: TeamCommentResponse, parent?: TeamCommentResponse): void {
-    if (!confirm('Supprimer ce commentaire ?')) return;
+    if (!confirm('Delete this comment?')) return;
     this.communityService.deleteTeamPostComment(comment.id).subscribe({
       next: () => {
         if (parent) {
@@ -1854,7 +1880,7 @@ private normalizePost(post: any): any {
         post.data.commentCount = Math.max(0, post.data.commentCount - 1);
         this.cdr.detectChanges();
       },
-      error: () => this.showToast('Impossible de supprimer le commentaire.')
+      error: () => this.showToast('Unable to delete comment.')
     });
   }
 

@@ -19,13 +19,13 @@ import { WebSocketService } from '../services/websocket.service';
           <lucide-icon [img]="backIcon" [size]="20" class="text-muted-foreground"></lucide-icon>
         </a>
         <div>
-          <h1 class="text-2xl font-bold text-foreground">Réserver un Terrain</h1>
-          <p class="text-muted-foreground">Complétez les détails de votre réservation</p>
+          <h1 class="text-2xl font-bold text-foreground">Book a Field</h1>
+          <p class="text-muted-foreground">Complete your booking details</p>
         </div>
       </div>
 
       <div *ngIf="!field" class="p-4 bg-muted text-center rounded-xl">
-        Chargement du terrain...
+        Loading field...
       </div>
 
       <ng-container *ngIf="field">
@@ -39,16 +39,16 @@ import { WebSocketService } from '../services/websocket.service';
               <h2 class="font-semibold text-foreground text-lg">{{ field.name }}</h2>
               <p class="text-muted-foreground flex items-center gap-1 text-sm">
                 <lucide-icon [img]="locationIcon" [size]="14"></lucide-icon>
-                {{ field.location || 'Localisation inconnue' }}
+                {{ field.location || 'Unknown location' }}
               </p>
-              <p class="text-primary font-semibold mt-1">{{ field.price }} €/heure</p>
+              <p class="text-primary font-semibold mt-1">{{ field.price }} €/hour</p>
             </div>
           </div>
         </div>
 
         <!-- Booking Form -->
         <div class="bg-card rounded-xl border border-border p-6 space-y-5">
-          <h3 class="font-semibold text-foreground">Détails de la réservation</h3>
+          <h3 class="font-semibold text-foreground">Booking Details</h3>
 
           <!-- Date -->
           <div>
@@ -66,32 +66,32 @@ import { WebSocketService } from '../services/websocket.service';
             <div>
               <label class="block text-sm font-medium text-foreground mb-2">
                 <lucide-icon [img]="clockIcon" [size]="14" class="inline mr-1"></lucide-icon>
-                Début
+                Start
               </label>
               <select [(ngModel)]="bookingTime"
                 (ngModelChange)="checkCurrentSlot()"
                 class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground">
                 <option *ngFor="let slot of timeSlots" [value]="slot" [disabled]="!isSlotAvailable(slot)">
-                  {{ slot }} {{ !isSlotAvailable(slot) ? '(Indisponible)' : '' }}
+                  {{ slot }} {{ !isSlotAvailable(slot) ? '(Unavailable)' : '' }}
                 </option>
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-foreground mb-2">Durée</label>
+              <label class="block text-sm font-medium text-foreground mb-2">Duration</label>
               <select [(ngModel)]="bookingDuration"
                 (ngModelChange)="onDateOrDurationChange()"
                 class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground">
-                <option [ngValue]="1">1 heure</option>
+                <option [ngValue]="1">1 hour</option>
                 <option [ngValue]="1.5">1h30</option>
-                <option [ngValue]="2">2 heures</option>
-                <option [ngValue]="3">3 heures</option>
+                <option [ngValue]="2">2 hours</option>
+                <option [ngValue]="3">3 hours</option>
               </select>
             </div>
           </div>
 
           <!-- Players count -->
           <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Nombre de joueurs</label>
+            <label class="block text-sm font-medium text-foreground mb-2">Number of players</label>
             <div class="flex items-center gap-3">
               <button (click)="players = players > 2 ? players - 1 : 2"
                 class="w-10 h-10 bg-muted border border-border rounded-lg hover:bg-primary/10 font-bold">-</button>
@@ -103,22 +103,22 @@ import { WebSocketService } from '../services/websocket.service';
 
           <!-- Note -->
           <div>
-            <label class="block text-sm font-medium text-foreground mb-2">Note (optionnel)</label>
-            <textarea rows="3" [(ngModel)]="note" placeholder="Instructions pour le gérant..."
+            <label class="block text-sm font-medium text-foreground mb-2">Note (optional)</label>
+            <textarea rows="3" [(ngModel)]="note" placeholder="Instructions for the manager..."
               class="w-full px-3 py-2 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground resize-none"></textarea>
           </div>
         </div>
 
         <!-- Price breakdown -->
         <div class="bg-card rounded-xl border border-border p-5">
-          <h3 class="font-semibold text-foreground mb-3">Récapitulatif</h3>
+          <h3 class="font-semibold text-foreground mb-3">Summary</h3>
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
               <span class="text-muted-foreground">Location ({{ bookingDuration }}h)</span>
               <span>{{ field.price * bookingDuration }} €</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-muted-foreground">Frais de service</span>
+              <span class="text-muted-foreground">Service fees</span>
               <span>5 €</span>
             </div>
             <div class="flex justify-between font-bold text-lg border-t border-border pt-2 mt-2">
@@ -145,7 +145,7 @@ import { WebSocketService } from '../services/websocket.service';
           class="w-full text-primary-foreground py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           [ngClass]="paid ? 'bg-green-500 cursor-default' : 'bg-primary hover:bg-primary/90'">
           <lucide-icon [img]="paid ? checkIcon : creditCardIcon" [size]="20"></lucide-icon>
-          {{ paid ? (lastReservationStatus === 'confirmed' ? 'Présence confirmée' : 'Réservation enregistrée') : 'Confirmer et Payer' }}
+          {{ paid ? (lastReservationStatus === 'confirmed' ? 'Attendance confirmed' : 'Booking recorded') : 'Confirm and Pay' }}
         </button>
       </ng-container>
     </div>
@@ -202,7 +202,7 @@ export class BookingFormComponent implements OnInit, OnDestroy {
       });
 
       // Charger les réservations immédiatement
-      console.log('🔄 Chargement des réservations pour terrain:', id);
+      console.log('🔄 Loading reservations for field:', id);
       this.loadReservations(id);
     }
 
@@ -271,7 +271,7 @@ export class BookingFormComponent implements OnInit, OnDestroy {
 
     if (!this.bookingService.respectsMinimumAdvanceNotice(this.bookingDate, this.bookingTime)) {
       this.notificationType = 'error';
-      this.notification = '⛔ Réservation impossible\nIl n\'est plus possible de réserver ce créneau. Les réservations doivent être effectuées au moins 2 heures à l\'avance.';
+      this.notification = '⛔ Booking impossible\nIt is no longer possible to book this slot. Bookings must be made at least 2 hours in advance.';
       setTimeout(() => { this.notification = ''; }, 5000);
       return;
     }
@@ -279,7 +279,7 @@ export class BookingFormComponent implements OnInit, OnDestroy {
     // Double vérification côté client avant envoi
     if (!this.slotAvailable) {
       this.notificationType = 'error';
-      this.notification = '❌ Ce créneau est déjà réservé. Veuillez choisir un autre horaire.';
+      this.notification = '❌ This slot is already booked. Please choose another time.';
       setTimeout(() => { this.notification = ''; }, 4000);
       return;
     }
@@ -300,7 +300,7 @@ export class BookingFormComponent implements OnInit, OnDestroy {
         this.paid = true;
         this.lastReservationStatus = saved?.status || null;
         this.notificationType = 'success';
-        this.notification = saved?.message || '✅ Réservation enregistrée.';
+        this.notification = saved?.message || '✅ Booking recorded.';
 
         setTimeout(() => {
           this.notification = '';
@@ -308,13 +308,13 @@ export class BookingFormComponent implements OnInit, OnDestroy {
         }, 2000);
       },
       error: (err) => {
-        console.error('❌ Erreur réservation:', err);
+        console.error('❌ Booking error:', err);
         this.notificationType = 'error';
 
-        let errorMsg = `Erreur ${err?.status || '?'}: `;
+        let errorMsg = `Error ${err?.status || '?'}: `;
 
         if (err?.status === 409) {
-          errorMsg += 'Ce créneau est déjà réservé (conflit). Merci de choisir un autre horaire.';
+          errorMsg += 'This slot is already booked (conflict). Please choose another time.';
         } else if (err?.error?.error) {
           errorMsg += err.error.error;
         } else if (err?.error?.message) {
@@ -322,7 +322,7 @@ export class BookingFormComponent implements OnInit, OnDestroy {
         } else if (err?.message) {
           errorMsg += err.message;
         } else {
-          errorMsg += 'Erreur lors de la réservation au serveur.';
+          errorMsg += 'Error during booking with the server.';
         }
 
         this.notification = `❌ ${errorMsg}`;

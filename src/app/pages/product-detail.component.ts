@@ -19,7 +19,7 @@ import { of, Subject } from 'rxjs';
         <div class="container mx-auto px-4 h-14 flex items-center justify-between">
            <button type="button" (click)="goBack()" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">
               <lucide-icon [name]="ArrowLeftIcon" [size]="16"></lucide-icon>
-              Retour Boutique
+              Back to Shop
            </button>
            <span class="text-[10px] font-bold text-muted-foreground opacity-30">{{ debugInfo }}</span>
         </div>
@@ -28,7 +28,7 @@ import { of, Subject } from 'rxjs';
       <!-- Loading State (Non-blocking) -->
       <div *ngIf="loading" class="flex flex-col items-center justify-center min-h-[60vh]">
          <div class="loader-static"></div>
-         <p class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-4">Chargement instantané...</p>
+         <p class="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-4">Loading...</p>
       </div>
 
       <!-- Error State -->
@@ -36,9 +36,9 @@ import { of, Subject } from 'rxjs';
          <div class="h-16 w-16 bg-destructive/10 text-destructive rounded-2xl flex items-center justify-center mb-6">
             <lucide-icon [name]="AlertCircleIcon" [size]="32"></lucide-icon>
          </div>
-         <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Oups ! Erreur de chargement</h2>
+         <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Oops! Loading error</h2>
          <p class="text-muted-foreground mb-8 max-w-sm text-sm">{{ errorMessage }}</p>
-         <button type="button" (click)="loadProduct()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs cursor-pointer">RÉESSAYER</button>
+         <button type="button" (click)="loadProduct()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs cursor-pointer">RETRY</button>
       </div>
 
       <!-- Product Detail (Stable Layout) -->
@@ -49,8 +49,8 @@ import { of, Subject } from 'rxjs';
           <div class="space-y-6">
              <div class="bg-card border border-border rounded-lg overflow-hidden aspect-square flex items-center justify-center p-8 relative">
                 <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                  <span *ngIf="product.stock === 0" class="bg-black text-white px-3 py-1 text-[9px] font-black uppercase">Rupture</span>
-                  <span *ngIf="product.stock > 0 && product.stock < 10" class="bg-red-600 text-white px-3 py-1 text-[9px] font-black uppercase">Stock Faible</span>
+                  <span *ngIf="product.stock === 0" class="bg-black text-white px-3 py-1 text-[9px] font-black uppercase">Out of Stock</span>
+                  <span *ngIf="product.stock > 0 && product.stock < 10" class="bg-red-600 text-white px-3 py-1 text-[9px] font-black uppercase">Low Stock</span>
                 </div>
                 <img *ngIf="currentImage" [src]="currentImage" [alt]="product.nom" class="w-full h-full object-contain">
                 <div *ngIf="!currentImage" class="text-6xl opacity-10">📦</div>
@@ -79,9 +79,9 @@ import { of, Subject } from 'rxjs';
              <div class="flex items-center gap-4 mb-8">
                 <span class="text-3xl font-black text-primary">{{ formatPrice(selectedPrice) }}</span>
                 <span class="h-4 w-px bg-border"></span>
-                  <span *ngIf="($any(product).status === 'EN_STOCK' || $any(product).status === 'IN_STOCK' || !$any(product).status) && product.stock > 0" class="text-[10px] font-bold text-green-600 uppercase">✓ En Stock</span>
-                  <span *ngIf="$any(product).status === 'RUPTURE_DE_STOCK' || product.stock === 0" class="text-[10px] font-bold text-red-600 uppercase">✗ Épuisé</span>
-                  <span *ngIf="($any(product).status === 'ARRIVING_SOON' || $any(product).status === 'EN_ARRIVAGE') && product.stock > 0" class="text-[10px] font-bold text-amber-500 uppercase">⏳ En Arrivage</span>
+                  <span *ngIf="($any(product).status === 'EN_STOCK' || $any(product).status === 'IN_STOCK' || !$any(product).status) && product.stock > 0" class="text-[10px] font-bold text-green-600 uppercase">✓ In Stock</span>
+                  <span *ngIf="$any(product).status === 'RUPTURE_DE_STOCK' || product.stock === 0" class="text-[10px] font-bold text-red-600 uppercase">✗ Sold Out</span>
+                  <span *ngIf="($any(product).status === 'ARRIVING_SOON' || $any(product).status === 'EN_ARRIVAGE') && product.stock > 0" class="text-[10px] font-bold text-amber-500 uppercase">⏳ Coming Soon</span>
              </div>
 
              <div class="prose prose-sm mb-10 text-muted-foreground font-medium">
@@ -89,7 +89,7 @@ import { of, Subject } from 'rxjs';
                 <div *ngIf="debugInfo" class="mt-1 text-[8px] opacity-40">{{ debugInfo }}</div>
                 
                 <div class="mt-4 pt-4 border-t border-border/50">
-                    <span class="uppercase tracking-wider text-[10px] font-black text-muted-foreground">Sizes Disponibles:</span>
+                    <span class="uppercase tracking-wider text-[10px] font-black text-muted-foreground">Available Sizes:</span>
                     <span *ngIf="sizeVariants.length > 0" class="ml-2 font-bold text-foreground text-sm">{{ sizeVariants.join(', ') }}</span>
                     <span *ngIf="sizeVariants.length === 0" class="ml-2 font-bold text-foreground text-sm uppercase">XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL</span>
                 </div>
@@ -100,7 +100,7 @@ import { of, Subject } from 'rxjs';
                 
                  <div *ngIf="sizeVariants.length > 0" class="mb-6">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                       Taille : <span class="text-primary">{{ selectedSize || 'Choisir' }}</span>
+                       Size : <span class="text-primary">{{ selectedSize || 'Select' }}</span>
                     </h3>
                     <div class="flex flex-wrap gap-2">
                        <button *ngFor="let s of sizeVariants" 
@@ -112,7 +112,7 @@ import { of, Subject } from 'rxjs';
                                [class.border-primary]="selectedSize === s && getVariantStock(s) > 0"
                                [class.border-border]="selectedSize !== s && getVariantStock(s) > 0"
                                [class.border-gray-300]="getVariantStock(s) === 0"
-                               [title]="getVariantStock(s) === 0 ? 'En rupture de stock' : 'En stock'">
+                               [title]="getVariantStock(s) === 0 ? 'Out of stock' : 'In stock'">
                           <!-- Ligne rouge en diagonale pour Rupture de Stock (SVG robuste) -->
                           <svg *ngIf="getVariantStock(s) === 0" class="absolute inset-0 w-full h-full text-red-500 opacity-70 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
                              <line x1="0" y1="100" x2="100" y2="0" stroke="currentColor" stroke-width="4" />
@@ -125,7 +125,7 @@ import { of, Subject } from 'rxjs';
                  <!-- Couleurs Disponibles -->
                  <div *ngIf="isClothingItem() || colorVariants.length > 0" class="mb-8">
                     <h3 class="text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                       Couleur : <span class="text-primary">{{ selectedColor || 'Choisir' }}</span>
+                       Color : <span class="text-primary">{{ selectedColor || 'Select' }}</span>
                     </h3>
                     <div class="flex flex-wrap gap-4">
                        <!-- We show either the standard colors or the specific variants found -->
@@ -190,12 +190,12 @@ import { of, Subject } from 'rxjs';
 
                 <div class="flex gap-8 p-4 bg-muted/50 rounded-lg">
                    <div class="flex flex-col gap-1">
-                      <span class="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Livraison Express</span>
-                      <span class="text-[10px] font-bold">24-48 HEURES</span>
+                      <span class="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Express Delivery</span>
+                      <span class="text-[10px] font-bold">24-48 HOURS</span>
                    </div>
                    <div class="flex flex-col gap-1">
-                      <span class="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Paiement Sécurisé</span>
-                      <span class="text-[10px] font-bold">CARTE / CASH</span>
+                      <span class="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Secure Payment</span>
+                      <span class="text-[10px] font-bold">CARD / CASH</span>
                    </div>
                 </div>
              </div>
@@ -209,9 +209,9 @@ import { of, Subject } from 'rxjs';
          <div class="h-16 w-16 bg-muted text-muted-foreground rounded-2xl flex items-center justify-center mb-6">
             <lucide-icon [name]="SearchIcon" [size]="32"></lucide-icon>
          </div>
-         <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Produit introuvable</h2>
-         <p class="text-muted-foreground mb-8 max-w-sm text-sm">Cet article n'existe plus ou est momentanément indisponible.</p>
-         <button type="button" (click)="goBack()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs cursor-pointer">RETOUR À LA BOUTIQUE</button>
+         <h2 class="text-2xl font-black mb-2 uppercase tracking-tighter">Product not found</h2>
+         <p class="text-muted-foreground mb-8 max-w-sm text-sm">This item no longer exists or is temporarily unavailable.</p>
+         <button type="button" (click)="goBack()" class="btn-static px-8 h-12 bg-primary text-black font-black uppercase text-xs cursor-pointer">BACK TO SHOP</button>
       </div>
 
       <!-- Similar AI Products -->
@@ -219,18 +219,18 @@ import { of, Subject } from 'rxjs';
         <div class="flex items-center justify-between mb-8">
            <div class="flex items-center gap-3">
               <lucide-icon [img]="SparklesIcon" [size]="24" class="text-primary"></lucide-icon>
-              <h2 class="text-2xl font-black uppercase tracking-tighter">Accueil</h2>
+              <h2 class="text-2xl font-black uppercase tracking-tighter">Recommended for you</h2>
            </div>
            <span *ngIf="loadingSimilar" class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <lucide-icon [img]="Loader2Icon" [size]="14" class="animate-spin"></lucide-icon> Analyse IA en cours...
+              <lucide-icon [img]="Loader2Icon" [size]="14" class="animate-spin"></lucide-icon> AI analysis in progress...
            </span>
         </div>
         
         <!-- Empty / Error state -->
         <div *ngIf="!loadingSimilar && similarProducts.length === 0" class="bg-muted/30 border border-border/50 rounded-2xl p-12 text-center">
            <lucide-icon [img]="SparklesIcon" [size]="40" class="mx-auto text-muted-foreground/30 mb-4"></lucide-icon>
-           <h3 class="text-sm font-black uppercase tracking-widest text-muted-foreground mb-2">Aucune recommandation</h3>
-           <p class="text-xs text-muted-foreground max-w-md mx-auto">L'intelligence artificielle n'a pas trouvé d'articles similaires pour le moment, ou vous n'êtes pas connecté.</p>
+           <h3 class="text-sm font-black uppercase tracking-widest text-muted-foreground mb-2">No recommendations</h3>
+           <p class="text-xs text-muted-foreground max-w-md mx-auto">AI hasn't found any similar items yet, or you are not logged in.</p>
            <p class="text-[10px] mt-4 font-mono text-muted-foreground opacity-50">{{ debugAiMessage }}</p>
         </div>
 
@@ -300,11 +300,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   readonly SparklesIcon = Sparkles;
 
   readonly CLOTHING_COLORS = [
-    { name: 'Gris', hex: '#808080' },
-    { name: 'Bleu', hex: '#0000FF' },
-    { name: 'Noir', hex: '#000000' },
-    { name: 'Marron', hex: '#8B4513' },
-    { name: 'Blanc', hex: '#FFFFFF' }
+    { name: 'Grey', hex: '#808080' },
+    { name: 'Blue', hex: '#0000FF' },
+    { name: 'Black', hex: '#000000' },
+    { name: 'Brown', hex: '#8B4513' },
+    { name: 'White', hex: '#FFFFFF' }
   ];
 
   private destroy$ = new Subject<void>();
@@ -375,8 +375,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           catchError(err => {
             console.error('Fetch error:', err);
             this.errorMessage = err.status === 404
-              ? "Produit introuvable (404)."
-              : "Erreur de connexion au serveur.";
+              ? "Product not found (404)."
+              : "Connection error with the server.";
             return of(null);
           })
         );
@@ -384,7 +384,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       catchError(outerErr => {
         console.error('Outer stream error:', outerErr);
         this.loading = false;
-        this.errorMessage = "Erreur système inattendue.";
+        this.errorMessage = "Unexpected system error.";
         this.cdr.detectChanges();
         return of(null);
       }),
@@ -393,16 +393,16 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.loading = false;
 
       if (!res && !this.errorMessage) {
-        this.errorMessage = "L'article demandé n'est pas disponible.";
+        this.errorMessage = "The requested item is not available.";
       }
 
       if (res) {
         this.handleProductData(res);
-        this.debugInfo = `ID ${res.id} chargé. Variants: ${res.variants?.length || 0}`;
+        this.debugInfo = `ID ${res.id} loaded. Variants: ${res.variants?.length || 0}`;
         this.checkIfFavorite();
         this.loadSimilarProducts();
       } else {
-        this.debugInfo = 'Erreur ou non trouvé.';
+        this.debugInfo = 'Error or not found.';
       }
       this.cdr.detectChanges();
     });
@@ -411,25 +411,25 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   loadSimilarProducts() {
     const userIdStr = localStorage.getItem('user_id');
     if (!userIdStr) {
-       this.debugAiMessage = 'Utilisateur non connecté (userId manquant dans le cache).';
+       this.debugAiMessage = 'User not logged in (userId missing in cache).';
        this.loadingSimilar = false;
        return;
     }
     const userId = parseInt(userIdStr, 10);
     if (isNaN(userId)) {
-       this.debugAiMessage = 'Utilisateur invalide.';
+       this.debugAiMessage = 'Invalid user.';
        this.loadingSimilar = false;
        return;
     }
 
     this.loadingSimilar = true;
-    this.debugAiMessage = 'Appel au service Flask ML via Spring Boot...';
+    this.debugAiMessage = 'Calling Flask ML service via Spring Boot...';
     
     // First, fetch AI recommendations
     this.productService.getAIRecommendations(userId, 20).pipe(
       timeout(8000),
       catchError(err => {
-        this.debugAiMessage = `Timeout ou Erreur réseau: ${err.message || 'Le serveur met trop de temps à répondre.'}`;
+        this.debugAiMessage = `Timeout or network error: ${err.message || 'Server taking too long to respond.'}`;
         this.loadingSimilar = false;
         this.cdr.detectChanges();
         return of(null);
@@ -439,14 +439,14 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         if (!aiRes) return; // Already handled by catchError
 
         if (aiRes.flask_available === false) {
-          this.debugAiMessage = 'Le serveur Flask (IA) est hors ligne ou indisponible.';
+          this.debugAiMessage = 'Flask server (AI) is offline or unavailable.';
           this.loadingSimilar = false;
           this.cdr.detectChanges();
           return;
         }
 
         if (!aiRes.ranked_products || aiRes.ranked_products.length === 0) {
-          this.debugAiMessage = 'L\'IA a renvoyé 0 produit recommandé.';
+          this.debugAiMessage = 'AI returned 0 recommended products.';
           this.loadingSimilar = false;
           this.cdr.detectChanges();
           return;
@@ -459,13 +459,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           .filter((id: number) => id !== this.productId); // Exclude current product
           
         if (aiRankedIds.length === 0) {
-          this.debugAiMessage = 'Tous les produits recommandés ont été filtrés (soit c\'est le produit actuel, soit liste vide).';
+          this.debugAiMessage = 'All recommended products were filtered.';
           this.loadingSimilar = false;
           this.cdr.detectChanges();
           return;
         }
 
-        this.debugAiMessage = `IA a trouvé ${aiRankedIds.length} produits. Récupération des détails...`;
+        this.debugAiMessage = `AI found ${aiRankedIds.length} products. Retrieving details...`;
 
         // Now fetch details for these IDs
         this.productService.getAllProducts(0, 100).pipe(
@@ -483,18 +483,18 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
               .slice(0, 4);
               
             if (this.similarProducts.length === 0) {
-               this.debugAiMessage = 'Les produits recommandés par l\'IA n\'existent plus dans la base de données.';
+               this.debugAiMessage = 'Recommended products no longer exist in the database.';
             } else {
-               this.debugAiMessage = `Succès ! ${this.similarProducts.length} produits affichés.`;
+               this.debugAiMessage = `Success! ${this.similarProducts.length} products displayed.`;
             }
           },
           error: () => {
-            this.debugAiMessage = 'Erreur lors de la récupération des détails des produits.';
+            this.debugAiMessage = 'Error retrieving product details.';
           }
         });
       },
       error: (err) => {
-        this.debugAiMessage = `Erreur critique: ${err.message || 'Le serveur ne répond pas.'}`;
+        this.debugAiMessage = `Critical error: ${err.message || 'Server not responding.'}`;
         this.loadingSimilar = false;
         this.cdr.detectChanges();
       }
@@ -514,7 +514,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       }
     } catch (e) {
       console.error('Data processing error', e);
-      this.errorMessage = "Erreur lors de l'analyse des données reçues.";
+      this.errorMessage = "Error analyzing received data.";
     }
   }
 
@@ -722,12 +722,12 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
     // Strict enforcement: A size MUST be selected if sizes exist
     if (this.sizeVariants.length > 0 && !this.selectedSize) {
-      alert("Veuillez choisir une taille avant d'ajouter au panier.");
+      alert("Please select a size before adding to cart.");
       return;
     }
 
     if (this.colorVariants.length > 0 && !this.selectedColor) {
-      alert("Veuillez choisir une couleur.");
+      alert("Please select a color.");
       return;
     }
 
@@ -740,13 +740,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.productService.addToCart(prod.id, this.quantity, this.selectedVariant?.id).subscribe({
       next: () => {
         this.addingToCart = false;
-        this.showToast('Produit ajouté au panier !');
+        this.showToast('Product added to cart!');
         this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Error adding to cart:', err);
         this.addingToCart = false;
-        alert("Erreur lors de l'ajout au panier. Vérifiez votre connexion ou contactez l'administrateur.");
+        alert("Error while adding to cart. Please check your connection or contact an administrator.");
         this.cdr.detectChanges();
       }
     });
